@@ -815,15 +815,23 @@ function makeSync(be,setState){
   }
   function soon(){clearTimeout(timer);timer=setTimeout(function(){run().catch(function(){})},2000)}
   function diag(c){
-    var base=c.url.replace(/\/+$/,'')+'/wp-json/',auth='Basic '+b64e(c.user+':'+c.pw),out=[];
+    var base=c.url.replace(/\/+$/,'')+'/wp-json/',auth='Basic '+b64e(c.user+':'+c.pw),out=[],A={'Authorization':auth},uid=0;
     function step(name,url,headers,method){
-      return fetch(url+(url.indexOf('?')>=0?'&':'?')+'_t='+Date.now(),{method:method||'GET',headers:headers||{},body:method==='POST'?'{}':undefined}).then(function(r){out.push(name+': lesbar, Status '+r.status)},function(e){out.push(name+': verworfen ('+((e&&e.message)||'Fehler')+')')});
+      return fetch(url+(url.indexOf('?')>=0?'&':'?')+'_t='+Date.now(),{method:method||'GET',headers:headers||{},body:method==='POST'?'{}':undefined}).then(function(r){out.push(name+': '+r.status)},function(){out.push(name+': VERWORFEN')});
     }
-    return step('1 einfache Anfrage',base)
-      .then(function(){return step('2 mit Authorization',base+'wp/v2/users/me',{'Authorization':auth})})
-      .then(function(){return step('3 Beitragsliste',base+'wp/v2/posts?status=private&per_page=1&context=edit&_fields=id,slug',{'Authorization':auth})})
-      .then(function(){return step('4 POST mit JSON',base+'wp/v2/posts/0',{'Authorization':auth,'Content-Type':'application/json'},'POST')})
-      .then(function(){return out.join(' | ')});
+    function P(q){return base+'wp/v2/posts?'+q}
+    var seq=[
+      function(){return step('einfach',base)},
+      function(){return fetch(base+'wp/v2/users/me?_fields=id&_t='+Date.now(),{headers:A}).then(function(r){return r.json()}).then(function(j){uid=j.id||0;out.push('Benutzer: '+uid)},function(){out.push('Benutzer: VERWORFEN')})},
+      function(){return step('POST',base+'wp/v2/posts/0',{'Authorization':auth,'Content-Type':'application/json'},'POST')},
+      function(){return step('A Liste klein',P('status=private&per_page=1&context=edit&_fields=id,slug'),A)},
+      function(){return step('B +author',P('status=private&author='+uid+'&per_page=1&context=edit&_fields=id,slug'),A)},
+      function(){return step('C +per_page 100',P('status=private&per_page=100&context=edit&_fields=id,slug'),A)},
+      function(){return step('D +content',P('status=private&per_page=1&context=edit&_fields=id,slug,content'),A)},
+      function(){return step('E +page',P('status=private&per_page=1&page=1&context=edit&_fields=id,slug'),A)},
+      function(){return step('F original',P('status=private&author='+uid+'&per_page=100&page=1&context=edit&_fields=id,slug,content'),A)}
+    ];
+    return seq.reduce(function(p,f){return p.then(f)},Promise.resolve()).then(function(){return out.join(' | ')});
   }
   function test(c){
     return req(c,'/users/me?context=edit&_fields=id,name').then(function(r){return 'Verbindung steht, angemeldet als '+(r.json.name||'Benutzer')+'.'},function(e){

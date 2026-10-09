@@ -40,6 +40,9 @@ p{margin:0}
 .top>div{max-width:1180px;margin:0 auto}
 .top h1{color:var(--onDark);font-size:clamp(1.5rem,4vw,2.1rem);font-weight:800}
 .top p{margin-top:.35rem;color:#C9CED3;max-width:46rem}
+.top .offstate{font-family:var(--f-data);font-size:.78rem;font-weight:600;margin-top:.6rem}
+.offstate::before{content:"";display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:#A3A9AF;margin-right:.45rem}
+.offstate[data-kind="ok"]::before{background:var(--green)}
 .wrap{max-width:1180px;margin:0 auto;padding-block:1.4rem 2.4rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));display:grid;gap:1.4rem;grid-template-columns:minmax(0,1fr)}
 @media (min-width:1000px){.wrap{grid-template-columns:minmax(0,25rem) minmax(0,1fr);align-items:start}}
 @media (min-width:1280px){.wrap,.top>div{max-width:1360px}.wrap{grid-template-columns:minmax(0,27rem) minmax(0,1fr)}}
@@ -124,6 +127,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 <header class="top"><div>
   <h1>Vor-Ort-Check Sanierung</h1>
   <p>Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.</p>
+  <p class="offstate" id="offstate" hidden></p>
 </div></header>
 
 <main class="wrap">
@@ -952,6 +956,17 @@ if(typeof document!=='undefined') init();
 <script>
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
-}
+  (function(){
+    var el=document.getElementById('offstate'),NEED=13;if(!el) return;el.hidden=false;
+    function check(){
+      caches.keys().then(function(ks){return ks.length?caches.open(ks[ks.length-1]).then(function(c){return c.keys()}):[]}).then(function(k){
+        if(k.length>=NEED){el.dataset.kind='ok';el.textContent='Offline bereit'}
+        else{el.dataset.kind='wait';el.textContent='Offline noch nicht bereit. Bitte mit Internet geöffnet lassen, bis hier "Offline bereit" steht.'}
+      }).catch(function(){el.dataset.kind='wait';el.textContent='Offline-Speicher nicht verfügbar'});
+    }
+    check();setTimeout(check,2500);setTimeout(check,7000);setTimeout(check,15000);
+    navigator.serviceWorker.ready.then(function(){setTimeout(check,800)});
+  })();
+}else{var e=document.getElementById('offstate');if(e){e.hidden=false;e.textContent='Offline nicht verfügbar in diesem Browser'}}
 </script>
 </body></html>

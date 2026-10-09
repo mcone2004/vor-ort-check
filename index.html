@@ -724,9 +724,9 @@ function localBackend(){
 // Abgleich mit WordPress über die REST-Schnittstelle. Jeder Kunde ist ein privater Beitrag (Slug ocheck-<id>), Inhalt als Base64-JSON,
 // damit der WordPress-HTML-Filter nichts verändert. Anmeldung mit Anwendungspasswort, Konfiguration nur auf diesem Gerät.
 function makeSync(be,setState){
-  var KEY='ocheck.sync',busy=false,timer=null,lastOk=null;
+  var KEY='ocheck.sync',busy=false,timer=null,lastOk=null,authBlocked=false;
   function cfg(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}}
-  function saveCfg(c){try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}}
+  function saveCfg(c){authBlocked=false;try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}}
   function b64e(str){var by=new TextEncoder().encode(str),s='';for(var i=0;i<by.length;i++) s+=String.fromCharCode(by[i]);return btoa(s)}
   function b64d(b){var s=atob(b.replace(/\s+/g,'')),by=new Uint8Array(s.length);for(var i=0;i<s.length;i++) by[i]=s.charCodeAt(i);return new TextDecoder().decode(by)}
   function strip(rec){var o=Object.assign({},rec);delete o._s;return o}
@@ -736,11 +736,28 @@ function makeSync(be,setState){
     var h={'Authorization':'Basic '+b64e(c.user+':'+c.pw)};
     if(opt.body) h['Content-Type']='application/json';
     return fetch(c.url.replace(/\/+$/,'')+'/wp-json/wp/v2'+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined,cache:'no-store'}).then(function(r){
-      if(r.status===401||r.status===403) throw fail('auth','Anmeldung abgelehnt. Benutzername und Anwendungspasswort prüfen. Anwendungspasswörter können serverseitig (Sicherheits-Plugin) abgeschaltet sein.');
+      if(r.status===401||r.status===403) return r.text().then(function(t){
+        var j=null;try{j=JSON.parse(t)}catch(e){}
+        var code=(j&&j.code)||'',msg;
+        if(/application_passwords_disabled/.test(code)) msg='Anwendungspasswörter sind auf dem Server abgeschaltet (Wordfence oder anderes Plugin).';
+        else if(code==='incorrect_password'||code==='invalid_username'||code==='invalid_email') msg='Benutzername oder Anwendungspasswort falsch. Das normale Anmeldepasswort funktioniert hier nicht. Ein Anwendungspasswort hat 24 Zeichen (sechs Blöcke zu vier).';
+        else if(code==='rest_not_logged_in'||code==='rest_forbidden'||code==='rest_cannot_view') msg='Der Server ignoriert die Anmeldung (Code '+code+'). Häufige Ursache: Der Webserver reicht den Authorization-Header nicht an WordPress durch. Dann hilft eine Zeile in der .htaccess, oder der Hoster muss es freigeben.';
+        else if(j&&code) msg='Anmeldung abgelehnt (Code '+code+').';
+        else msg='Anfrage vom Server blockiert (Fehler '+r.status+', keine WordPress-Antwort). Wahrscheinlich eine Firewall oder ein Sicherheits-Plugin.';
+        throw fail('auth',msg);
+      });
       if(r.status===404) throw fail('route','Schnittstelle nicht gefunden. Adresse der WordPress-Seite prüfen.');
       if(!r.ok) throw fail('http','Server antwortet mit Fehler '+r.status+'.');
       return r.json().then(function(j){return {json:j,headers:r.headers}});
-    },function(){throw fail('net','Keine Verbindung. Offline, oder der Server erlaubt den Zugriff von dieser App-Adresse nicht (CORS).')});
+    },function(){
+      // Browser meldet nur "Netzwerkfehler". Mit no-cors prüfen, ob die Seite überhaupt antwortet.
+      var root=c.url.replace(/\/+$/,'')+'/wp-json/';
+      return fetch(root,{mode:'no-cors',cache:'no-store'}).then(function(){
+        throw fail('cors','Die Seite ist erreichbar, aber der Browser verwirft die Antwort (CORS). Mögliche Ursachen: Firewall oder Sicherheits-Plugin der Seite, Zwischenspeicher (LiteSpeed), oder ein Inhaltsblocker, VPN oder Datenschutz-Relay auf diesem Gerät.');
+      },function(){
+        throw fail('net','Keine Verbindung zur Seite. Offline, oder die Seite sperrt dieses Netz oder Gerät (Firewall), oder ein Inhaltsblocker, VPN oder Datenschutz-Relay blockiert sie.');
+      });
+    });
   }
   function listRemote(c,uid){
     var out=[];
@@ -755,8 +772,9 @@ function makeSync(be,setState){
     }
     return page(1).then(function(){return out});
   }
-  function run(){
+  function run(manual){
     var c=cfg();
+    if(authBlocked&&!manual) return Promise.resolve();
     if(!c||!c.url||!c.user||!c.pw){setState({kind:'off',text:'Abgleich nicht eingerichtet'});return Promise.resolve()}
     if(typeof navigator!=='undefined'&&navigator.onLine===false){setState({kind:'offline',text:'Offline'});return Promise.resolve()}
     if(busy) return Promise.resolve();
@@ -787,8 +805,8 @@ function makeSync(be,setState){
       busy=false;lastOk=new Date();
       setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')});
     },function(e){
-      busy=false;
-      setState({kind:e.code==='net'?'offline':'err',text:e.code==='net'?'Offline, '+be.pending()+' Änderung(en) offen':e.message});
+      busy=false;if(e.code==='auth') authBlocked=true;
+      setState({kind:e.code==='net'?'offline':'err',text:e.code==='net'?'Offline, '+be.pending()+' Änderung(en) offen':(e.code==='auth'?'Anmeldung abgelehnt, automatischer Abgleich pausiert':e.message)});
       throw e;
     });
   }
@@ -896,7 +914,7 @@ function initKunden(backendP){
       if(!c2.url||!c2.user||!c2.pw){smsg('Bitte Adresse, Benutzer und Anwendungspasswort eintragen.');return}
       smsg('Prüfe …');sync.test(c2).then(smsg,function(e){smsg(e.message)});
     });
-    $('kd_sy_run').addEventListener('click',function(){sync.saveCfg(read());smsg('');sync.run().then(function(){smsg('Abgleich abgeschlossen.')},function(e){smsg(e.message)})});
+    $('kd_sy_run').addEventListener('click',function(){sync.saveCfg(read());smsg('');sync.run(true).then(function(){smsg('Abgleich abgeschlossen.')},function(e){smsg(e.message)})});
     $('kd_exp').addEventListener('click',function(){var n=exportFile(be);smsg(n+' Kunde(n) exportiert.')});
     $('kd_imp').addEventListener('click',function(){$('kd_file').click()});
     $('kd_file').addEventListener('change',function(){

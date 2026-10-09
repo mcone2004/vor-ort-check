@@ -412,8 +412,8 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
       <li>Jahresarbeitszahl als Näherung für Luft-Wasser-Wärmepumpen, sinkt mit steigendem Vorlauf. Warmwasser pauschal 12,5 kWh/m²a.</li>
       <li>1 Liter Öl und 1 m³ Gas gelten als 10 kWh, 1 kg Pellets als 4,8 kWh.</li>
       <li>Bauteilflächen ohne Eingabe: aus Wohnfläche und Gebäudetyp geschätzt (Außenwand 0,75, Fenster 0,14, Dach 0,50, Boden 0,45 m² je m² Wohnfläche beim freistehenden EFH). Eingegebene Flächen ersetzen den jeweiligen Schätzwert. Außenwand netto ohne Fenster.</li>
-      <li>Photovoltaik: Ertrag 950 kWh je kWp und Jahr. Vom Strom der Wärmepumpe deckt die PV direkt etwa 22 % (höchstens 35 % des Ertrags), ein Speicher je kWh weitere ca. 150 kWh im Jahr (höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms). Haushaltsstrom ist nicht angerechnet. Eingespeister Strom wird mit der Einspeisevergütung bewertet.</li>
-      <li>Solarthermie: 350 kWh je m² und Jahr nur Warmwasser, 280 kWh mit Heizungsunterstützung. Angerechnet höchstens 60 % des Warmwasserbedarfs, bei Kombianlagen zusätzlich 8 % der Heizwärme. Eine vorhandene Anlage wird bei der Heizwärme aus dem Verbrauch mit berücksichtigt.</li>
+      <li>Photovoltaik: Ertrag 950 kWh je kWp und Jahr. Vom Strom der Wärmepumpe deckt die PV direkt etwa 22 % (höchstens 35 % des Ertrags), ein Speicher je kWh weitere ca. 150 kWh im Jahr (höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms). In den Varianten wird nur der Anteil für die Wärmepumpe angerechnet (Strompreis minus Einspeisevergütung), der Haushaltsstrom nur als Verlust, wenn er durch die Wärmepumpe weniger PV-Strom bekommt. Vorhandene PV wirkt im Bestand nur bei Direktstrom-Heizung, sonst auf den Haushaltsstrom und nicht auf die Heizkosten. Geplante PV gilt nur in den Varianten. Investitionen für PV und Speicher sind nicht enthalten.</li>
+      <li>Solarthermie: 350 kWh je m² und Jahr nur Warmwasser, 280 kWh mit Heizungsunterstützung. Angerechnet höchstens 60 % des Warmwasserbedarfs, bei Kombianlagen zusätzlich 8 % der Heizwärme. Eine vorhandene Anlage wird bei der Heizwärme aus dem Verbrauch mit berücksichtigt und senkt im Bestand den Brennstoffeinsatz. In den Varianten mindert vorhandene und geplante Solarthermie den Wärmepumpenstrom (Nutzwärme ÷ Jahresarbeitszahl).</li>
       <li>Haushaltsstrom (falls eingetragen): Die PV deckt davon direkt etwa 28 %, gemeinsam mit dem Wärmepumpenstrom höchstens 35 % des Ertrags. Der Speicher bringt je kWh ca. 150 kWh im Jahr, höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms plus 20 % des Haushaltsstroms. Selbst genutzter Haushaltsstrom wird mit dem Haushaltsstrompreis bewertet.</li>
       <li>Mehrere Verbrauchsjahre: Mittel der eingetragenen Jahre, keine Witterungsbereinigung.</li>
       <li>Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet.</li>
@@ -606,22 +606,39 @@ function stNutz(o,q){
   var cap=(o.stNu==='kombi')?(0.6*ww+0.08*q*o.wf):0.6*ww;
   return Math.min(raw,cap);
 }
-// Deckung des Wärmepumpenstroms: direkt ca. 22 %, höchstens 35 % des Ertrags; Speicher bringt je kWh ca. 150 kWh/a, höchstens 20 % des Ertrags und 15 % des WP-Stroms
+// PV-Deckung für einen Strombedarf E (Wärmepumpe oder Direktstrom) neben dem Haushaltsstrom H:
+// direkt ca. 22 % von E und 28 % von H, zusammen höchstens 35 % des Ertrags; Speicher bringt je kWh ca. 150 kWh/a,
+// höchstens 20 % des Ertrags und 15 % von E plus 20 % von H; insgesamt höchstens 65 % des Ertrags.
+function pvCalc(o,E){
+  if(!(o.pvSt>0&&+o.pvKwp>0)) return null;
+  var H=+o.hh>0?+o.hh:0,pe=(+o.pEin>0)?+o.pEin:0.08,pH=(+o.pHH>0)?+o.pHH:0.35;
+  var kwp=+o.pvKwp,sp=+o.pvSp||0,Y=kwp*PVY,dE=0.22*E,dH=0.28*H,dir=Math.min(dE+dH,0.35*Y),f=(dE+dH)>0?dir/(dE+dH):0;
+  dE*=f;dH*=f;
+  var sto=Math.min(sp*150,0.20*Y,0.15*E+0.20*H),sE=(E+H)>0?sto*(0.15*E)/(0.15*E+0.20*H):0,sH=sto-sE;
+  var cE=dE+sE,cH=dH+sH,cap=0.65*Y,s=(cE+cH)>cap?cap/(cE+cH):1;cE*=s;cH*=s;
+  return {kwp:kwp,sp:sp,Y:Y,cov:cE+cH,covE:cE,covH:cH,stoUse:sto*s,H:H,pe:pe,pH:pH,E:E,pct:E>0?cE/E:0,pctAll:(E+H)>0?(cE+cH)/(E+H):0};
+}
+// Vorteil der PV für die Heizung: gedeckter Anteil des Heizstroms zum Strompreis minus Einspeisevergütung,
+// abzüglich dessen, was der Haushalt durch die Konkurrenz um den PV-Strom verliert (gegenüber PV ohne Heizstrom).
+function pvVar(o,E,price){
+  var p=pvCalc(o,E);
+  if(!p) return {p:null,ben:0};
+  var p0=pvCalc(o,0);
+  p.ben=p.covE*(price-p.pe)-Math.max(0,p0.covH-p.covH)*(p.pH-p.pe);
+  p.hhBen=p.covH*(p.pH-p.pe); // Nutzen für den Haushaltsstrom insgesamt, nur zur Anzeige
+  return {p:p,ben:p.ben};
+}
 function solar(o,S,ist,q){
   var r={pv:null,st:null},E=S[0].strom,H=+o.hh>0?+o.hh:0,pe=(+o.pEin>0)?+o.pEin:0.08,pH=(+o.pHH>0)?+o.pHH:0.35;
   if(o.pvSt>0){
     var kwp=+o.pvKwp||0,sp=+o.pvSp||0,rec=Math.max(2,Math.round((E+(H>0?H:3500))/PVY*2)/2);
-    if(kwp>0){
-      var Y=kwp*PVY,dE=0.22*E,dH=0.28*H,dir=Math.min(dE+dH,0.35*Y),f=(dE+dH)>0?dir/(dE+dH):0;
-      dE*=f;dH*=f;
-      var sto=Math.min(sp*150,0.20*Y,0.15*E+0.20*H),sE=(E+H)>0?sto*(0.15*E)/(0.15*E+0.20*H):0,sH=sto-sE;
-      var cE=dE+sE,cH=dH+sH,cap=0.65*Y,s=(cE+cH)>cap?cap/(cE+cH):1;cE*=s;cH*=s;
-      var cov=cE+cH;
-      r.pv={st:o.pvSt,kwp:kwp,sp:sp,Y:Y,cov:cov,covE:cE,covH:cH,stoUse:sto*s,H:H,pct:E>0?cE/E:0,pctAll:(E+H)>0?cov/(E+H):0,save:cE*(o.pWp-pe)+cH*(pH-pe),rec:rec,pe:pe,E:E};
+    var c=pvCalc(o,E);
+    if(c){
+      r.pv={st:o.pvSt,kwp:kwp,sp:sp,Y:c.Y,cov:c.cov,covE:c.covE,covH:c.covH,stoUse:c.stoUse,H:H,pct:c.pct,pctAll:c.pctAll,save:c.covE*(o.pWp-pe)+c.covH*(pH-pe),ben:S[0].pvBen,rec:rec,pe:pe,E:E};
     }else r.pv={st:o.pvSt,kwp:0,sp:sp,rec:rec,E:E,H:H,pe:pe};
   }
   if(o.stSt>0&&+o.stM2>0){
-    var n=stNutz(o,q),st=n/S[0].jaz;
+    var n=S[0].stN,st=S[0].stSav;
     r.st={st:o.stSt,m2:+o.stM2,nu:o.stNu||'ww',nutz:n,strom:st,save:st*o.pWp,saveAlt:n/ist.eta*o.pAlt};
   }
   return r;
@@ -658,7 +675,12 @@ function compute(o){
     var vl=clamp(vlModel(o,q,qOrigW,q*1000/VBH,fm)+shift,30,80);
     var j=jaz(vl);
     var r={name:name,qh:q,kw:q*o.wf/VBH,vl:vl,jaz:j,rate:rate(vl)};
-    r.strom=(q+WW)*o.wf/j; r.cost=r.strom*o.pWp;
+    // Solarthermie (vorhanden oder geplant) spart Wärmepumpenstrom, danach deckt die PV einen Teil des verbleibenden Stroms
+    var s0=(q+WW)*o.wf/j;
+    r.stN=(o.stSt>0)?stNutz(o,q):0; r.stSav=Math.min(r.stN/j,0.8*s0);
+    r.strom=s0-r.stSav; r.gross=r.strom*o.pWp;
+    var pv=pvVar(o,r.strom,o.pWp); r.pv=pv.p; r.pvBen=pv.ben;
+    r.cost=r.gross-r.pvBen;
     return r;
   }
   var cu=canUp(o);
@@ -675,8 +697,16 @@ function compute(o){
     var s4=scen('Wärmepumpe + Heizkörpertausch',o.st,o.fen,sw);
     if(S[0].vl-s4.vl>=2) S.push(s4); else hkNoGain=true; // ohne spürbar niedrigeren Vorlauf keine eigene Variante
   }
-  var ist={qh:qIst,kw:qIst*o.wf/VBH,eta:eta,end:(qIst+WW)*o.wf/eta,vl:null};
-  ist.cost=ist.end*o.pAlt;
+  // Bestand: vorhandene Solarthermie hat schon Brennstoff gespart (im Verbrauch enthalten); vorhandene PV deckt Direktstrom-Heizung, sonst nur den Haushalt
+  var stI=(o.stSt===1)?stNutz(o,mode==='verbrauch'?qBT:qIst):0;
+  var ist={qh:qIst,kw:qIst*o.wf/VBH,eta:eta,vl:null,stSav:stI/eta};
+  ist.end=(qIst+WW)*o.wf/eta-ist.stSav;
+  ist.pv=null;ist.pvBen=0;
+  if(o.pvSt===1&&+o.pvKwp>0){
+    var pvI=pvVar(o,o.tr==='strom'?ist.end:0,o.pAlt);
+    ist.pv=pvI.p;ist.pvBen=o.tr==='strom'?pvI.ben:0;
+  }
+  ist.cost=ist.end*o.pAlt-ist.pvBen;
   var an=o.wf*anFaktor(o);
   ist.eA=ist.end/an; ist.klasse=klasse(ist.eA);
   S.forEach(function(s){s.eA=s.strom/an;s.klasse=klasse(s.eA)});
@@ -757,6 +787,26 @@ function pay(inv,dSav){
   if(inv>0&&dSav>0) return fmt(inv/dSav,1)+' Jahre';
   return inv>0?'keine Ersparnis':'Invest eintragen';
 }
+var r10g=function(x){return fmt(Math.round(x/10)*10)};
+var SOT=function(x){return x===1?'vorhanden':'geplant'};
+// Solarzeilen für Bestandskarte und Variantenkarten
+function solRowsIst(o,I){
+  var r=[];
+  if(I.stSav>0) r.push(['Solarthermie (vorhanden)','spart ca. '+r10g(I.stSav)+' kWh Brennstoff/a, im Verbrauch enthalten']);
+  if(I.pv){
+    var p=I.pv;
+    if(o.tr==='strom') r.push(['Photovoltaik (vorhanden)',fmt(p.kwp,1)+' kWp, deckt ca. '+r10g(p.covE)+' kWh des Heizstroms, spart ca. '+eur(I.pvBen)+'/a']);
+    else if(p.H>0) r.push(['Photovoltaik (vorhanden)',fmt(p.kwp,1)+' kWp, deckt ca. '+r10g(p.covH)+' kWh Haushaltsstrom, Vorteil ca. '+eur(p.hhBen)+'/a (nicht in den Heizkosten)']);
+    else r.push(['Photovoltaik (vorhanden)',fmt(p.kwp,1)+' kWp, Ertrag ca. '+r10g(p.Y)+' kWh/a, wirkt nicht auf die Heizkosten']);
+  }
+  return r;
+}
+function solRowsVar(o,s){
+  var r=[];
+  if(s.stN>0) r.push(['Solarthermie ('+SOT(o.stSt)+')','spart ca. '+r10g(s.stSav)+' kWh Strom/a']);
+  if(s.pv) r.push(['Photovoltaik ('+SOT(o.pvSt)+')','deckt ca. '+r10g(s.pv.covE)+' kWh = '+fmt(Math.round(s.pv.pct*100))+' % des Stroms, Vorteil ca. '+eur(s.pvBen)+'/a']);
+  return r;
+}
 function card(title,sub,rows,cls){
   var h='<article class="sc '+(cls||'')+'"><h3>'+title+'</h3><p class="sub">'+sub+'</p><dl>';
   rows.forEach(function(r){h+='<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'});
@@ -781,17 +831,22 @@ function srcRows(X){
   rows.push(['Heizwärme '+fmt(I.qh)+' kWh/m²a',base]);
   var tab=(CALC.ETA[o.tr]||[]).map(function(x){return Math.round(x*100)}).join(' / ');
   rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+(EL[o.tr]||o.tr)+', Anlage '+HA[o.ha]+'. Richtwerte nach Alter der Anlage (vor 1995 / 1995 bis 2005 / 2006 bis 2015 / ab 2016): '+tab+' %. Ein Schätzwert, die tatsächliche Anlage kann abweichen.']);
-  rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+' + 12,5 Warmwasser) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end)+' kWh im Jahr.'+(mode==='verbrauch'?' Das entspricht dem eingetragenen Verbrauch.':'')]);
+  rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+' + 12,5 Warmwasser) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end+I.stSav)+' kWh'+(I.stSav>0?', abzüglich '+r0(I.stSav)+' kWh, die die vorhandene Solarthermie liefert, = '+r0(I.end)+' kWh im Jahr.':' im Jahr.')+(mode==='verbrauch'?' Das entspricht dem eingetragenen Verbrauch.':'')]);
   rows.push(['Heizlast '+fmt(I.kw,1)+' kW',fmt(I.qh)+' kWh/m²a × '+r0(wf)+' m² ÷ 1.700 Volllaststunden. Näherung aus dem Verbrauch, keine Heizlastberechnung nach DIN EN 12831.']);
   var anf=I.eA>0?I.end/I.eA/wf:1.2;
   rows.push(['Energieklasse '+I.klasse,r0(I.end)+' kWh ÷ ('+r0(wf)+' m² × '+fmt(anf,2)+' Gebäudenutzfläche) = '+r0(I.eA)+' kWh/m²a, eingeordnet in die Skala des Energieausweises (D: 100 bis unter 130). Orientierung, kein Energieausweis.']);
-  var pa=I.end>0?I.cost/I.end:0;
-  rows.push(['Heizkosten '+eur(I.cost)+'/a',r0(I.end)+' kWh × '+fmt(pa,2)+' €/kWh bisheriger Preis. Ohne Grundpreis, CO₂-Preisentwicklung und Wartung.']);
+  rows.push(['Heizkosten '+eur(I.cost)+'/a',r0(I.end)+' kWh × '+fmt(o.pAlt,2)+' €/kWh bisheriger Preis'+(I.pvBen>0?', abzüglich Vorteil der vorhandenen PV von '+eur(I.pvBen)+' (Direktstrom-Heizung)':'')+'. Ohne Grundpreis, CO₂-Preisentwicklung und Wartung.']);
   rows.push(['Wärmepumpe: Vorlauf '+Math.round(s1.vl)+' °C','Aus dem Verhältnis der heutigen Heizlast zu der, für die die Heizkörper ausgelegt wurden (Baujahr, Heizkörpertyp). Je geringer die Last, desto niedriger der nötige Vorlauf.'+(o.vlm!=null?' Angepasst an den gemessenen Vorlauf von '+o.vlm+' °C.':' Kein Vorlauf gemessen, daher Modellwert.')]);
   rows.push(['Jahresarbeitszahl '+fmt(s1.jaz,1),'Näherung: 4,0 − 0,052 × (Vorlauf − 35 °C) = '+fmt(4.0-0.052*(s1.vl-35),2)+', begrenzt auf 2,0 bis 4,6. Je höher der Vorlauf, desto weniger Wärme je kWh Strom.']);
-  rows.push(['Strom '+fmt(s1.strom/1000,1)+' MWh/a, Kosten '+eur(s1.cost)+'/a','('+fmt(s1.qh)+' + 12,5) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(s1.jaz,1)+' = '+r0(s1.strom)+' kWh × '+fmt(o.pWp,2)+' €/kWh Wärmepumpenstrom.']);
+  rows.push(['Strom '+fmt(s1.strom/1000,1)+' MWh/a, Kosten '+eur(s1.cost)+'/a','('+fmt(s1.qh)+' + 12,5) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(s1.jaz,1)+' = '+r0(s1.strom+s1.stSav)+' kWh'+(s1.stSav>0?', abzüglich '+r0(s1.stSav)+' kWh durch Solarthermie ('+r0(s1.stN)+' kWh Wärme ÷ JAZ) = '+r0(s1.strom)+' kWh':'')+' × '+fmt(o.pWp,2)+' €/kWh Wärmepumpenstrom = '+eur(s1.gross)+(s1.pv?', abzüglich Vorteil der Photovoltaik '+eur(s1.pvBen)+' ('+r0(s1.pv.covE)+' kWh Eigenverbrauch × (Strompreis − Einspeisevergütung '+fmt(s1.pv.pe,2)+' €)'+(s1.pv.H>0?', gemindert um den Haushaltsstrom, der dadurch weniger PV-Strom bekommt':'')+')':'')+'.']);
   var sv=I.cost-s1.cost;
   rows.push(['Ersparnis '+(sv>=0?eur(sv):'−'+eur(-sv))+'/a','Heizkosten Bestand ('+eur(I.cost)+') minus Stromkosten Wärmepumpe ('+eur(s1.cost)+').'+(o.inv1>0?' Amortisation: Investition '+eur(o.inv1)+' ÷ Ersparnis.':'')]);
+  if(R.solar&&(R.solar.pv||R.solar.st)){
+    var sp=R.solar.pv,sst=R.solar.st,tx=[];
+    if(sst) tx.push('Solarthermie '+fmt(sst.m2,1)+' m² ('+SOT(sst.st)+'): '+(sst.nu==='kombi'?'280':'350')+' kWh/m²a, höchstens 60 % des Warmwasserbedarfs'+(sst.nu==='kombi'?' plus 8 % der Heizwärme':'')+' = '+r0(sst.nutz)+' kWh Wärme, geteilt durch die Jahresarbeitszahl = '+r0(sst.strom)+' kWh weniger Strom'+(sst.st===1?'. Im Bestand ist sie im Verbrauch schon enthalten':'')+'.');
+    if(sp&&sp.kwp>0) tx.push('Photovoltaik '+fmt(sp.kwp,1)+' kWp ('+SOT(sp.st)+'): '+fmt(sp.kwp,1)+' × 950 = '+r0(sp.Y)+' kWh Ertrag. Davon geht ein Teil direkt oder über den Speicher in den Wärmepumpenstrom ('+r0(sp.covE)+' kWh = '+Math.round(sp.pct*100)+' %). Bewertet mit Wärmepumpen-Strompreis minus Einspeisevergütung.');
+    if(tx.length) rows.push(['Solar in den Varianten',tx.join(' ')+' Vorhandene Anlagen gelten im Bestand und in den Varianten, geplante nur in den Varianten.']);
+  }
   rows.push(['Varianten mit Sanierung','Gleiche Rechnung mit besseren U-Werten. Aktueller Stand: Außenwand U 0,22, Dach 0,16, Kellerdecke 0,30, Fenster Uw 0,95 W/m²K. Bereits bessere Bauteile bleiben erhalten. Heizlast V3: '+fmt(s3.kw,1)+' kW, Vorlauf '+Math.round(s3.vl)+' °C.']);
   rows.push(['Genauigkeit','Grobe Schätzung, etwa ±25 %. Die Eingaben beim Termin (Verbrauch, Bauteile, gemessener Vorlauf) bestimmen die Qualität. Eine genaue Auslegung braucht die Heizlastberechnung nach DIN EN 12831.']);
   return rows;
@@ -847,15 +902,16 @@ function render(){
   }else{
     t='Die Wärmepumpe wäre im Bestand zwar einsetzbar, spart bei den eingegebenen Preisen aber nichts gegenüber der bisherigen Heizung. Preise und Jahresarbeitszahl prüfen.';
   }
+  if(R.solar&&((R.solar.pv&&R.solar.pv.kwp>0)||R.solar.st)) t+=' Vorhandene Solaranlagen sind im Bestand und in den Varianten berücksichtigt, geplante nur in den Varianten.';
   var rec='<section class="panel"><h2>Einschätzung</h2><p>'+t+'</p></section>';
 
   // 3 Szenarien
   var sc='<section><h2>Varianten im Vergleich</h2><div class="grid">';
   sc+=card('Bestandsheizung weiter',TRN[o.tr]+', Nutzungsgrad ca. '+Math.round(I.eta*100)+' %',[
-    ['Heizwärme',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlast',fmt(I.kw,1)+' kW'],['Energieeinsatz',fmt(I.end/1000,1)+' MWh/a'],['Heizkosten',eur(I.cost)+'/a']],'base');
+    ['Heizwärme',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlast',fmt(I.kw,1)+' kW'],['Energieeinsatz',fmt(I.end/1000,1)+' MWh/a']].concat(solRowsIst(o,I),[['Heizkosten',eur(I.cost)+'/a']]),'base');
   [[s1,'Heizkörper und Hülle bleiben',0,0],[s2,dk+' gedämmt',o.inv2,add2],[s3,'Wand, Dach, Fenster'+(cu?', Kellerdecke':'')+' auf aktuellem Stand',o.inv3,add3]].concat(S[3]?[[S[3],'Alle '+HKN[o.hkTyp]+' gegen Typ 33, gleiche Baugröße',o.inv4,s1.cost-S[3].cost]]:[]).forEach(function(a,i){
     var s=a[0];
-    var rows=[['Heizwärme',fmt(s.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(s.klasse,s.eA)],['Heizlast',fmt(s.kw,1)+' kW'],['Vorlauf',Math.round(s.vl)+' °C'+gauge(s.vl)],['Jahresarbeitszahl',fmt(s.jaz,1)],['Strom',fmt(s.strom/1000,1)+' MWh/a'],['Heizkosten',eur(s.cost)+'/a']];
+    var rows=[['Heizwärme',fmt(s.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(s.klasse,s.eA)],['Heizlast',fmt(s.kw,1)+' kW'],['Vorlauf',Math.round(s.vl)+' °C'+gauge(s.vl)],['Jahresarbeitszahl',fmt(s.jaz,1)],['Strom',fmt(s.strom/1000,1)+' MWh/a']].concat(solRowsVar(o,s),[['Heizkosten'+((s.stN>0||s.pv)?' (mit Solar)':''),eur(s.cost)+'/a']]);
     if(i===0) rows.push(['Ersparnis zur Bestandsheizung',(sav1>=0?eur(sav1):'−'+eur(-sav1))+'/a'],['Amortisation WP',pay(o.inv1,sav1)]);
     else rows.push(['Mehrersparnis zu Variante 1',eur(Math.max(0,a[3]))+'/a'],[i===3?'Amortisation Tausch':'Amortisation Hülle',pay(a[2],a[3])]);
     sc+=card('Variante '+(i+1)+': '+s.name.replace('Wärmepumpe','WP'),a[1],rows,'r'+s.rate.k);
@@ -1016,13 +1072,13 @@ function solarLines(R){
   if(s.pv){
     var p=s.pv;
     if(p.kwp>0){
-      out.push('Photovoltaik ('+stT(p.st)+'): '+fmt(p.kwp,1)+' kWp'+(p.sp>0?' mit '+fmt(p.sp,1)+' kWh Batteriespeicher':' ohne Speicher')+', Ertrag etwa '+r10(p.Y)+' kWh im Jahr. Davon deckt sie etwa '+r10(p.covE)+' kWh ('+fmt(Math.round(p.pct*100))+' %) des Wärmepumpenstroms von etwa '+r10(p.E)+' kWh im Jahr'+(p.H>0?' und etwa '+r10(p.covH)+' kWh des Haushaltsstroms von '+r10(p.H)+' kWh. Zusammen sind das '+fmt(Math.round(p.pctAll*100))+' % des gesamten Strombedarfs':'')+'. Das spart rechnerisch etwa '+r10(p.save)+' € im Jahr gegenüber Netzstrom. Der übrige Ertrag wird mit '+fmt(p.pe,2)+' €/kWh bewertet'+(p.H>0?'.':', Haushaltsstrom ist nicht angerechnet.'));
+      out.push('Photovoltaik ('+stT(p.st)+'): '+fmt(p.kwp,1)+' kWp'+(p.sp>0?' mit '+fmt(p.sp,1)+' kWh Batteriespeicher':' ohne Speicher')+', Ertrag etwa '+r10(p.Y)+' kWh im Jahr. Davon deckt sie etwa '+r10(p.covE)+' kWh ('+fmt(Math.round(p.pct*100))+' %) des Wärmepumpenstroms von etwa '+r10(p.E)+' kWh im Jahr'+(p.H>0?' und etwa '+r10(p.covH)+' kWh des Haushaltsstroms von '+r10(p.H)+' kWh. Zusammen sind das '+fmt(Math.round(p.pctAll*100))+' % des gesamten Strombedarfs':'')+'. Das spart rechnerisch etwa '+r10(p.save)+' € im Jahr gegenüber Netzstrom. Der übrige Ertrag wird mit '+fmt(p.pe,2)+' €/kWh bewertet'+(p.H>0?'.':', Haushaltsstrom ist nicht angerechnet.')+' In den Varianten mit Wärmepumpe ist nur der Anteil für die Wärmepumpe eingerechnet, in Variante 1 etwa '+r10(p.ben)+' € im Jahr'+(p.st===1?'. Im Bestand wirkt die vorhandene Anlage auf den Haushaltsstrom und bleibt in den Heizkosten außen vor.':'. Die Investition für die PV ist nicht enthalten.'));
       if(p.sp>0&&p.stoUse<50) out.push('Der Batteriespeicher bringt hier kaum zusätzlichen Eigenverbrauch. Ob er sich rechnet, ist gesondert zu prüfen.');
     }else out.push('Photovoltaik geplant: Richtwert für die Auslegung etwa '+fmt(p.rec,1)+' kWp (Wärmepumpenstrom plus '+(p.H>0?'Haushaltsstrom von '+fmt(Math.round(p.H/10)*10):'3.500')+' kWh'+(p.H>0?'':' Haushaltsstrom')+' bei 950 kWh je kWp). Mit eingetragener Leistung wird der Nutzen gerechnet.');
   }
   if(s.st){
     var t=s.st;
-    out.push('Solarthermie ('+stT(t.st)+'): '+fmt(t.m2,1)+' m², '+(t.nu==='kombi'?'mit Heizungsunterstützung':'nur Warmwasser')+', Wärmeertrag angerechnet etwa '+r10(t.nutz)+' kWh im Jahr. Mit Wärmepumpe entspricht das etwa '+r10(t.strom)+' kWh Strom oder '+r10(t.save)+' € im Jahr.'+(t.st===2?' Neben einer Wärmepumpe ist eine neue Solarthermieanlage meist weniger wirtschaftlich als zusätzliche Photovoltaik. Im Einzelfall prüfen.':' Eine vorhandene Anlage kann für das Warmwasser weiter genutzt werden. Anschluss an den Wärmepumpenspeicher prüfen.'));
+    out.push('Solarthermie ('+stT(t.st)+'): '+fmt(t.m2,1)+' m², '+(t.nu==='kombi'?'mit Heizungsunterstützung':'nur Warmwasser')+', Wärmeertrag angerechnet etwa '+r10(t.nutz)+' kWh im Jahr. Mit Wärmepumpe entspricht das etwa '+r10(t.strom)+' kWh Strom oder '+r10(t.save)+' € im Jahr.'+(t.st===2?' Neben einer Wärmepumpe ist eine neue Solarthermieanlage meist weniger wirtschaftlich als zusätzliche Photovoltaik. Im Einzelfall prüfen. In den Varianten mit Wärmepumpe ist sie eingerechnet, die Investition nicht.':' Eine vorhandene Anlage kann für das Warmwasser weiter genutzt werden. Anschluss an den Wärmepumpenspeicher prüfen. In den Heizkosten des Bestands ist sie schon enthalten, in den Varianten mindert sie den Wärmepumpenstrom.'));
   }
   return out;
 }
@@ -1553,13 +1609,16 @@ function buildReport(internal,snap){
   h+=row('Vorlauf',function(c){return c.s?Math.round(c.s.vl)+' °C':'–'});
   h+=row('Jahresarbeitszahl',function(c){return c.s?fmt(c.s.jaz,1):'–'});
   h+=row('Energieeinsatz',function(c){return c.s?fmt(c.s.strom/1000,1)+' MWh/a Strom':fmt(I.end/1000,1)+' MWh/a'});
-  h+=row('Heizkosten',function(c){return eur((c.s||I).cost)+'/a'});
+  var hasST=S.some(function(s){return s.stN>0})||I.stSav>0,hasPV=S.some(function(s){return s.pv})||!!I.pv;
+  if(hasST) h+=row('Solarthermie ('+SOT(o.stSt)+')',function(c){return c.s?(c.s.stN>0?'−'+r10g(c.s.stSav)+' kWh Strom':'–'):(I.stSav>0?'−'+r10g(I.stSav)+' kWh Brennstoff':'–')});
+  if(hasPV) h+=row('Photovoltaik ('+SOT(o.pvSt)+')',function(c){return c.s?(c.s.pv?'deckt '+fmt(Math.round(c.s.pv.pct*100))+' % des Stroms':'–'):(I.pv?(o.tr==='strom'?'deckt Heizstrom':(I.pv.H>0?'deckt '+r10g(I.pv.covH)+' kWh Haushaltsstrom':'Ertrag '+r10g(I.pv.Y)+' kWh')):'–')});
+  h+=row('Heizkosten'+((hasST||hasPV)?' (mit Solar)':''),function(c){return eur((c.s||I).cost)+'/a'});
   h+=row('Ersparnis zur Bestandsheizung',function(c){return c.s?(I.cost-c.s.cost>=0?eur(I.cost-c.s.cost):'−'+eur(c.s.cost-I.cost))+'/a':'–'});
   if(inv.slice(1,S.length+1).some(function(v){return v>0})){
     h+=row('Investition',function(c,ci){return ci&&inv[ci]>0?eur(inv[ci]):'–'});
     h+=row('Amortisation',function(c,ci){return ci?pay(inv[ci],adds[ci]).replace('Invest eintragen','–'):'–'});
   }
-  h+='</tbody></table><p style="font-size:.82em;color:#555">Amortisation: V1 gegenüber der Bestandsheizung, V2 bis V4 jeweils gegenüber V1.</p>';
+  h+='</tbody></table><p style="font-size:.82em;color:#555">Amortisation: V1 gegenüber der Bestandsheizung, V2 bis V4 jeweils gegenüber V1.'+((hasST||hasPV)?' Vorhandene Solaranlagen wirken im Bestand und in allen Varianten, geplante nur in den Varianten. Der Vorteil der Photovoltaik umfasst nur den Wärmepumpenstrom, die Investition für Solaranlagen ist nicht enthalten.':'')+'</p>';
   // Maßnahmen
   h+='<h2>Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
@@ -1730,7 +1789,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 21:09',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 21:23',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

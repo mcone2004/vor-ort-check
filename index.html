@@ -38,6 +38,15 @@ h3{font-family:var(--f-data);font-size:.95rem;font-weight:600}
 p{margin:0}
 .top{background:var(--dark);color:var(--onDark);padding-block:calc(1.6rem + env(safe-area-inset-top,0px)) 1.4rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
 .top>div{max-width:1180px;margin:0 auto}
+.top>div{position:relative}
+.hdr-act{position:absolute;right:0;top:0;display:flex;flex-direction:column;align-items:flex-end;gap:.45rem;max-width:42%}
+.hdr-act[hidden]{display:none}
+.hdr-kd{font-family:var(--f-data);font-size:.8rem;font-weight:600;color:#C9CED3;text-align:right;overflow-wrap:anywhere}
+.hdr-act button{background:transparent;color:var(--onDark);border:1.5px solid #C9CED3;border-radius:999px;padding:.45rem 1.1rem;font-weight:700;font-size:.85rem;cursor:pointer}
+.hdr-act button:hover{background:rgba(255,255,255,.12)}
+@media (max-width:700px){.hdr-act{position:static;flex-direction:row;align-items:center;justify-content:space-between;max-width:none;margin-bottom:.7rem}}
+@media (pointer:coarse),(any-pointer:coarse){.hdr-act button{min-height:44px;padding-inline:1.2rem}}
+
 .top h1{color:var(--onDark);font-size:clamp(1.5rem,4vw,2.1rem);font-weight:800}
 .top p{margin-top:.35rem;color:#C9CED3;max-width:46rem}
 .top .offstate{font-family:var(--f-data);font-size:.78rem;font-weight:600;margin-top:.6rem}
@@ -185,6 +194,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 </style>
 </head><body>
 <header class="top"><div>
+  <div class="hdr-act" id="hdract" hidden><span id="hdrkd" class="hdr-kd"></span><button type="button" id="kd_new">Neuer Kunde</button></div>
   <h1>Vor-Ort-Check Sanierung</h1>
   <p>Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.</p>
   <p class="offstate" id="netstate" data-kind="off">Offline</p>
@@ -198,7 +208,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
     <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße, Ort"></label>
     <label for="kd_note">Notiz<textarea id="kd_note" rows="3" placeholder="zum Beispiel Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
-    <div class="btns"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_new" class="ghost">Neuer Kunde</button><button type="button" id="kd_del" class="ghost" hidden>Löschen</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button></div>
+    <div class="btns"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_del" class="ghost" hidden>Löschen</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button></div>
     <div class="delbox" id="kd_delbox" hidden>
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
@@ -1043,7 +1053,9 @@ function initKunden(backendP){
     return out;
   }
   function collect(){var f={};fields().forEach(function(e){f[e.id]=e.value});return f}
+  var DEF0=collect(); // Ausgangswerte des Formulars: fehlende Felder in älteren Datensätzen und „Kunde schließen“ fallen darauf zurück
   function apply(f){
+    f=Object.assign({},DEF0,f);
     ['wtyp','kshare','kart','hk','traeger'].forEach(function(id){if(f[id]!=null&&$(id)) $(id).value=f[id]});
     syncKeller();syncWand();syncHk();
     fields().forEach(function(e){
@@ -1070,7 +1082,13 @@ function initKunden(backendP){
     $('kd_del').hidden=!curId;updSnap();
   }
   function clearKd(){$('kd_name').value='';$('kd_adr').value='';$('kd_note').value='';$('kd_del').hidden=true;resetDel();updSnap()}
-  function updSnap(){var b=$('kd_snap');if(b) b.hidden=!(curId&&docs[curId]&&docs[curId].snap)}
+  function updSnap(){
+    var b=$('kd_snap');if(b) b.hidden=!(curId&&docs[curId]&&docs[curId].snap);
+    // Kopfbereich: ohne Kunde „Neuer Kunde“, mit geöffnetem Kunden „Kunde schließen“ und dessen Name
+    var n=$('kd_new'),k=$('hdrkd');
+    if(n) n.textContent=curId?'Kunde schließen':'Neuer Kunde';
+    if(k) k.textContent=curId?((docs[curId]&&docs[curId].name)||'Kunde geöffnet'):'';
+  }
   function resetDel(){var d=$('kd_delbox');if(d) d.hidden=true;var p=$('kd_delpw');if(p) p.value=''}
   function load(id){
     var d=docs[id];if(!d) return;
@@ -1232,7 +1250,7 @@ function initKunden(backendP){
   }
   Promise.resolve(backendP).then(function(b){
     if(!b) return;
-    be=b;$('kd').hidden=false;
+    be=b;$('kd').hidden=false;$('hdract').hidden=false;
     $('kd_list').addEventListener('change',function(){
       var v=$('kd_list').value,prev=curId||'';
       if(!v){guard(function(){curId=null;clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.')},function(){$('kd_list').value=prev});return}
@@ -1245,8 +1263,14 @@ function initKunden(backendP){
     $('kd_delpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();delGo()}});
     $('kd_pwset').addEventListener('click',setPw);dpState();
     $('kd_new').addEventListener('click',function(){
-      function go(){curId=null;$('kd_list').value='';clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.');$('kd_name').focus()}
-      if(dirty&&curId&&hasNA()) save(true).then(go); else go();
+      var closing=!!curId;
+      function go(){
+        curId=null;$('kd_list').value='';clearKd();
+        if(closing){dirty=false;clearDraft();setAuto('','');apply(DEF0);msg('Kunde geschlossen. Die Eingaben sind auf die Ausgangswerte zurückgesetzt.')}
+        else msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.');
+        $('kd_name').focus();
+      }
+      if(closing) guard(go); else go();
     });
     var fm=document.querySelector('form');
     if(fm){fm.addEventListener('input',onEdit);fm.addEventListener('change',onEdit)}
@@ -1510,7 +1534,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 20:18',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 20:26',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

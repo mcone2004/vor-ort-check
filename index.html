@@ -765,9 +765,11 @@ function makeSync(be,setState){
   function listRemote(c,uid){
     var out=[];
     function page(n){
-      return req(c,'/posts?status=private&author='+uid+'&per_page=100&page='+n+'&context=edit&_fields=id,slug,content').then(function(r){
+      // Kein author-Parameter: Sicherheits-Plugins sperren ?author=<ID> (Schutz vor Benutzer-Ausspähung). Stattdessen im Ergebnis filtern.
+      return req(c,'/posts?status=private&per_page=100&page='+n+'&context=edit&_fields=id,slug,content,author').then(function(r){
         r.json.forEach(function(p){
           if(!p.slug||p.slug.indexOf('ocheck-')!==0) return;
+          if(p.author!==undefined&&p.author!==uid) return;
           try{var rec=JSON.parse(b64d((p.content&&p.content.raw)||''));if(rec&&rec.id) out.push({wp:p.id,rec:rec})}catch(e){}
         });
         if(r.json.length===100) return page(n+1);
@@ -826,6 +828,7 @@ function makeSync(be,setState){
       function(){return step('POST',base+'wp/v2/posts/0',{'Authorization':auth,'Content-Type':'application/json'},'POST')},
       function(){return step('A Liste klein',P('status=private&per_page=1&context=edit&_fields=id,slug'),A)},
       function(){return step('B +author',P('status=private&author='+uid+'&per_page=1&context=edit&_fields=id,slug'),A)},
+      function(){return step('G +author-Feld',P('status=private&per_page=100&page=1&context=edit&_fields=id,slug,content,author'),A)},
       function(){return step('C +per_page 100',P('status=private&per_page=100&context=edit&_fields=id,slug'),A)},
       function(){return step('D +content',P('status=private&per_page=1&context=edit&_fields=id,slug,content'),A)},
       function(){return step('E +page',P('status=private&per_page=1&page=1&context=edit&_fields=id,slug'),A)},

@@ -83,7 +83,7 @@ label{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;width:100%;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.7rem}
-.vrow{align-items:end}.vrow3{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)}
+.vrow{align-items:end}.kd-a1{grid-template-columns:minmax(0,3fr) minmax(0,1fr)}.kd-a2{grid-template-columns:minmax(0,1fr) minmax(0,3fr)}.geo-line{display:grid;gap:.4rem;justify-items:start}#geo_state[data-kind=ok]{color:var(--ok,#3F7A1B)}#geo_state[data-kind=warn]{color:#9A5B00}.vrow3{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)}
 .row3{grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))}
 .hint{font-size:.78rem;color:var(--muted)}
 .src{background:var(--bg)}
@@ -230,10 +230,17 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 <form onsubmit="return false" autocomplete="off">
   <fieldset id="kd" hidden class="kdbox"><legend>Kunde</legend>
     <label for="kd_list">Kunde wählen oder neu anlegen<select id="kd_list"><option value="">Neuer Eintrag</option></select></label>
-    <div class="row">
-      <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
-      <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße, Ort"></label>
+    <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
+    <div class="row kd-a1">
+      <label for="kd_str">Straße<input id="kd_str" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße" autocomplete="off"></label>
+      <label for="kd_nr">Nr.<input id="kd_nr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Nr." maxlength="10"></label>
     </div>
+    <div class="row kd-a2">
+      <label for="kd_plz">PLZ<input id="kd_plz" type="text" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="numeric" maxlength="5" placeholder="PLZ"></label>
+      <label for="kd_ort">Ort<input id="kd_ort" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Ort"></label>
+    </div>
+    <input type="hidden" id="kd_adr"><input type="hidden" id="geo">
+    <div class="geo-line"><button type="button" id="geo_btn" class="ghost">Standort ermitteln</button><span class="hint" id="geo_state" role="status"></span></div>
     <label for="kd_note">Notiz<textarea id="kd_note" rows="2" placeholder="Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
     <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
     <div class="delbox" id="kd_delbox" hidden>
@@ -418,7 +425,8 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
       <li>Jahresarbeitszahl als Näherung für Luft-Wasser-Wärmepumpen, sinkt mit steigendem Vorlauf. Warmwasser pauschal 12,5 kWh/m²a.</li>
       <li>1 Liter Öl und 1 m³ Gas gelten als 10 kWh, 1 kg Pellets als 4,8 kWh.</li>
       <li>Bauteilflächen ohne Eingabe: aus Wohnfläche und Gebäudetyp geschätzt (Außenwand 0,75, Fenster 0,14, Dach 0,50, Boden 0,45 m² je m² Wohnfläche beim freistehenden EFH). Eingegebene Flächen ersetzen den jeweiligen Schätzwert. Außenwand netto ohne Fenster.</li>
-      <li>Photovoltaik: Ertrag 950 kWh je kWp und Jahr. Vom Strom der Wärmepumpe deckt die PV direkt etwa 22 % (höchstens 35 % des Ertrags), ein Speicher je kWh weitere ca. 150 kWh im Jahr (höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms). In den Varianten wird nur der Anteil für die Wärmepumpe angerechnet (Strompreis minus Einspeisevergütung), der Haushaltsstrom nur als Verlust, wenn er durch die Wärmepumpe weniger PV-Strom bekommt. Vorhandene PV wirkt im Bestand nur bei Direktstrom-Heizung, sonst auf den Haushaltsstrom und nicht auf die Heizkosten. Geplante PV gilt nur in den Varianten. Investitionen für PV und Speicher sind nicht enthalten.</li>
+      <li>Standort: Die Adresse wird mit OpenStreetMap (Nominatim) in Koordinaten umgesetzt, Wetterdaten stammen aus der ERA5-Reanalyse über Open-Meteo (Tageswerte 1991 bis heute, Rasterwert, kein Wetterstationswert). Daraus: Gradtagzahl 20/15 als Mittel 1991 bis 2020, der Gradtagfaktor ist Gradtagzahl × 24 ÷ 1.000 (Vorgabe ohne Standort 72, das entspricht 3.000 Kd), der Klimafaktor je Verbrauchsjahr ist langjähriges Mittel ÷ Gradtagzahl des Jahres (nur volle Jahre), der PV-Ertrag ist die Globalstrahlung × 0,935. Eine manuell eingetragene Klimafaktor-Angabe hat Vorrang. Ohne Netz oder ohne Standort gelten die Vorgabewerte.</li>
+      <li>Photovoltaik: Ertrag 950 kWh je kWp und Jahr, mit ermitteltem Standort der aus der Globalstrahlung berechnete Wert (Süd, 35° Neigung, Systemwirkungsgrad 85 %). Vom Strom der Wärmepumpe deckt die PV direkt etwa 22 % (höchstens 35 % des Ertrags), ein Speicher je kWh weitere ca. 150 kWh im Jahr (höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms). In den Varianten wird nur der Anteil für die Wärmepumpe angerechnet (Strompreis minus Einspeisevergütung), der Haushaltsstrom nur als Verlust, wenn er durch die Wärmepumpe weniger PV-Strom bekommt. Vorhandene PV wirkt im Bestand nur bei Direktstrom-Heizung, sonst auf den Haushaltsstrom und nicht auf die Heizkosten. Geplante PV gilt nur in den Varianten. Investitionen für PV und Speicher sind nicht enthalten.</li>
       <li>Solarthermie: 350 kWh je m² und Jahr nur Warmwasser, 280 kWh mit Heizungsunterstützung. Angerechnet höchstens 60 % des Warmwasserbedarfs, bei Kombianlagen zusätzlich 8 % der Heizwärme. Eine vorhandene Anlage wird bei der Heizwärme aus dem Verbrauch mit berücksichtigt und senkt im Bestand den Brennstoffeinsatz. In den Varianten mindert vorhandene und geplante Solarthermie den Wärmepumpenstrom (Nutzwärme ÷ Jahresarbeitszahl).</li>
       <li>Haushaltsstrom (falls eingetragen): Die PV deckt davon direkt etwa 28 %, gemeinsam mit dem Wärmepumpenstrom höchstens 35 % des Ertrags. Der Speicher bringt je kWh ca. 150 kWh im Jahr, höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms plus 20 % des Haushaltsstroms. Selbst genutzter Haushaltsstrom wird mit dem Haushaltsstrompreis bewertet.</li>
       <li>Mehrere Verbrauchsjahre: Mittel der eingetragenen Jahre, keine Witterungsbereinigung.</li>
@@ -588,7 +596,7 @@ function qh(o,u){
   var A=AR(o).use;
   var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
   var ht=a.w*u.wand+a.f*u.fenster+a.d*u.dach+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k);
-  return Math.max(15,ht*GT+QV[o.band]+u.leak-GEW);
+  return Math.max(15,ht*(o.gt>0?o.gt:GT)+QV[o.band]+u.leak-GEW); // o.gt: Gradtagfaktor des Standorts, sonst Vorgabe
 }
 function vlModel(o,qNow,qOrigW,qNowW,fm){
   if(o.hk==='fbh') return 24+0.30*qNowW; // ungekappt, damit ein gemessener Vorlauf sauber verschoben werden kann
@@ -606,6 +614,7 @@ function rate(vl){
 
 // Solar: PV-Ertrag 950 kWh/kWp·a (Norddeutschland, Mittel). Solarthermie 350 kWh/m²a nur Warmwasser, 280 kWh/m²a mit Heizungsunterstützung.
 var PVY=950;
+function pvyOf(o){return o.pvy>0?o.pvy:PVY} // Ertrag je kWp: Standortwert oder Vorgabe
 function stNutz(o,q){
   if(!(o.stSt>0&&+o.stM2>0)) return 0;
   var ww=WW*o.wf,raw=o.stM2*(o.stNu==='kombi'?280:350);
@@ -618,7 +627,7 @@ function stNutz(o,q){
 function pvCalc(o,E){
   if(!(o.pvSt>0&&+o.pvKwp>0)) return null;
   var H=+o.hh>0?+o.hh:0,pe=(+o.pEin>0)?+o.pEin:0.08,pH=(+o.pHH>0)?+o.pHH:0.35;
-  var kwp=+o.pvKwp,sp=+o.pvSp||0,Y=kwp*PVY,dE=0.22*E,dH=0.28*H,dir=Math.min(dE+dH,0.35*Y),f=(dE+dH)>0?dir/(dE+dH):0;
+  var kwp=+o.pvKwp,sp=+o.pvSp||0,Y=kwp*pvyOf(o),dE=0.22*E,dH=0.28*H,dir=Math.min(dE+dH,0.35*Y),f=(dE+dH)>0?dir/(dE+dH):0;
   dE*=f;dH*=f;
   var sto=Math.min(sp*150,0.20*Y,0.15*E+0.20*H),sE=(E+H)>0?sto*(0.15*E)/(0.15*E+0.20*H):0,sH=sto-sE;
   var cE=dE+sE,cH=dH+sH,cap=0.65*Y,s=(cE+cH)>cap?cap/(cE+cH):1;cE*=s;cH*=s;
@@ -637,11 +646,11 @@ function pvVar(o,E,price){
 function solar(o,S,ist,q){
   var r={pv:null,st:null},E=S[0].strom,H=+o.hh>0?+o.hh:0,pe=(+o.pEin>0)?+o.pEin:0.08,pH=(+o.pHH>0)?+o.pHH:0.35;
   if(o.pvSt>0){
-    var kwp=+o.pvKwp||0,sp=+o.pvSp||0,rec=Math.max(2,Math.round((E+(H>0?H:3500))/PVY*2)/2);
+    var kwp=+o.pvKwp||0,sp=+o.pvSp||0,rec=Math.max(2,Math.round((E+(H>0?H:3500))/pvyOf(o)*2)/2);
     var c=pvCalc(o,E);
     if(c){
-      r.pv={st:o.pvSt,kwp:kwp,sp:sp,Y:c.Y,cov:c.cov,covE:c.covE,covH:c.covH,stoUse:c.stoUse,H:H,pct:c.pct,pctAll:c.pctAll,save:c.covE*(o.pWp-pe)+c.covH*(pH-pe),ben:S[0].pvBen,rec:rec,pe:pe,E:E};
-    }else r.pv={st:o.pvSt,kwp:0,sp:sp,rec:rec,E:E,H:H,pe:pe};
+      r.pv={pvy:pvyOf(o),st:o.pvSt,kwp:kwp,sp:sp,Y:c.Y,cov:c.cov,covE:c.covE,covH:c.covH,stoUse:c.stoUse,H:H,pct:c.pct,pctAll:c.pctAll,save:c.covE*(o.pWp-pe)+c.covH*(pH-pe),ben:S[0].pvBen,rec:rec,pe:pe,E:E};
+    }else r.pv={pvy:pvyOf(o),st:o.pvSt,kwp:0,sp:sp,rec:rec,E:E,H:H,pe:pe};
   }
   if(o.stSt>0&&+o.stM2>0){
     var n=S[0].stN,st=S[0].stSav;
@@ -762,24 +771,39 @@ function groupInput(e){
   }
 }
 // Verbrauch: bis zu drei Jahre, gerechnet wird mit dem Mittel der eingetragenen Jahre
-function yearMean(pairs){
-  var v=[],b=[],y=[],sk=0,sv=0;
+function geoKey(){
+  return ['kd_str','kd_nr','kd_plz','kd_ort'].map(function(id){var e=$(id);return e?e.value.trim().toLowerCase().replace(/\s+/g,' '):''}).join('|');
+}
+// Standort des Objekts: gilt nur, solange die Adresse noch die ist, für die er ermittelt wurde
+function geoGet(){
+  var e=$('geo');if(!e||!e.value) return null;
+  try{var g=JSON.parse(e.value);return(g&&g.lat&&g.q===geoKey())?g:null}catch(x){return null}
+}
+function yearMean(pairs,g){
+  var v=[],b=[],y=[],sk=0,sv=0,auto=false;
   pairs.forEach(function(p){
     var x=numG(p[0]);
     if(x>0){
-      var kf=p[2]?num(p[2]):0;if(!(kf>=0.5&&kf<=1.5)) kf=1;
+      var j=parseInt($(p[1]).value,10),ok=(j>=1990&&j<=2100);
+      var kf=p[2]?num(p[2]):0;
+      if(!(kf>=0.5&&kf<=1.5)){
+        kf=1;
+        var ak=(g&&g.kf&&ok)?g.kf[j]:0;
+        if(ak>=0.5&&ak<=1.5){kf=ak;auto=true}
+      }
       v.push(x);b.push(x*kf);sk+=x*kf;sv+=x;
-      var j=parseInt($(p[1]).value,10);if(j>=1990&&j<=2100) y.push(j)
+      if(ok) y.push(j)
     }
   });
-  if(!v.length) return {m:0,n:0,lo:0,hi:0,y:[],kf:1};
+  if(!v.length) return {m:0,n:0,lo:0,hi:0,y:[],kf:1,auto:false};
   var s=v.reduce(function(a,b){return a+b},0);
-  return {m:s/v.length,n:v.length,lo:Math.min.apply(null,b),hi:Math.max.apply(null,b),y:y,kf:sv>0?sk/sv:1}; // lo und hi sind witterungsbereinigt, kf der verbrauchsgewichtete Klimafaktor
+  return {m:s/v.length,n:v.length,lo:Math.min.apply(null,b),hi:Math.max.apply(null,b),y:y,kf:sv>0?sk/sv:1,auto:auto}; // lo und hi sind witterungsbereinigt, kf der verbrauchsgewichtete Klimafaktor
 }
-function verbMean(){return yearMean([['verb','vj1','kf1'],['verb2','vj2','kf2'],['verb3','vj3','kf3']])}
+function verbMean(){return yearMean([['verb','vj1','kf1'],['verb2','vj2','kf2'],['verb3','vj3','kf3']],geoGet())}
 function hhMean(){return yearMean([['sv1','sj1'],['sv2','sj2'],['sv3','sj3']])}
 function read(){
-  return {
+  var g=geoGet();
+  return {geo:g,gt:g?g.gt:0,pvy:g?g.pvy:0,kfAuto:verbMean().auto,
     obj:$('objekt').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
@@ -858,10 +882,14 @@ function srcRows(X){
   if(R.solar&&(R.solar.pv||R.solar.st)){
     var sp=R.solar.pv,sst=R.solar.st,tx=[];
     if(sst) tx.push('Solarthermie '+fmt(sst.m2,1)+' m² ('+SOT(sst.st)+'): '+(sst.nu==='kombi'?'280':'350')+' kWh/m²a, höchstens 60 % des Warmwasserbedarfs'+(sst.nu==='kombi'?' plus 8 % der Heizwärme':'')+' = '+r0(sst.nutz)+' kWh Wärme, geteilt durch die Jahresarbeitszahl = '+r0(sst.strom)+' kWh weniger Strom'+(sst.st===1?'. Im Bestand ist sie im Verbrauch schon enthalten':'')+'.');
-    if(sp&&sp.kwp>0) tx.push('Photovoltaik '+fmt(sp.kwp,1)+' kWp ('+SOT(sp.st)+'): '+fmt(sp.kwp,1)+' × 950 = '+r0(sp.Y)+' kWh Ertrag. Davon geht ein Teil direkt oder über den Speicher in den Wärmepumpenstrom ('+r0(sp.covE)+' kWh = '+Math.round(sp.pct*100)+' %). Bewertet mit Wärmepumpen-Strompreis minus Einspeisevergütung.');
+    if(sp&&sp.kwp>0) tx.push('Photovoltaik '+fmt(sp.kwp,1)+' kWp ('+SOT(sp.st)+'): '+fmt(sp.kwp,1)+' × '+r0(sp.pvy)+' = '+r0(sp.Y)+' kWh Ertrag. Davon geht ein Teil direkt oder über den Speicher in den Wärmepumpenstrom ('+r0(sp.covE)+' kWh = '+Math.round(sp.pct*100)+' %). Bewertet mit Wärmepumpen-Strompreis minus Einspeisevergütung.');
     if(tx.length) rows.push(['Solar in den Varianten',tx.join(' ')+' Vorhandene Anlagen gelten im Bestand und in den Varianten, geplante nur in den Varianten. Geplante Anlagen werden getrennt amortisiert: Investition ÷ Gesamtnutzen (Wärmepumpenstrom und Haushaltsstrom), die Wärmepumpe rechnet ohne deren Vorteil.']);
   }
   rows.push(['Varianten mit Sanierung','Gleiche Rechnung mit besseren U-Werten. Aktueller Stand: Außenwand U 0,22, Dach 0,16, Kellerdecke 0,30, Fenster Uw 0,95 W/m²K. Bereits bessere Bauteile bleiben erhalten. Heizlast V3: '+fmt(s3.kw,1)+' kW, Vorlauf '+Math.round(s3.vl)+' °C.']);
+  if(o.geo){
+    var G=o.geo,ky=Object.keys(G.kf||{}).sort().map(function(k){return k+': '+fmt(G.kf[k],2)}).join(', ');
+    rows.push(['Standort und Wetter','Adresse '+(G.prec==='Ort'?'(nur Ort gefunden)':'')+'ergibt '+fmt(G.lat,4)+' °N, '+fmt(G.lon,4)+' °O, '+r0(G.elev)+' m ü. NN. Gradtagzahl 20/15 im Mittel 1991 bis 2020: '+r0(G.gtz)+' Kd, daraus Gradtagfaktor '+fmt(G.gt,1)+' kKh (Vorgabe ohne Standort 72 = 3.000 Kd). Globalstrahlung '+r0(G.rad)+' kWh/m²a, daraus PV-Ertrag '+r0(G.pvy)+' kWh/kWp (Süd, 35° Neigung, Systemwirkungsgrad 85 %).'+(ky?' Klimafaktoren der letzten Jahre (langjähriges Mittel ÷ Gradtage des Jahres): '+ky+'.':'')+' Wetterdaten aus ERA5-Reanalyse (Open-Meteo), Koordinaten von OpenStreetMap.']);
+  }
   rows.push(['Genauigkeit','Grobe Schätzung, etwa ±25 %. Die Eingaben beim Termin (Verbrauch, Bauteile, gemessener Vorlauf) bestimmen die Qualität. Eine genaue Auslegung braucht die Heizlastberechnung nach DIN EN 12831.']);
   return rows;
 }
@@ -872,6 +900,9 @@ function render(){
   (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
   (function(){
     var y=new Date().getFullYear();['vj1','vj2','vj3','sj1','sj2','sj3'].forEach(function(id,i){$(id).placeholder=String(y-1-(i%3))});
+    (function(){var g=geoGet();[['vj1','kf1'],['vj2','kf2'],['vj3','kf3']].forEach(function(p){
+      var j=parseInt($(p[0]).value,10),k=(g&&g.kf&&j>=1990)?g.kf[j]:0;
+      $(p[1]).placeholder=k?('auto '+fmt(k,2)):'1,00'})})();
     var bh={auto:'Der Rechner wählt selbst: Verbrauch, wenn er zum Bauteilmodell passt oder über mehrere Jahre stabil ist, sonst den Mittelwert aus beiden. Ohne Verbrauch gelten die Bauteilangaben.',
       verbrauch:'Der Verbrauch bestimmt die Heizwärme. Wand, Dach, Fenster und Keller wirken nur auf die Varianten.',
       bauteile:'Die Bauteilangaben bestimmen die Heizwärme. Der Verbrauch dient nur zum Abgleich.',
@@ -958,8 +989,8 @@ function render(){
   }else f.push('Kein Verbrauch eingetragen. Das Ergebnis beruht nur auf Baujahr und Bauteilen. Mit dem Jahresverbrauch der letzten drei Jahre wird es deutlich belastbarer.');
   if(o.verbN>1){
     var sp=(o.verbMax-o.verbMin)/((o.verbMax+o.verbMin)/2)*100;
-    f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel'+(o.kf!==1?' mit Witterungsbereinigung (Klimafaktor Ø '+fmt(o.kf,2)+').':', ohne Witterungsbereinigung.')):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren'+(o.verbY&&o.verbY.length===o.verbN?' ('+o.verbY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(sp)+' %'+(o.kf!==1?', mit Witterungsbereinigung (Klimafaktor Ø '+fmt(o.kf,2)+').':', ohne Witterungsbereinigung.')));
-  }else if(o.verbN===1) f.push('Nur ein Verbrauchsjahr eingetragen'+(o.kf!==1?', mit Witterungsbereinigung (Klimafaktor '+fmt(o.kf,2)+'). Die Nutzung dieses Jahres ist nicht ausgeglichen.':'. Witterung und Nutzung dieses Jahres sind nicht ausgeglichen.')+' Mit zwei weiteren Jahren wird der Wert belastbarer.');
+    f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel'+(o.kf!==1?' mit Witterungsbereinigung (Klimafaktor Ø '+fmt(o.kf,2)+(o.kfAuto?', aus den Wetterdaten des Standorts':'')+').':', ohne Witterungsbereinigung.')):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren'+(o.verbY&&o.verbY.length===o.verbN?' ('+o.verbY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(sp)+' %'+(o.kf!==1?', mit Witterungsbereinigung (Klimafaktor Ø '+fmt(o.kf,2)+(o.kfAuto?', aus den Wetterdaten des Standorts':'')+').':', ohne Witterungsbereinigung.')));
+  }else if(o.verbN===1) f.push('Nur ein Verbrauchsjahr eingetragen'+(o.kf!==1?', mit Witterungsbereinigung (Klimafaktor '+fmt(o.kf,2)+(o.kfAuto?', aus den Wetterdaten des Standorts':'')+'). Die Nutzung dieses Jahres ist nicht ausgeglichen.':'. Witterung und Nutzung dieses Jahres sind nicht ausgeglichen.')+' Mit zwei weiteren Jahren wird der Wert belastbarer.');
   if(o.hhN>0){
     var hs=o.hhN>1?(o.hhMax-o.hhMin)/((o.hhMax+o.hhMin)/2)*100:0;
     f.push('Haushaltsstrom: '+(o.hhN>1?'Mittel aus '+o.hhN+' Jahren'+(o.hhY&&o.hhY.length===o.hhN?' ('+o.hhY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(hs)+' %':'ein Jahr')+', etwa '+fmt(Math.round(o.hh/10)*10)+' kWh im Jahr'+(o.hh<1500?'. Der Wert ist niedrig, gehört Heizstrom oder ein zweiter Zähler dazu?':(o.hh>8000?'. Der Wert ist hoch, möglicherweise ist Heizstrom enthalten. Der gehört unter Heizung.':'.')));
@@ -996,6 +1027,7 @@ function render(){
     var h=$('pvhint'),s=R.solar&&R.solar.pv;
     if(s&&s.st===2&&!(s.kwp>0)){h.hidden=false;h.textContent='Richtwert für die Auslegung: etwa '+fmt(s.rec,1)+' kWp.'}else h.hidden=true;
   })();
+  geoShow();
   var outHtml=top+rec+hkp+solp+sc+srcp+hb+bf;
   if(outHtml!==lastOut){lastOut=outHtml;$('out').innerHTML=outHtml} // unveränderte Ausgabe nicht neu aufbauen, damit aufgeklappte Bereiche stehen bleiben
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
@@ -1081,6 +1113,81 @@ function syncDm(){
     $('dshint').textContent='Gerechnet mit λ = '+lam.toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(+$('dbj').value===1||+$('dbj').value===2?', Einbau vor 1995':'')+')');
   }
 }
+
+// ---- Standort und Wetterdaten ----
+// Adresse -> Koordinaten (OpenStreetMap/Nominatim) -> Tageswerte 1991 bis heute (Open-Meteo, ERA5) -> Gradtagzahl, Klimafaktoren je Jahr, PV-Ertrag.
+// Nur mit Netz. Das Ergebnis wird beim Kunden gespeichert und gilt offline weiter; ohne Standort rechnet die App mit den Vorgabewerten.
+var GEO_PVF=0.935; // Globalstrahlung horizontal -> kWh/kWp: Süd, 35° Neigung (+10 %) mal Systemwirkungsgrad 85 %
+var geoMsg='',geoBusy=false,geoT=null;
+function geoCalc(daily,lat,lon,elev,q,prec){
+  var t=daily.time,tm=daily.temperature_2m_mean,sw=daily.shortwave_radiation_sum,Y={};
+  for(var i=0;i<t.length;i++){
+    var y=+String(t[i]).slice(0,4),x=tm[i];if(x==null||isNaN(x)) continue;
+    var o=Y[y]||(Y[y]={n:0,g:0,r:0});o.n++;if(x<15) o.g+=20-x;if(sw&&sw[i]!=null) o.r+=sw[i]/3.6; // MJ/m² -> kWh/m²
+  }
+  var gs=[],rs=[];
+  for(var y=1991;y<=2020;y++){var o=Y[y];if(o&&o.n>=360){gs.push(o.g);rs.push(o.r)}}
+  if(gs.length<25) throw new Error('Zu wenige Wetterdaten für den Standort');
+  var avg=function(a){return a.reduce(function(p,c){return p+c},0)/a.length};
+  var gtz=avg(gs),rad=avg(rs),kf={};
+  Object.keys(Y).forEach(function(k){var o=Y[k];if(+k>=2010&&o.n>=360&&o.g>0) kf[k]=Math.round(gtz/o.g*1000)/1000});
+  return {q:q,lat:lat,lon:lon,elev:elev||0,prec:prec,gtz:Math.round(gtz),gt:Math.min(110,Math.max(55,gtz*24/1000)),rad:Math.round(rad),
+    pvy:Math.round(Math.min(1150,Math.max(800,rad*GEO_PVF))),kf:kf,at:new Date().toISOString()};
+}
+function geoJson(url,ms){
+  var ctl=(typeof AbortController!=='undefined')?new AbortController():null,tm=setTimeout(function(){if(ctl) ctl.abort()},ms||20000);
+  return fetch(url,ctl?{signal:ctl.signal}:{}).then(function(r){clearTimeout(tm);if(!r.ok) throw new Error('HTTP '+r.status);return r.json()},function(e){clearTimeout(tm);throw e});
+}
+function geoLookup(manual){
+  if(geoBusy) return;
+  var str=$('kd_str').value.trim(),nr=$('kd_nr').value.trim(),plz=$('kd_plz').value.trim(),ort=$('kd_ort').value.trim(),key=geoKey();
+  if(!/^\d{5}$/.test(plz)||ort.length<2){if(manual){geoMsg='Für den Standort bitte PLZ (5 Ziffern) und Ort eintragen.';geoShow()}return}
+  if(typeof navigator!=='undefined'&&navigator.onLine===false){geoMsg='Kein Netz. Der Standort wird ermittelt, sobald wieder Netz da ist. Bis dahin gelten die Vorgabewerte.';geoShow();return}
+  geoBusy=true;geoMsg='Suche Standort …';geoShow();
+  var base='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=de&postalcode='+encodeURIComponent(plz)+'&city='+encodeURIComponent(ort);
+  var withStreet=str?base+'&street='+encodeURIComponent((nr?nr+' ':'')+str):null;
+  (withStreet?geoJson(withStreet,12000):Promise.resolve([])).then(function(a){
+    if(a&&a.length) return {hit:a[0],prec:'Adresse'};
+    return geoJson(base,12000).then(function(b){if(!(b&&b.length)) throw new Error('Adresse nicht gefunden. PLZ und Ort prüfen.');return {hit:b[0],prec:'Ort'}});
+  }).then(function(r){
+    var lat=+r.hit.lat,lon=+r.hit.lon;if(!(isFinite(lat)&&isFinite(lon))) throw new Error('Keine gültigen Koordinaten');
+    geoMsg='Hole Wetterdaten …';geoShow();
+    var d=new Date();d.setUTCDate(d.getUTCDate()-7);
+    var url='https://archive-api.open-meteo.com/v1/archive?latitude='+lat.toFixed(4)+'&longitude='+lon.toFixed(4)+'&start_date=1991-01-01&end_date='+d.toISOString().slice(0,10)+'&daily=temperature_2m_mean,shortwave_radiation_sum&timezone=Europe%2FBerlin';
+    return geoJson(url,40000).then(function(w){
+      if(!w||!w.daily||!w.daily.time) throw new Error('Wetterdaten unvollständig');
+      return geoCalc(w.daily,Math.round(lat*1e4)/1e4,Math.round(lon*1e4)/1e4,w.elevation,key,r.prec);
+    });
+  }).then(function(g){
+    geoBusy=false;
+    if(geoKey()!==key){geoMsg='Adresse wurde geändert. Standort neu ermitteln.';geoShow();return}
+    geoMsg='';var e=$('geo');e.value=JSON.stringify(g);e.dispatchEvent(new Event('input',{bubbles:true}));
+  },function(e){
+    geoBusy=false;
+    geoMsg=(e&&e.name==='AbortError'?'Zeitüberschreitung. ':'')+'Standort nicht ermittelt: '+(e&&e.message&&e.name!=='TypeError'?e.message:'keine Verbindung zum Dienst').replace(/\.$/,'')+'. Es gelten die Vorgabewerte.';
+    geoShow();
+  });
+}
+function geoShow(){
+  var el=$('geo_state');if(!el) return;
+  var g=geoGet(),raw=$('geo').value,txt='',kind='';
+  if(geoBusy||geoMsg){txt=geoMsg;kind=geoBusy?'':'warn'}
+  else if(g){
+    txt='Standort ermittelt'+(g.prec==='Ort'?' (nur der Ort, nicht die Straße)':'')+': '+fmt(g.lat,4)+' °N, '+fmt(g.lon,4)+' °O, '+fmt(Math.round(g.elev))+' m ü. NN. Gradtagzahl '+fmt(g.gtz)+' Kd (Mittel 1991 bis 2020), PV-Ertrag etwa '+fmt(g.pvy)+' kWh/kWp. Die Rechnung nutzt diese Werte.';kind='ok';
+  }else if(raw){txt='Die Adresse wurde geändert. Standort neu ermitteln.';kind='warn'}
+  else txt='Mit PLZ und Ort holt die App Standort und Wetterdaten (mit Netz). Gradtage, Klimafaktoren und PV-Ertrag richten sich danach.';
+  el.textContent=txt;el.dataset.kind=kind;
+  var b=$('geo_btn');if(b){b.disabled=geoBusy;b.textContent=g?'Standort neu ermitteln':'Standort ermitteln'}
+}
+function initGeo(){
+  var b=$('geo_btn');if(!b) return;
+  b.addEventListener('click',function(){geoMsg='';geoLookup(true)});
+  ['kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){$(id).addEventListener('input',function(){
+    geoMsg='';clearTimeout(geoT);geoT=setTimeout(function(){if(!geoGet()) geoLookup(false)},2500);geoShow();
+  })});
+  window.addEventListener('online',function(){if(!geoGet()&&!geoBusy) geoLookup(false)});
+  geoShow();
+}
 function syncSolar(){var pv=$('pvst').value,st=$('stst').value;$('pvrow').hidden=(pv==='0');$('strow').hidden=(st==='0');$('l_inv5').hidden=$('l_inv6').hidden=(pv!=='2');$('l_inv7').hidden=(st!=='2')}
 // Texte zu PV und Solarthermie, für Ergebniskarte und Kundenbericht
 function solarLines(R){
@@ -1091,7 +1198,7 @@ function solarLines(R){
     if(p.kwp>0){
       out.push('Photovoltaik ('+stT(p.st)+'): '+fmt(p.kwp,1)+' kWp'+(p.sp>0?' mit '+fmt(p.sp,1)+' kWh Batteriespeicher':' ohne Speicher')+', Ertrag etwa '+r10(p.Y)+' kWh im Jahr. Davon deckt sie etwa '+r10(p.covE)+' kWh ('+fmt(Math.round(p.pct*100))+' %) des Wärmepumpenstroms von etwa '+r10(p.E)+' kWh im Jahr'+(p.H>0?' und etwa '+r10(p.covH)+' kWh des Haushaltsstroms von '+r10(p.H)+' kWh. Zusammen sind das '+fmt(Math.round(p.pctAll*100))+' % des gesamten Strombedarfs':'')+'. Das spart rechnerisch etwa '+r10(p.save)+' € im Jahr gegenüber Netzstrom. Der übrige Ertrag wird mit '+fmt(p.pe,2)+' €/kWh bewertet'+(p.H>0?'.':', Haushaltsstrom ist nicht angerechnet.')+' In den Varianten mit Wärmepumpe ist nur der Anteil für die Wärmepumpe eingerechnet, in Variante 1 etwa '+r10(p.ben)+' € im Jahr'+(p.st===1?'. Im Bestand wirkt die vorhandene Anlage auf den Haushaltsstrom und bleibt in den Heizkosten außen vor.':'. Die Investition für die PV ist nicht enthalten.'));
       if(p.sp>0&&p.stoUse<50) out.push('Der Batteriespeicher bringt hier kaum zusätzlichen Eigenverbrauch. Ob er sich rechnet, ist gesondert zu prüfen.');
-    }else out.push('Photovoltaik geplant: Richtwert für die Auslegung etwa '+fmt(p.rec,1)+' kWp (Wärmepumpenstrom plus '+(p.H>0?'Haushaltsstrom von '+fmt(Math.round(p.H/10)*10):'3.500')+' kWh'+(p.H>0?'':' Haushaltsstrom')+' bei 950 kWh je kWp). Mit eingetragener Leistung wird der Nutzen gerechnet.');
+    }else out.push('Photovoltaik geplant: Richtwert für die Auslegung etwa '+fmt(p.rec,1)+' kWp (Wärmepumpenstrom plus '+(p.H>0?'Haushaltsstrom von '+fmt(Math.round(p.H/10)*10):'3.500')+' kWh'+(p.H>0?'':' Haushaltsstrom')+' bei '+fmt(Math.round(p.pvy))+' kWh je kWp). Mit eingetragener Leistung wird der Nutzen gerechnet.');
   }
   if(s.st){
     var t=s.st;
@@ -1346,7 +1453,24 @@ function initKunden(backendP){
     sel.value=curId||'';
     $('kd_del').hidden=!curId;updSnap();
   }
-  function clearKd(){$('kd_name').value='';$('kd_adr').value='';$('kd_note').value='';$('kd_del').hidden=true;resetDel();updSnap()}
+  // Adresse in vier Feldern; kd_adr (versteckt) hält die zusammengesetzte Zeile für Liste, Bericht und Abgleich
+  function adrParts(){return {str:$('kd_str').value.trim(),nr:$('kd_nr').value.trim(),plz:$('kd_plz').value.trim(),ort:$('kd_ort').value.trim()}}
+  function syncAdr(){var p=adrParts(),a=(p.str+' '+p.nr).trim(),b=(p.plz+' '+p.ort).trim();$('kd_adr').value=a&&b?a+', '+b:(a||b)}
+  function parseAdr(a){
+    a=String(a||'').trim();var r={str:'',nr:'',plz:'',ort:''};if(!a) return r;
+    var m=/^(.*?)\s*,\s*(\d{5})\s+(.+)$/.exec(a);
+    if(m){r.plz=m[2];r.ort=m[3].trim();a=m[1]}
+    else{var m2=/^(.*?)\s*,\s*([^,\d]+)$/.exec(a);if(m2){r.ort=m2[2].trim();a=m2[1]}}
+    var m3=/^(.*\D)\s+(\d+\s?[a-zA-Z]?(?:[-\/]\d+)?)$/.exec(a);
+    if(m3){r.str=m3[1].trim();r.nr=m3[2].trim()}else r.str=a;
+    return r;
+  }
+  function setAdr(d){
+    d=d||{};var p=(d.str==null&&d.nr==null&&d.plz==null&&d.ort==null)?parseAdr(d.adr):d;
+    $('kd_str').value=p.str||'';$('kd_nr').value=p.nr||'';$('kd_plz').value=p.plz||'';$('kd_ort').value=p.ort||'';syncAdr();
+  }
+  ['kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){$(id).addEventListener('input',syncAdr)});
+  function clearKd(){$('kd_name').value='';setAdr({});$('kd_note').value='';$('kd_del').hidden=true;resetDel();updSnap()}
   function updSnap(){
     var b=$('kd_snap');if(b) b.hidden=!(curId&&docs[curId]&&docs[curId].snap);
     // Kopfbereich: ohne Kunde „Neuer Kunde“, mit geöffnetem Kunden „Kunde schließen“ und dessen Name
@@ -1357,7 +1481,7 @@ function initKunden(backendP){
   function resetDel(){var d=$('kd_delbox');if(d) d.hidden=true;var p=$('kd_delpw');if(p) p.value=''}
   function load(id){
     var d=docs[id];if(!d) return;
-    dirty=false;clearDraft();setAuto('','');curId=id;$('kd_name').value=d.name||'';$('kd_adr').value=d.adr||'';$('kd_note').value=d.note||'';
+    dirty=false;clearDraft();setAuto('','');curId=id;$('kd_name').value=d.name||'';setAdr(d);$('kd_note').value=d.note||'';
     $('kd_del').hidden=false;resetDel();updSnap();
     if(d.form) apply(d.form);
     msg('Geladen: '+(d.name||'Ohne Name')+(d.updated?', gespeichert am '+fmtDate(d.updated):'')+'.');
@@ -1370,7 +1494,7 @@ function initKunden(backendP){
   function writeDraft(){
     try{
       if(!dirty){localStorage.removeItem(DRK);return}
-      localStorage.setItem(DRK,JSON.stringify({cur:curId,name:$('kd_name').value,adr:$('kd_adr').value,note:$('kd_note').value,form:collect(),at:Date.now()}));
+      localStorage.setItem(DRK,JSON.stringify({cur:curId,name:$('kd_name').value,adr:$('kd_adr').value,str:$('kd_str').value,nr:$('kd_nr').value,plz:$('kd_plz').value,ort:$('kd_ort').value,note:$('kd_note').value,form:collect(),at:Date.now()}));
     }catch(e){}
   }
   function clearDraft(){try{localStorage.removeItem(DRK)}catch(e){}}
@@ -1395,7 +1519,7 @@ function initKunden(backendP){
     if(!d) return;
     if(d.cur&&docs[d.cur]&&docs[d.cur].updated&&new Date(docs[d.cur].updated).getTime()>d.at){clearDraft();return}
     curId=(d.cur&&docs[d.cur])?d.cur:null;
-    $('kd_name').value=d.name||'';$('kd_adr').value=d.adr||'';$('kd_note').value=d.note||'';
+    $('kd_name').value=d.name||'';setAdr(d);$('kd_note').value=d.note||'';
     if(d.form) apply(d.form);
     $('kd_list').value=curId||'';$('kd_del').hidden=!curId;updSnap();
     dirty=true;chg++;
@@ -1410,7 +1534,7 @@ function initKunden(backendP){
     }
     if(saving){clearTimeout(autoT);autoT=setTimeout(autoSave,1000);return Promise.resolve(false)}
     var id=curId||('k'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),now=new Date().toISOString(),prev=docs[id]||{};
-    var data={name:name,adr:adr,note:$('kd_note').value.trim(),form:collect(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};
+    var ap=adrParts(),data={name:name,adr:adr,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value.trim(),form:collect(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};
     var b=$('kd_save'),mine=chg;b.disabled=true;saving=true;
     if(!silent) setAuto('', 'Speichere …');
     return be.save(id,data).then(function(){
@@ -1763,7 +1887,7 @@ function initReport(){
 
 function init(){
   ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -1785,7 +1909,7 @@ function init(){
   $('wlgg').addEventListener('change',render);
   $('hk').addEventListener('change',syncHk);
   $('bar').addEventListener('click',function(){try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
-  syncKeller();syncWand();syncHk();syncSolar();
+  syncKeller();syncWand();syncHk();syncSolar();initGeo();
   render();
   initNet();
   initReport();
@@ -1812,7 +1936,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 21:40',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 21:54',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

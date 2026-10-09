@@ -56,6 +56,13 @@ p{margin:0}
 html{-webkit-text-size-adjust:100%;touch-action:manipulation}
 form{display:grid;gap:1rem}
 fieldset{border:1px solid var(--line);border-radius:6px;background:var(--surface);margin:0;padding:.9rem 1rem 1rem;display:grid;gap:.7rem;min-width:0}
+.bt{display:grid;gap:.7rem;min-width:0;padding:.75rem .9rem .95rem;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:6px;background:var(--bg)}
+.bt-h{display:flex;align-items:center;gap:.5rem;margin:0 0 .15rem;padding-bottom:.45rem;border-bottom:1px solid var(--line);font-family:var(--f-data);font-size:.9rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+.bt-h svg{width:1.35rem;height:1.35rem;flex:none;fill:none;stroke:var(--green);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bt-dach{border-left-color:var(--z4)}.bt-dach .bt-h svg{stroke:currentColor}
+.bt-keller{border-left-color:var(--z3)}.bt-keller .bt-h svg{stroke:currentColor}
+.bt-fenster{border-left-color:var(--z2)}
+.bt select,.bt input{background:var(--surface)}
 legend{font-family:var(--f-data);font-weight:600;color:var(--ink);padding:0 .4rem;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
 label{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}
 input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;width:100%;min-width:0}
@@ -225,6 +232,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
   </fieldset>
 
   <fieldset><legend>Gebäudehülle</legend>
+    <section class="bt bt-wand"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 9.7v4.6M9 14.3V19"/></svg>Außenwand</h3>
     <label for="wtyp">Außenwand, Bauart<select id="wtyp"><option value="voll">Vollziegel oder Vollmauerwerk (24 bis 36,5 cm)</option><option value="hlz" selected>Hochlochziegel, Hohlblock, Bims</option><option value="ks">Kalksandstein (KS), Vollstein oder Lochstein</option><option value="bruch">Feldstein, Bruchstein, Mischmauerwerk</option><option value="mono">Porenbeton oder monolithischer Wärmedämmziegel</option><option value="zwei">Zweischalig mit Verblender (Luftschicht oder Kerndämmung)</option><option value="fach">Fachwerk</option><option value="hrb">Holzrahmenbau, Fertighaus (HRB)</option><option value="block">Holzmassiv, Blockbau</option><option value="platte">Betonplatte, Plattenbau</option></select></label>
     <label for="wd" id="wdl"><span id="wdt">Wandstärke</span><select id="wd"></select></label>
     <label for="wand"><span id="wstl">Dämmzustand Außenwand</span><select id="wand"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option><option value="3">Dämmung bekannt (Dämmstoff, WLG, Stärke)</option></select></label>
@@ -234,18 +242,25 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <span class="hint" id="dshint" hidden></span>
     <span class="hint" id="whint"></span>
     <span class="hint" id="wuw"></span>
-    <label for="dach">Dach oder oberste Geschossdecke<select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option></select></label>
+    </section>
+    <section class="bt bt-dach"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12 12 4l9.5 8M5.5 10.5V20h13v-9.5"/></svg>Dach oder oberste Geschossdecke</h3>
+    <label for="dach">Dämmzustand Dach oder Geschossdecke<select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option></select></label>
+    </section>
+    <section class="bt bt-keller"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M3 9v11h18V9M7 20v-5h10v5M12 3v6M9 6l3 3 3-3"/></svg>Keller und Bodenplatte</h3>
     <div class="row">
       <label for="kshare">Unterkellerung<select id="kshare"><option value="0" selected>Kein Keller, Bodenplatte</option><option value="0.5">Teilweise unterkellert</option><option value="1">Komplett unterkellert</option></select></label>
       <label for="kart" id="kartl" hidden>Der Keller ist<select id="kart"><option value="ub" selected>unbeheizt</option><option value="bh">beheizt</option><option value="kk">Kriechkeller, belüfteter Hohlraum</option></select></label>
     </div>
     <label for="keller"><span id="kstl">Dämmzustand Bodenplatte</span><select id="keller"><option value="0" selected>Original</option><option value="1">Nachgedämmt</option><option value="2">Aktuell gedämmt</option></select></label>
     <span class="hint" id="khint"></span>
+    </section>
+    <section class="bt bt-fenster"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM12 3v18M5 12h14"/></svg>Fenster</h3>
     <label for="fenster">Fenster, vorhandene Bauart<select id="fenster"><option value="0">Einfachverglasung</option><option value="1">Kasten- oder Verbundfenster, älter</option><option value="2">2-fach Isolierglas, bis 1994</option><option value="3" selected>2-fach Wärmeschutzglas, 1995 bis 2009</option><option value="4">2-fach Wärmeschutzglas, ab 2010</option><option value="5">3-fach Wärmeschutzglas</option><option value="6">Kastenfenster neu oder saniert, mit Wärmeschutzglas</option></select></label>
     <label for="frahmen">Rahmenmaterial<select id="frahmen"><option value="holz">Holz</option><option value="kst" selected>Kunststoff</option><option value="ha">Holz-Aluminium</option><option value="alu">Aluminium, thermisch getrennt</option><option value="alu0">Aluminium ohne thermische Trennung, älter</option></select></label>
     <label for="fdicht">Dichtheit der Fenster<select id="fdicht"><option value="0" selected>normal</option><option value="1">spürbar undicht, Zugluft an den Fugen</option></select></label>
     <span class="hint">Maßgeblich ist die Verglasung, nicht das Baujahr des Hauses. Angesetzt sind Uw-Werte von 4,7 (Einfach) über 2,6 (Kasten alt), 2,8, 1,5 und 1,2 (2-fach) bis 0,95 (3-fach) und 1,1 (Kastenfenster neu). Der Dichtheitsaufschlag gilt nur für ältere Fenster. Rahmen als Aufschlag auf den Uw: Kunststoff Bezug, Holz und Holz-Aluminium +0,05, Aluminium getrennt +0,3, Aluminium ohne Trennung +0,9.</span>
     <span class="hint" id="fuw"></span>
+    </section>
   </fieldset>
 
   <fieldset><legend>Heizung</legend>
@@ -1230,16 +1245,21 @@ function collectInputs(){
   var out=[],fs=document.querySelectorAll('form fieldset');
   for(var i=0;i<fs.length;i++){
     var f=fs[i];if(f.id==='kd') continue;
-    var lg=f.querySelector('legend'),rows=[],ls=f.querySelectorAll('label');
+    var lg=f.querySelector('legend'),rows=[],ls=f.querySelectorAll('label'),curBt=null,fh=lg?lg.textContent:'';
     for(var j=0;j<ls.length;j++){
       var l=ls[j],c=l.querySelector('select,input');if(!c||l.closest('[hidden]')) continue;
+      var bt=l.closest('.bt');
+      if(bt!==curBt){
+        if(rows.length) out.push({h:curBt?fh+', '+curBt.querySelector('.bt-h').textContent:fh,rows:rows});
+        rows=[];curBt=bt;
+      }
       var name='';for(var k=0;k<l.childNodes.length;k++){if(l.childNodes[k].nodeType===3) name+=l.childNodes[k].textContent}
       name=name.replace(/\s+/g,' ').trim();if(!name) continue;
       var v=c.tagName==='SELECT'?(c.selectedOptions[0]?c.selectedOptions[0].textContent:''):c.value;
       v=String(v).trim();if(v==='') continue;
       rows.push([name,v]);
     }
-    if(rows.length) out.push({h:lg?lg.textContent:'',rows:rows});
+    if(rows.length) out.push({h:curBt?fh+', '+curBt.querySelector('.bt-h').textContent:fh,rows:rows});
   }
   return out;
 }
@@ -1436,7 +1456,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 19:11',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 19:23',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

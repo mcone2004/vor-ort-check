@@ -86,6 +86,13 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .vrow{align-items:end}
 .row3{grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))}
 .hint{font-size:.78rem;color:var(--muted)}
+.src{background:var(--bg)}
+.srct{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:.5rem}
+.srct th,.srct td{padding:.45rem .6rem;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+.srct th{width:32%;font-family:var(--f-data);font-weight:700;color:var(--ink)}
+.srct td{color:var(--text)}
+@media (max-width:640px){.srct th,.srct td{display:block;width:auto}.srct th{padding-bottom:0;border-bottom:0}}
+.rep-page .srct{font-size:.85em}.rep-page .srct th{width:30%;color:#20252A}.rep-page .srct td{text-align:left;color:#20252A}
 .kdbox{gap:.8rem}
 .kdbox textarea{min-height:0;height:4.4rem}
 .kd-actions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
@@ -683,7 +690,7 @@ function compute(o){
     hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':null)});
   });
   hebel.sort(function(a,b){return b.d-a.d});
-  return {solar:solar(o,S,ist,qIst),areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
+  return {uIst:uIst,solar:solar(o,S,ist,qIst),areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
 return {AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
@@ -756,6 +763,41 @@ function card(title,sub,rows,cls){
   return h+'</dl></article>';
 }
 
+// Herkunft der Zahlen: je Kennwert Rechenweg mit den Werten dieses Objekts, für die Ergebnisseite und den Kundenbericht
+var srcOpen=false,lastOut='';
+function srcRows(X){
+  var o=X.o,R=X.R,S=X.S,I=X.I,s1=S[0],s3=S[2],rows=[];
+  var HA=['vor 1995','1995 bis 2005','2006 bis 2015','ab 2016'],EL={oel:'Öl',gas:'Gas',pellets:'Pellets',fern:'Fernwärme',strom:'Strom'};
+  var wf=o.wf,r0=function(x){return fmt(Math.round(x))},mode=R.mode||(R.anchored?'verbrauch':'bauteile');
+  var end=(o.verb>0)?o.verb*CALC.KWH[o.einh]:0;
+  var base;
+  if(mode==='verbrauch'||mode==='mix'){
+    base='Jahresverbrauch '+r0(o.verb)+' '+o.einh+(o.verbN>1?' (Mittel aus '+o.verbN+' Jahren)':'')+(o.einh!=='kWh'?' = '+r0(end)+' kWh':'')+' × Nutzungsgrad '+Math.round(I.eta*100)+' % = '+r0(end*I.eta)+' kWh Wärme, minus Warmwasser (12,5 kWh/m²a × '+r0(wf)+' m² = '+r0(12.5*wf)+' kWh), geteilt durch '+r0(wf)+' m² = '+fmt(R.qVerb)+' kWh/m²a.';
+    if(mode==='mix') base+=' Aus den Bauteilen ergeben sich '+fmt(R.qBT)+' kWh/m²a. Gerechnet wird mit dem Mittelwert, '+fmt(I.qh)+' kWh/m²a.';
+  }else{
+    var A=R.areas,U=R.uIst||{};
+    base='Aus den Bauteilen: Wärmeverluste über Außenwand'+(U.wand?' (U '+fmt(U.wand,2)+')':'')+', Fenster'+(U.fenster?' (Uw '+fmt(U.fenster,2)+')':'')+', Dach'+(U.dach?' (U '+fmt(U.dach,2)+')':'')+' und Boden bzw. Keller, dazu Wärmebrücken und Lüftung, abzüglich solarer und innerer Gewinne.'+(A?' Flächen: Wand '+r0(A.use.w)+', Fenster '+r0(A.use.f)+', Dach '+r0(A.use.d)+', Boden '+r0(A.use.k)+' m²'+(A.n<4?' (nicht eingegebene Flächen geschätzt)':'')+'.':'')+(R.qVerb!=null?' Der Verbrauch ergäbe '+fmt(R.qVerb)+' kWh/m²a.':'');
+  }
+  rows.push(['Heizwärme '+fmt(I.qh)+' kWh/m²a',base]);
+  var tab=(CALC.ETA[o.tr]||[]).map(function(x){return Math.round(x*100)}).join(' / ');
+  rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+(EL[o.tr]||o.tr)+', Anlage '+HA[o.ha]+'. Richtwerte nach Alter der Anlage (vor 1995 / 1995 bis 2005 / 2006 bis 2015 / ab 2016): '+tab+' %. Ein Schätzwert, die tatsächliche Anlage kann abweichen.']);
+  rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+' + 12,5 Warmwasser) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end)+' kWh im Jahr.'+(mode==='verbrauch'?' Das entspricht dem eingetragenen Verbrauch.':'')]);
+  rows.push(['Heizlast '+fmt(I.kw,1)+' kW',fmt(I.qh)+' kWh/m²a × '+r0(wf)+' m² ÷ 1.700 Volllaststunden. Näherung aus dem Verbrauch, keine Heizlastberechnung nach DIN EN 12831.']);
+  var anf=I.eA>0?I.end/I.eA/wf:1.2;
+  rows.push(['Energieklasse '+I.klasse,r0(I.end)+' kWh ÷ ('+r0(wf)+' m² × '+fmt(anf,2)+' Gebäudenutzfläche) = '+r0(I.eA)+' kWh/m²a, eingeordnet in die Skala des Energieausweises (D: 100 bis unter 130). Orientierung, kein Energieausweis.']);
+  var pa=I.end>0?I.cost/I.end:0;
+  rows.push(['Heizkosten '+eur(I.cost)+'/a',r0(I.end)+' kWh × '+fmt(pa,2)+' €/kWh bisheriger Preis. Ohne Grundpreis, CO₂-Preisentwicklung und Wartung.']);
+  rows.push(['Wärmepumpe: Vorlauf '+Math.round(s1.vl)+' °C','Aus dem Verhältnis der heutigen Heizlast zu der, für die die Heizkörper ausgelegt wurden (Baujahr, Heizkörpertyp). Je geringer die Last, desto niedriger der nötige Vorlauf.'+(o.vlm!=null?' Angepasst an den gemessenen Vorlauf von '+o.vlm+' °C.':' Kein Vorlauf gemessen, daher Modellwert.')]);
+  rows.push(['Jahresarbeitszahl '+fmt(s1.jaz,1),'Näherung: 4,0 − 0,052 × (Vorlauf − 35 °C) = '+fmt(4.0-0.052*(s1.vl-35),2)+', begrenzt auf 2,0 bis 4,6. Je höher der Vorlauf, desto weniger Wärme je kWh Strom.']);
+  rows.push(['Strom '+fmt(s1.strom/1000,1)+' MWh/a, Kosten '+eur(s1.cost)+'/a','('+fmt(s1.qh)+' + 12,5) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(s1.jaz,1)+' = '+r0(s1.strom)+' kWh × '+fmt(o.pWp,2)+' €/kWh Wärmepumpenstrom.']);
+  var sv=I.cost-s1.cost;
+  rows.push(['Ersparnis '+(sv>=0?eur(sv):'−'+eur(-sv))+'/a','Heizkosten Bestand ('+eur(I.cost)+') minus Stromkosten Wärmepumpe ('+eur(s1.cost)+').'+(o.inv1>0?' Amortisation: Investition '+eur(o.inv1)+' ÷ Ersparnis.':'')]);
+  rows.push(['Varianten mit Sanierung','Gleiche Rechnung mit besseren U-Werten. Aktueller Stand: Außenwand U 0,22, Dach 0,16, Kellerdecke 0,30, Fenster Uw 0,95 W/m²K. Bereits bessere Bauteile bleiben erhalten. Heizlast V3: '+fmt(s3.kw,1)+' kW, Vorlauf '+Math.round(s3.vl)+' °C.']);
+  rows.push(['Genauigkeit','Grobe Schätzung, etwa ±25 %. Die Eingaben beim Termin (Verbrauch, Bauteile, gemessener Vorlauf) bestimmen die Qualität. Eine genaue Auslegung braucht die Heizlastberechnung nach DIN EN 12831.']);
+  return rows;
+}
+function srcHtml(X){return '<table class="srct"><tbody>'+srcRows(X).map(function(r){return '<tr><th scope="row">'+esc(r[0])+'</th><td>'+esc(r[1])+'</td></tr>'}).join('')+'</tbody></table>'}
+
 function render(){
   var o=read(),R=CALC.compute(o),S=R.S,I=R.ist;
   (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
@@ -819,6 +861,7 @@ function render(){
     sc+=card('Variante '+(i+1)+': '+s.name.replace('Wärmepumpe','WP'),a[1],rows,'r'+s.rate.k);
   });
   sc+='</div></section>';
+  var srcp='<section class="panel"><details class="src"'+(srcOpen?' open':'')+'><summary>Woher kommen die Zahlen?</summary>'+srcHtml({o:o,R:R,S:S,I:I})+'</details></section>';
 
   // 4 Hebel
   var hb='<section class="panel"><h2>Wirksamste Maßnahmen einzeln</h2>';
@@ -880,7 +923,8 @@ function render(){
     var h=$('pvhint'),s=R.solar&&R.solar.pv;
     if(s&&s.st===2&&!(s.kwp>0)){h.hidden=false;h.textContent='Richtwert für die Auslegung: etwa '+fmt(s.rec,1)+' kWp.'}else h.hidden=true;
   })();
-  $('out').innerHTML=top+rec+hkp+solp+sc+hb+bf;
+  var outHtml=top+rec+hkp+solp+sc+srcp+hb+bf;
+  if(outHtml!==lastOut){lastOut=outHtml;$('out').innerHTML=outHtml} // unveränderte Ausgabe nicht neu aufbauen, damit aufgeklappte Bereiche stehen bleiben
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
   bar.innerHTML='<span>'+rt.t+'</span><span>Vorlauf '+Math.round(s1.vl)+' °C · '+fmt(s1.kw,1)+' kW · JAZ '+fmt(s1.jaz,1)+'</span>';
 
@@ -1524,6 +1568,7 @@ function buildReport(internal,snap){
   // Hinweise
   h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
   h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Keine Heizlastberechnung nach DIN EN 12831. Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p></div>';
+  h+='<div class="rep-page"><h1>So kommen die Zahlen zustande</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+'</p>'+srcHtml({o:o,R:R,S:S,I:I})+'<p class="rep-foot">Alle Werte sind Näherungen aus den Angaben beim Termin.</p></div>';
   if(internal){
     h+='<div class="rep-page"><h1>Intern: Eingaben und Annahmen</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+' · '+(snap?'gespeicherte Auswertung vom '+dateTime:date)+'</p>';
     if(nt) h+='<h2>Notiz</h2><p>'+esc(nt)+'</p>';
@@ -1653,6 +1698,7 @@ function init(){
   $('dbj').addEventListener('change',function(){syncDm();render()});
   $('wlg').addEventListener('change',function(){syncDm();render()});
   ['pvst','stst'].forEach(function(id){$(id).addEventListener('change',function(){syncSolar();render()})});
+  $('out').addEventListener('toggle',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('src')) srcOpen=e.target.open},true);
   $('wd').addEventListener('change',render);
   $('wlgg').addEventListener('change',render);
   $('hk').addEventListener('change',syncHk);
@@ -1684,7 +1730,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 20:55',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 21:09',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

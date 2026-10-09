@@ -1,7 +1,7 @@
 // Service Worker: App-Dateien werden beim ersten Besuch gespeichert und danach auch ohne Netz geliefert.
 // Mit Netz wird zuerst der Server gefragt (neueste Version), bei Ausfall oder langsamer Leitung der Speicher.
-// Build: 2026-10-09 20:55 UTC
-const CACHE='ocheck-202610092055';
+// Build: 2026-10-09 21:09 UTC
+const CACHE='ocheck-202610092109';
 const SHELL=["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png", "logo.jpg", "vendor/html2canvas.min.js", "vendor/jspdf.umd.min.js", "fonts/inter-500.woff2", "fonts/inter-600.woff2", "fonts/manrope-400.woff2", "fonts/manrope-500.woff2", "fonts/manrope-700.woff2", "fonts/manrope-800.woff2"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('ocheck-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

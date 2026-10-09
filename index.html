@@ -238,6 +238,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <section class="bt bt-wand"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 9.7v4.6M9 14.3V19"/></svg>Außenwand</h3>
     <label for="wtyp">Außenwand, Bauart<select id="wtyp"><option value="voll">Vollziegel oder Vollmauerwerk (24 bis 36,5 cm)</option><option value="hlz" selected>Hochlochziegel, Hohlblock, Bims</option><option value="ks">Kalksandstein (KS), Vollstein oder Lochstein</option><option value="bruch">Feldstein, Bruchstein, Mischmauerwerk</option><option value="mono">Porenbeton oder monolithischer Wärmedämmziegel</option><option value="zwei">Zweischalig mit Verblender (Luftschicht oder Kerndämmung)</option><option value="fach">Fachwerk</option><option value="hrb">Holzrahmenbau, Fertighaus (HRB)</option><option value="block">Holzmassiv, Blockbau</option><option value="platte">Betonplatte, Plattenbau</option></select></label>
     <label for="wd" id="wdl"><span id="wdt">Wandstärke</span><select id="wd"></select></label>
+    <label for="wlgg" id="wlggl" hidden>WLG der Gefachdämmung, wenn bekannt<select id="wlgg"><option value="0" selected>unbekannt, Schätzung nach Baujahr</option><option value="32">WLG 032</option><option value="34">WLG 034</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option></select></label>
     <label for="wand"><span id="wstl">Dämmzustand Außenwand</span><select id="wand"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option><option value="3">Dämmung bekannt (Dämmstoff, WLG, Stärke)</option></select></label>
     <label for="dstoff" id="dsl" hidden>Dämmstoff<select id="dstoff"><option value="eps" selected>EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="mw">Mineralwolle (Stein- oder Glaswolle)</option><option value="holz">Holzfaserplatte</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="kern">Kerndämmung (Einblas, Granulat, Flocken)</option><option value="cs">Calciumsilikat, Mineraldämmplatte (Innendämmung)</option></select></label>
     <label for="wlg" id="wlgl" hidden>Wärmeleitgruppe (WLG)<select id="wlg"><option value="0">unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35" selected>WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
@@ -433,6 +434,8 @@ function uWall(o,st){
   // Wandstärke in cm (0 oder leer = typische Stärke der Bauart). Skaliert den Wärmedurchlasswiderstand des Wandkerns.
   var d=+o.wD||0,ref=WDREF[t];
   if(d>0&&ref){var fix=WDFIX[t]||0,Rt=Math.max(0.05,1/u0-0.17-fix);u0=1/(0.17+fix+Rt*d/ref)}
+  // HRB mit bekannter WLG der Gefachdämmung: Gefach parallel gerechnet, 15 % Holzanteil (λ 0,13), Rest Dämmung; Beplankung und Übergänge wie oben
+  if(t==='hrb'&&+o.wlgG>0){var dg=(d>0?d:ref),lam=0.85*(+o.wlgG/1000)+0.15*0.13;u0=1/(0.17+(WDFIX.hrb||0)+(dg/100)/lam)}
   if(!st) return u0;
   if(st===3) return Math.max(0.10,1/(1/u0+rKnown(o)));
   return Math.max(0.14,1/(1/u0+RW[t][st-1]));
@@ -584,7 +587,7 @@ function groupInput(e){
 function read(){
   return {
     obj:$('objekt').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
-    wTyp:$('wtyp').value,wD:+$('wd').value||0,dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
+    wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:numG('verb'),einh:$('einheit').value,
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,
@@ -769,7 +772,7 @@ function syncWand(){
   opt[3].textContent=($('wtyp').value==='hrb')?'WDVS vorhanden (Dämmstoff, WLG, Stärke, Baujahr)':'Dämmung bekannt (Dämmstoff, WLG, Stärke, Baujahr)';
   syncDm();
   var t=$('wtyp').value,L=WDOPT[t],sel=$('wd');
-  $('wdl').hidden=!L;
+  $('wdl').hidden=!L;$('wlggl').hidden=(t!=='hrb');
   sel.innerHTML='';
   if(L){
     $('wdt').textContent=(t==='hrb')?'Gefachdicke (Dämmung zwischen den Ständern)':'Wandstärke (ohne Putz)';
@@ -1427,7 +1430,7 @@ function initReport(){
 
 function init(){
   ['wf','verb','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','dach','keller','fenster','hz_alter','hk','vlm','verb','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
+  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');render();
@@ -1440,6 +1443,7 @@ function init(){
   $('dbj').addEventListener('change',function(){syncDm();render()});
   $('wlg').addEventListener('change',function(){syncDm();render()});
   $('wd').addEventListener('change',render);
+  $('wlgg').addEventListener('change',render);
   $('hk').addEventListener('change',syncHk);
   $('bar').addEventListener('click',function(){try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
   syncKeller();syncWand();syncHk();
@@ -1469,7 +1473,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 19:36',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 19:43',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

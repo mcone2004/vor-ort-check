@@ -735,7 +735,10 @@ function makeSync(be,setState){
     opt=opt||{};
     var h={'Authorization':'Basic '+b64e(c.user+':'+c.pw)};
     if(opt.body) h['Content-Type']='application/json';
-    return fetch(c.url.replace(/\/+$/,'')+'/wp-json/wp/v2'+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined,cache:'no-store'}).then(function(r){
+    // Keine cache-Option: Safari macht daraus Cache-Control/Pragma-Kopfzeilen, die WordPress im CORS-Vorabtest nicht erlaubt.
+    // Der Server sendet selbst no-store, ein Zeitstempel verhindert Zwischenspeicher auf dem Weg.
+    var url=c.url.replace(/\/+$/,'')+'/wp-json/wp/v2'+path+(opt.method&&opt.method!=='GET'?'':(path.indexOf('?')>=0?'&':'?')+'_t='+Date.now());
+    return fetch(url,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined}).then(function(r){
       if(r.status===401||r.status===403) return r.text().then(function(t){
         var j=null;try{j=JSON.parse(t)}catch(e){}
         var code=(j&&j.code)||'',msg;
@@ -752,7 +755,7 @@ function makeSync(be,setState){
     },function(){
       // Browser meldet nur "Netzwerkfehler". Mit no-cors prüfen, ob die Seite überhaupt antwortet.
       var root=c.url.replace(/\/+$/,'')+'/wp-json/';
-      return fetch(root,{mode:'no-cors',cache:'no-store'}).then(function(){
+      return fetch(root+'?_t='+Date.now(),{mode:'no-cors'}).then(function(){
         throw fail('cors','Die Seite ist erreichbar, aber der Browser verwirft die Antwort (CORS). Mögliche Ursachen: Firewall oder Sicherheits-Plugin der Seite, Zwischenspeicher (LiteSpeed), oder ein Inhaltsblocker, VPN oder Datenschutz-Relay auf diesem Gerät.');
       },function(){
         throw fail('net','Keine Verbindung zur Seite. Offline, oder die Seite sperrt dieses Netz oder Gerät (Firewall), oder ein Inhaltsblocker, VPN oder Datenschutz-Relay blockiert sie.');

@@ -80,6 +80,7 @@ label{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;width:100%;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.7rem}
+.vrow{align-items:end}
 .row3{grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))}
 .hint{font-size:.78rem;color:var(--muted)}
 #kd_auto{font-weight:600;min-height:1.2em}#kd_auto[data-kind="warn"]{color:#B35C00}#kd_auto[data-kind="ok"]{color:#4F7A12}
@@ -296,15 +297,22 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
   </fieldset>
 
   <fieldset><legend>Jahresverbrauch</legend>
-    <div class="row row3">
+    <div class="row vrow">
       <label for="verb">Verbrauch letztes Jahr (Beispielwert)<input id="verb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="2.800"></label>
-      <label for="verb2">Vorjahr, optional<input id="verb2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
-      <label for="verb3">Jahr davor, optional<input id="verb3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
+      <label for="vj1">Jahr<input id="vj1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+    </div>
+    <div class="row vrow">
+      <label for="verb2">Verbrauch Vorjahr, optional<input id="verb2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
+      <label for="vj2">Jahr<input id="vj2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+    </div>
+    <div class="row vrow">
+      <label for="verb3">Verbrauch Jahr davor, optional<input id="verb3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
+      <label for="vj3">Jahr<input id="vj3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
     </div>
     <label for="einheit">Einheit, wie auf der Rechnung<select id="einheit"><option selected>Liter</option><option>m³</option><option>kg</option><option>kWh</option></select></label>
     <span class="hint" id="vhint">Bei Gas steht auf der Rechnung meist kWh, dann kWh wählen. m³ rechnet die App mit 10 kWh je m³ um. Mit mehreren Jahren rechnet sie mit dem Mittel.</span>
-    <label for="basis">Rechnen mit<select id="basis"><option value="verbrauch" selected>Jahresverbrauch, wenn eingetragen</option><option value="bauteile">Bauteilangaben, Verbrauch nur zum Abgleich</option></select></label>
-    <span class="hint">Mit Verbrauch bestimmt er die Heizwärme. Wand, Dach, Fenster und Keller wirken dann nur auf die Varianten. Leer lassen oder Bauteile wählen, um mit den Bauteilangaben zu rechnen. Das Mittel aus drei Jahren ist am besten.</span>
+    <label for="basis">Rechnen mit<select id="basis"><option value="auto" selected>Automatisch (empfohlen)</option><option value="verbrauch">Nur Jahresverbrauch</option><option value="bauteile">Nur Bauteilangaben</option><option value="mix">Mix aus Verbrauch und Bauteilen</option></select></label>
+    <span class="hint" id="bhint"></span>
   </fieldset>
 
   <details><summary>Preise und Investitionen</summary>
@@ -533,8 +541,20 @@ function compute(o){
     var end=o.verb*KWH[o.einh];
     qVerb=Math.max(15,(end*eta-WW*o.wf)/o.wf);
   }
-  var anchored=(qVerb!=null && o.basis!=='bauteile');
-  if(anchored) qIst=qVerb;
+  // Rechenbasis: Verbrauch, Bauteile oder Mix (Mittelwert beider). Automatisch: Verbrauch, wenn er zum Bauteilmodell passt
+  // (Abweichung bis 25 %) oder aus mindestens zwei Jahren mit höchstens 20 % Streuung besteht, sonst Mix.
+  var mode='bauteile',auto=false,bsel=o.basis||'auto';
+  if(qVerb!=null){
+    if(bsel==='bauteile'||bsel==='mix'||bsel==='verbrauch') mode=bsel;
+    else{
+      auto=true;
+      var dev=Math.abs(qVerb/qBT-1);
+      var spread=(o.verbN>=2&&o.verbMax+o.verbMin>0)?(o.verbMax-o.verbMin)/((o.verbMax+o.verbMin)/2):1;
+      mode=(dev<=0.25||(o.verbN>=2&&spread<=0.20))?'verbrauch':'mix';
+    }
+  }
+  var anchored=(mode!=='bauteile');
+  if(mode==='verbrauch') qIst=qVerb; else if(mode==='mix') qIst=(qVerb+qBT)/2;
   var sc=qIst/qBT;
   var qOrigW=qOrig*1000/VBH;
   var vlIstModel=vlModel(o,qIst,qOrigW,qIst*1000/VBH);
@@ -576,7 +596,7 @@ function compute(o){
     hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':null)});
   });
   hebel.sort(function(a,b){return b.d-a.d});
-  return {areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
+  return {areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
 return {AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
@@ -613,17 +633,18 @@ function groupInput(e){
 }
 // Verbrauch: bis zu drei Jahre, gerechnet wird mit dem Mittel der eingetragenen Jahre
 function verbMean(){
-  var v=['verb','verb2','verb3'].map(numG).filter(function(x){return x>0});
-  if(!v.length) return {m:0,n:0,lo:0,hi:0};
+  var v=[],y=[];
+  [['verb','vj1'],['verb2','vj2'],['verb3','vj3']].forEach(function(p){var x=numG(p[0]);if(x>0){v.push(x);var j=parseInt($(p[1]).value,10);if(j>=1990&&j<=2100) y.push(j)}});
+  if(!v.length) return {m:0,n:0,lo:0,hi:0,y:[]};
   var s=v.reduce(function(a,b){return a+b},0);
-  return {m:s/v.length,n:v.length,lo:Math.min.apply(null,v),hi:Math.max.apply(null,v)};
+  return {m:s/v.length,n:v.length,lo:Math.min.apply(null,v),hi:Math.max.apply(null,v),y:y};
 }
 function read(){
   return {
     obj:$('objekt').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
-    vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbMin:verbMean().lo,verbMax:verbMean().hi,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
+    vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4')
   };
@@ -649,6 +670,14 @@ function card(title,sub,rows,cls){
 function render(){
   var o=read(),R=CALC.compute(o),S=R.S,I=R.ist;
   (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
+  (function(){
+    var y=new Date().getFullYear();['vj1','vj2','vj3'].forEach(function(id,i){$(id).placeholder=String(y-1-i)});
+    var bh={auto:'Der Rechner wählt selbst: Verbrauch, wenn er zum Bauteilmodell passt oder über mehrere Jahre stabil ist, sonst den Mittelwert aus beiden. Ohne Verbrauch gelten die Bauteilangaben.',
+      verbrauch:'Der Verbrauch bestimmt die Heizwärme. Wand, Dach, Fenster und Keller wirken nur auf die Varianten.',
+      bauteile:'Die Bauteilangaben bestimmen die Heizwärme. Der Verbrauch dient nur zum Abgleich.',
+      mix:'Mittelwert aus Verbrauch und Bauteilmodell. Sinnvoll bei nur einem Jahr, Leerstand, Zusatzheizung oder wenn beide Werte weit auseinanderliegen.'};
+    $('bhint').textContent=bh[$('basis').value]||'';
+  })();
   var s1=S[0],s2=S[1],s3=S[2],rt=s1.rate;
   var cu=CALC.canUp(o), dk=cu?'Dach und Kellerdecke':'Dach';
   $('wuw').textContent='Angesetzt für die Außenwand: U ca. '+fmt(R.uWand,2)+' W/m²K';
@@ -656,8 +685,11 @@ function render(){
   var sav1=I.cost-s1.cost, add2=s1.cost-s2.cost, add3=s1.cost-s3.cost;
 
   // 1 Befund oben
-  var basisTxt=R.anchored?
-    'Basis: Jahresverbrauch ('+fmt(I.qh)+' kWh/m²a Heizwärme). Wand, Dach, Fenster und Keller wirken dann nur auf die Varianten und Maßnahmen.':
+  var modeWhy=R.auto?(' Automatisch gewählt'+(R.mode==='mix'?', weil Verbrauch und Bauteilmodell stärker auseinanderliegen und der Verbrauch nur auf einem Jahr oder stark schwankenden Jahren beruht.':', weil der Verbrauch zum Bauteilmodell passt oder über mehrere Jahre stabil ist.')):'';
+  var basisTxt=R.mode==='verbrauch'?
+    'Basis: Jahresverbrauch ('+fmt(I.qh)+' kWh/m²a Heizwärme). Wand, Dach, Fenster und Keller wirken dann nur auf die Varianten und Maßnahmen.'+modeWhy:
+    R.mode==='mix'?
+    'Basis: Mix aus Jahresverbrauch ('+fmt(R.qVerb)+' kWh/m²a) und Bauteilangaben ('+fmt(R.qBT)+' kWh/m²a), Mittelwert '+fmt(I.qh)+' kWh/m²a Heizwärme.'+modeWhy:
     'Basis: Bauteilangaben ('+fmt(I.qh)+' kWh/m²a Heizwärme)'+(R.qVerb!=null?'. Der Verbrauch ergäbe '+fmt(R.qVerb)+' kWh/m²a.':'.');
   var ORD=['A+','A','B','C','D','E','F','G','H'],mk={};
   function mark(k,t){(mk[k]=mk[k]||[]).push(t)}
@@ -716,12 +748,12 @@ function render(){
   var f=[];
   if(R.qVerb!=null){
     var ab=(R.qVerb/R.qBT-1)*100;
-    if(Math.abs(ab)>25) f.push('Verbrauch weicht um '+fmt(Math.abs(ab))+' % von der Bauteilschätzung ab ('+(ab<0?'niedriger':'höher')+'). Bauteilangaben, Abrechnungszeitraum, Zusatzheizung (Ofen) und Leerstand prüfen. '+(R.anchored?'Gerechnet wird mit dem Verbrauch.':'Gerechnet wird mit den Bauteilen.'));
+    if(Math.abs(ab)>25) f.push('Verbrauch weicht um '+fmt(Math.abs(ab))+' % von der Bauteilschätzung ab ('+(ab<0?'niedriger':'höher')+'). Bauteilangaben, Abrechnungszeitraum, Zusatzheizung (Ofen) und Leerstand prüfen. '+(R.mode==='verbrauch'?'Gerechnet wird mit dem Verbrauch.':R.mode==='mix'?'Gerechnet wird mit dem Mittelwert aus Verbrauch und Bauteilen.':'Gerechnet wird mit den Bauteilen.'));
     else f.push('Verbrauch und Bauteilschätzung liegen innerhalb von 25 %. Das stützt die Eingaben.');
   }else f.push('Kein Verbrauch eingetragen. Das Ergebnis beruht nur auf Baujahr und Bauteilen. Mit dem Jahresverbrauch der letzten drei Jahre wird es deutlich belastbarer.');
   if(o.verbN>1){
     var sp=(o.verbMax-o.verbMin)/((o.verbMax+o.verbMin)/2)*100;
-    f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel, ohne Witterungsbereinigung.'):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren (Streuung '+fmt(sp)+' %), ohne Witterungsbereinigung.'));
+    f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel, ohne Witterungsbereinigung.'):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren'+(o.verbY&&o.verbY.length===o.verbN?' ('+o.verbY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(sp)+' %, ohne Witterungsbereinigung.'));
   }else if(o.verbN===1) f.push('Nur ein Verbrauchsjahr eingetragen. Witterung und Nutzung dieses Jahres sind nicht ausgeglichen. Mit zwei weiteren Jahren wird der Wert belastbarer.');
   var AN={w:'Außenwand',f:'Fenster',d:'Dach bzw. oberste Decke',k:'Boden bzw. Kellerdecke'},mn=[],odd=[];
   ['w','f','d','k'].forEach(function(k){if(R.areas.meas[k]){mn.push(AN[k]);var q=R.areas.use[k]/R.areas.est[k];if(q<0.5||q>2) odd.push(AN[k]+' '+fmt(R.areas.use[k])+' m² statt geschätzt '+fmt(R.areas.est[k])+' m²')}});
@@ -1487,7 +1519,7 @@ function initReport(){
 
 function init(){
   ['wf','verb','verb2','verb3','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','aw','af','ad','ak','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
+  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','aw','af','ad','ak','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -1534,7 +1566,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 20:26',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 20:30',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

@@ -83,7 +83,7 @@ label{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;width:100%;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.7rem}
-.vrow{align-items:end}
+.vrow{align-items:end}.vrow3{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)}
 .row3{grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))}
 .hint{font-size:.78rem;color:var(--muted)}
 .src{background:var(--bg)}
@@ -186,7 +186,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 .rep-title h1{font-size:1.2rem}
 .rep-page h1{font-size:1.35rem;margin:0 0 .15rem;color:#20252A}
 .rep-page h2{font-size:.95rem;margin:.6rem 0 .25rem;padding-bottom:.15rem;break-after:avoid;border-bottom:2px solid #7CB028;color:#20252A}
-.rep-page p{margin:.3rem 0}
+.rep-page p{margin:.3rem 0}.rep-page .rep-firm{margin-top:.6rem;padding-top:.35rem;border-top:1px solid #D4D7DA;font-size:.8em;color:#555;text-align:center}
 .rep-meta{display:grid;grid-template-columns:auto 1fr;gap:.1rem .9rem;margin:.6rem 0 .2rem;font-size:.95em}
 .rep-meta dt{color:#555}.rep-meta dd{margin:0;font-weight:600;text-align:left}
 .rep-verdict{display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap;border:1px solid #C1C1C1;border-left:6px solid var(--rc,#7CB028);padding:.5rem .9rem;margin:.4rem 0;break-inside:avoid}
@@ -342,20 +342,23 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
   </fieldset>
 
   <fieldset><legend>Jahresverbrauch Heizung</legend>
-    <div class="row vrow">
+    <div class="row vrow vrow3">
       <label for="verb">Verbrauch letztes Jahr (Beispielwert)<input id="verb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="2.800"></label>
       <label for="vj1">Jahr<input id="vj1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+      <label for="kf1">Klimafaktor, optional<input id="kf1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="1,00"></label>
     </div>
-    <div class="row vrow">
+    <div class="row vrow vrow3">
       <label for="verb2">Verbrauch Vorjahr, optional<input id="verb2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
       <label for="vj2">Jahr<input id="vj2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+      <label for="kf2">Klimafaktor, optional<input id="kf2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="1,00"></label>
     </div>
-    <div class="row vrow">
+    <div class="row vrow vrow3">
       <label for="verb3">Verbrauch Jahr davor, optional<input id="verb3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
       <label for="vj3">Jahr<input id="vj3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+      <label for="kf3">Klimafaktor, optional<input id="kf3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="1,00"></label>
     </div>
     <label for="einheit">Einheit, wie auf der Rechnung<select id="einheit"><option selected>Liter</option><option>m³</option><option>kg</option><option>kWh</option></select></label>
-    <span class="hint" id="vhint">Bei Gas steht auf der Rechnung meist kWh, dann kWh wählen. m³ rechnet die App mit 10 kWh je m³ um. Mit mehreren Jahren rechnet sie mit dem Mittel.</span>
+    <span class="hint" id="vhint">Bei Gas steht auf der Rechnung meist kWh, dann kWh wählen. m³ rechnet die App mit 10 kWh je m³ um. Mit mehreren Jahren rechnet sie mit dem Mittel. Klimafaktor: Wert je Jahr aus der DWD-Tabelle für die Region (Verfahren der Energieausweise), in milden Jahren über 1. Leer lassen heißt keine Witterungsbereinigung.</span>
     <label for="basis">Rechnen mit<select id="basis"><option value="auto" selected>Automatisch (empfohlen)</option><option value="verbrauch">Nur Jahresverbrauch</option><option value="bauteile">Nur Bauteilangaben</option><option value="mix">Mix aus Verbrauch und Bauteilen</option></select></label>
     <span class="hint" id="bhint"></span>
   </fieldset>
@@ -387,7 +390,10 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <label for="inv2">Investition Dach (und Kellerdecke), € (optional)<input id="inv2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
     <label for="inv3">Investition komplette Hülle, € (optional)<input id="inv3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
     <label for="inv4">Investition Heizkörpertausch, € (optional)<input id="inv4" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
-    <span class="hint">Amortisation ohne Förderung und ohne Preissteigerung.</span>
+    <label for="inv5" id="l_inv5" hidden>Investition Photovoltaik, € (optional)<input id="inv5" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
+    <label for="inv6" id="l_inv6" hidden>Investition Batteriespeicher, € (optional)<input id="inv6" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
+    <label for="inv7" id="l_inv7" hidden>Investition Solarthermie, € (optional)<input id="inv7" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
+    <span class="hint">Amortisation ohne Förderung und ohne Preissteigerung. Investitionen für PV, Speicher und Solarthermie erscheinen, wenn die Anlage als geplant eingetragen ist. Sie werden getrennt von der Wärmepumpe amortisiert.</span>
   </details>
 </form>
 
@@ -650,7 +656,7 @@ function compute(o){
   var qIst=qBT, qVerb=null;
   if(o.verb>0){
     var end=o.verb*KWH[o.einh];
-    qVerb=Math.max(15,(end*eta+(o.stSt===1?stNutz(o,qBT):0)-WW*o.wf)/o.wf); // vorhandene Solarthermie hat schon Wärme geliefert, die im Verbrauch fehlt
+    qVerb=Math.max(15,(end*eta+(o.stSt===1?stNutz(o,qBT):0)-WW*o.wf)/o.wf*(o.kf>0?o.kf:1)); // vorhandene Solarthermie hat schon Wärme geliefert, die im Verbrauch fehlt; kf = Klimafaktor, nur auf die Heizwärme
   }
   // Rechenbasis: Verbrauch, Bauteile oder Mix (Mittelwert beider). Automatisch: Verbrauch, wenn er zum Bauteilmodell passt
   // (Abweichung bis 25 %) oder aus mindestens zwei Jahren mit höchstens 20 % Streuung besteht, sonst Mix.
@@ -757,22 +763,29 @@ function groupInput(e){
 }
 // Verbrauch: bis zu drei Jahre, gerechnet wird mit dem Mittel der eingetragenen Jahre
 function yearMean(pairs){
-  var v=[],y=[];
-  pairs.forEach(function(p){var x=numG(p[0]);if(x>0){v.push(x);var j=parseInt($(p[1]).value,10);if(j>=1990&&j<=2100) y.push(j)}});
-  if(!v.length) return {m:0,n:0,lo:0,hi:0,y:[]};
+  var v=[],b=[],y=[],sk=0,sv=0;
+  pairs.forEach(function(p){
+    var x=numG(p[0]);
+    if(x>0){
+      var kf=p[2]?num(p[2]):0;if(!(kf>=0.5&&kf<=1.5)) kf=1;
+      v.push(x);b.push(x*kf);sk+=x*kf;sv+=x;
+      var j=parseInt($(p[1]).value,10);if(j>=1990&&j<=2100) y.push(j)
+    }
+  });
+  if(!v.length) return {m:0,n:0,lo:0,hi:0,y:[],kf:1};
   var s=v.reduce(function(a,b){return a+b},0);
-  return {m:s/v.length,n:v.length,lo:Math.min.apply(null,v),hi:Math.max.apply(null,v),y:y};
+  return {m:s/v.length,n:v.length,lo:Math.min.apply(null,b),hi:Math.max.apply(null,b),y:y,kf:sv>0?sk/sv:1}; // lo und hi sind witterungsbereinigt, kf der verbrauchsgewichtete Klimafaktor
 }
-function verbMean(){return yearMean([['verb','vj1'],['verb2','vj2'],['verb3','vj3']])}
+function verbMean(){return yearMean([['verb','vj1','kf1'],['verb2','vj2','kf2'],['verb3','vj3','kf3']])}
 function hhMean(){return yearMean([['sv1','sj1'],['sv2','sj2'],['sv3','sj3']])}
 function read(){
   return {
     obj:$('objekt').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
-    vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
+    vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
-    inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4')
+    inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4'),inv5:numG('inv5'),inv6:numG('inv6'),inv7:numG('inv7')
   };
 }
 function chip(k,eA){
@@ -787,6 +800,7 @@ function pay(inv,dSav){
   if(inv>0&&dSav>0) return fmt(inv/dSav,1)+' Jahre';
   return inv>0?'keine Ersparnis':'Invest eintragen';
 }
+var FIRMA='Energieberatung Lange UG (haftungsbeschränkt) · Am Soll 12 · 17498 Weitenhagen · energieberatung-lange.de';
 var r10g=function(x){return fmt(Math.round(x/10)*10)};
 var SOT=function(x){return x===1?'vorhanden':'geplant'};
 // Solarzeilen für Bestandskarte und Variantenkarten
@@ -822,7 +836,7 @@ function srcRows(X){
   var end=(o.verb>0)?o.verb*CALC.KWH[o.einh]:0;
   var base;
   if(mode==='verbrauch'||mode==='mix'){
-    base='Jahresverbrauch '+r0(o.verb)+' '+o.einh+(o.verbN>1?' (Mittel aus '+o.verbN+' Jahren)':'')+(o.einh!=='kWh'?' = '+r0(end)+' kWh':'')+' × Nutzungsgrad '+Math.round(I.eta*100)+' % = '+r0(end*I.eta)+' kWh Wärme, minus Warmwasser (12,5 kWh/m²a × '+r0(wf)+' m² = '+r0(12.5*wf)+' kWh), geteilt durch '+r0(wf)+' m² = '+fmt(R.qVerb)+' kWh/m²a.';
+    base='Jahresverbrauch '+r0(o.verb)+' '+o.einh+(o.verbN>1?' (Mittel aus '+o.verbN+' Jahren)':'')+(o.einh!=='kWh'?' = '+r0(end)+' kWh':'')+' × Nutzungsgrad '+Math.round(I.eta*100)+' % = '+r0(end*I.eta)+' kWh Wärme, minus Warmwasser (12,5 kWh/m²a × '+r0(wf)+' m² = '+r0(12.5*wf)+' kWh), geteilt durch '+r0(wf)+' m²'+(o.kf!==1?', mal Klimafaktor '+fmt(o.kf,2)+' (Witterungsbereinigung der Heizwärme)':'')+' = '+fmt(R.qVerb)+' kWh/m²a.';
     if(mode==='mix') base+=' Aus den Bauteilen ergeben sich '+fmt(R.qBT)+' kWh/m²a. Gerechnet wird mit dem Mittelwert, '+fmt(I.qh)+' kWh/m²a.';
   }else{
     var A=R.areas,U=R.uIst||{};
@@ -831,7 +845,7 @@ function srcRows(X){
   rows.push(['Heizwärme '+fmt(I.qh)+' kWh/m²a',base]);
   var tab=(CALC.ETA[o.tr]||[]).map(function(x){return Math.round(x*100)}).join(' / ');
   rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+(EL[o.tr]||o.tr)+', Anlage '+HA[o.ha]+'. Richtwerte nach Alter der Anlage (vor 1995 / 1995 bis 2005 / 2006 bis 2015 / ab 2016): '+tab+' %. Ein Schätzwert, die tatsächliche Anlage kann abweichen.']);
-  rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+' + 12,5 Warmwasser) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end+I.stSav)+' kWh'+(I.stSav>0?', abzüglich '+r0(I.stSav)+' kWh, die die vorhandene Solarthermie liefert, = '+r0(I.end)+' kWh im Jahr.':' im Jahr.')+(mode==='verbrauch'?' Das entspricht dem eingetragenen Verbrauch.':'')]);
+  rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+' + 12,5 Warmwasser) kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end+I.stSav)+' kWh'+(I.stSav>0?', abzüglich '+r0(I.stSav)+' kWh, die die vorhandene Solarthermie liefert, = '+r0(I.end)+' kWh im Jahr.':' im Jahr.')+(mode==='verbrauch'?(o.kf!==1?' Das ist der eingetragene Verbrauch, witterungsbereinigt.':' Das entspricht dem eingetragenen Verbrauch.'):'')]);
   rows.push(['Heizlast '+fmt(I.kw,1)+' kW',fmt(I.qh)+' kWh/m²a × '+r0(wf)+' m² ÷ 1.700 Volllaststunden. Näherung aus dem Verbrauch, keine Heizlastberechnung nach DIN EN 12831.']);
   var anf=I.eA>0?I.end/I.eA/wf:1.2;
   rows.push(['Energieklasse '+I.klasse,r0(I.end)+' kWh ÷ ('+r0(wf)+' m² × '+fmt(anf,2)+' Gebäudenutzfläche) = '+r0(I.eA)+' kWh/m²a, eingeordnet in die Skala des Energieausweises (D: 100 bis unter 130). Orientierung, kein Energieausweis.']);
@@ -845,7 +859,7 @@ function srcRows(X){
     var sp=R.solar.pv,sst=R.solar.st,tx=[];
     if(sst) tx.push('Solarthermie '+fmt(sst.m2,1)+' m² ('+SOT(sst.st)+'): '+(sst.nu==='kombi'?'280':'350')+' kWh/m²a, höchstens 60 % des Warmwasserbedarfs'+(sst.nu==='kombi'?' plus 8 % der Heizwärme':'')+' = '+r0(sst.nutz)+' kWh Wärme, geteilt durch die Jahresarbeitszahl = '+r0(sst.strom)+' kWh weniger Strom'+(sst.st===1?'. Im Bestand ist sie im Verbrauch schon enthalten':'')+'.');
     if(sp&&sp.kwp>0) tx.push('Photovoltaik '+fmt(sp.kwp,1)+' kWp ('+SOT(sp.st)+'): '+fmt(sp.kwp,1)+' × 950 = '+r0(sp.Y)+' kWh Ertrag. Davon geht ein Teil direkt oder über den Speicher in den Wärmepumpenstrom ('+r0(sp.covE)+' kWh = '+Math.round(sp.pct*100)+' %). Bewertet mit Wärmepumpen-Strompreis minus Einspeisevergütung.');
-    if(tx.length) rows.push(['Solar in den Varianten',tx.join(' ')+' Vorhandene Anlagen gelten im Bestand und in den Varianten, geplante nur in den Varianten.']);
+    if(tx.length) rows.push(['Solar in den Varianten',tx.join(' ')+' Vorhandene Anlagen gelten im Bestand und in den Varianten, geplante nur in den Varianten. Geplante Anlagen werden getrennt amortisiert: Investition ÷ Gesamtnutzen (Wärmepumpenstrom und Haushaltsstrom), die Wärmepumpe rechnet ohne deren Vorteil.']);
   }
   rows.push(['Varianten mit Sanierung','Gleiche Rechnung mit besseren U-Werten. Aktueller Stand: Außenwand U 0,22, Dach 0,16, Kellerdecke 0,30, Fenster Uw 0,95 W/m²K. Bereits bessere Bauteile bleiben erhalten. Heizlast V3: '+fmt(s3.kw,1)+' kW, Vorlauf '+Math.round(s3.vl)+' °C.']);
   rows.push(['Genauigkeit','Grobe Schätzung, etwa ±25 %. Die Eingaben beim Termin (Verbrauch, Bauteile, gemessener Vorlauf) bestimmen die Qualität. Eine genaue Auslegung braucht die Heizlastberechnung nach DIN EN 12831.']);
@@ -869,6 +883,9 @@ function render(){
   $('wuw').textContent='Angesetzt für die Außenwand: U ca. '+fmt(R.uWand,2)+' W/m²K';
   $('fuw').textContent='Angesetzt für die Bestandsfenster: Uw ca. '+fmt(R.uFen,2)+' W/m²K';
   var sav1=I.cost-s1.cost, add2=s1.cost-s2.cost, add3=s1.cost-s3.cost;
+  // Geplante Solaranlagen werden getrennt amortisiert: Die Wärmepumpe rechnet ohne ihren Vorteil, die Solaranlagen mit ihrem Gesamtnutzen
+  var rsol=R.solar||{},pvOk=o.pvSt===2&&rsol.pv&&rsol.pv.kwp>0,stOk=o.stSt===2&&!!rsol.st;
+  var pl={has:pvOk||stOk,sav:sav1-((pvOk?s1.pvBen:0)+(stOk?s1.stSav*o.pWp:0)),inv:(pvOk?(o.inv5||0)+(o.inv6||0):0)+(stOk?(o.inv7||0):0),ben:(pvOk?rsol.pv.save:0)+(stOk?rsol.st.save:0)};
 
   // 1 Befund oben
   var modeWhy=R.auto?(' Automatisch gewählt'+(R.mode==='mix'?', weil Verbrauch und Bauteilmodell stärker auseinanderliegen und der Verbrauch nur auf einem Jahr oder stark schwankenden Jahren beruht.':', weil der Verbrauch zum Bauteilmodell passt oder über mehrere Jahre stabil ist.')):'';
@@ -912,7 +929,7 @@ function render(){
   [[s1,'Heizkörper und Hülle bleiben',0,0],[s2,dk+' gedämmt',o.inv2,add2],[s3,'Wand, Dach, Fenster'+(cu?', Kellerdecke':'')+' auf aktuellem Stand',o.inv3,add3]].concat(S[3]?[[S[3],'Alle '+HKN[o.hkTyp]+' gegen Typ 33, gleiche Baugröße',o.inv4,s1.cost-S[3].cost]]:[]).forEach(function(a,i){
     var s=a[0];
     var rows=[['Heizwärme',fmt(s.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(s.klasse,s.eA)],['Heizlast',fmt(s.kw,1)+' kW'],['Vorlauf',Math.round(s.vl)+' °C'+gauge(s.vl)],['Jahresarbeitszahl',fmt(s.jaz,1)],['Strom',fmt(s.strom/1000,1)+' MWh/a']].concat(solRowsVar(o,s),[['Heizkosten'+((s.stN>0||s.pv)?' (mit Solar)':''),eur(s.cost)+'/a']]);
-    if(i===0) rows.push(['Ersparnis zur Bestandsheizung',(sav1>=0?eur(sav1):'−'+eur(-sav1))+'/a'],['Amortisation WP',pay(o.inv1,sav1)]);
+    if(i===0){rows.push(['Ersparnis zur Bestandsheizung',(sav1>=0?eur(sav1):'−'+eur(-sav1))+'/a'],['Amortisation WP'+(pl.has?' (ohne Solar)':''),pay(o.inv1,pl.sav)]);if(pl.has) rows.push(['Amortisation Solar (geplant)',pay(pl.inv,pl.ben)])}
     else rows.push(['Mehrersparnis zu Variante 1',eur(Math.max(0,a[3]))+'/a'],[i===3?'Amortisation Tausch':'Amortisation Hülle',pay(a[2],a[3])]);
     sc+=card('Variante '+(i+1)+': '+s.name.replace('Wärmepumpe','WP'),a[1],rows,'r'+s.rate.k);
   });
@@ -941,8 +958,8 @@ function render(){
   }else f.push('Kein Verbrauch eingetragen. Das Ergebnis beruht nur auf Baujahr und Bauteilen. Mit dem Jahresverbrauch der letzten drei Jahre wird es deutlich belastbarer.');
   if(o.verbN>1){
     var sp=(o.verbMax-o.verbMin)/((o.verbMax+o.verbMin)/2)*100;
-    f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel, ohne Witterungsbereinigung.'):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren'+(o.verbY&&o.verbY.length===o.verbN?' ('+o.verbY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(sp)+' %, ohne Witterungsbereinigung.'));
-  }else if(o.verbN===1) f.push('Nur ein Verbrauchsjahr eingetragen. Witterung und Nutzung dieses Jahres sind nicht ausgeglichen. Mit zwei weiteren Jahren wird der Wert belastbarer.');
+    f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel'+(o.kf!==1?' mit Witterungsbereinigung (Klimafaktor Ø '+fmt(o.kf,2)+').':', ohne Witterungsbereinigung.')):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren'+(o.verbY&&o.verbY.length===o.verbN?' ('+o.verbY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(sp)+' %'+(o.kf!==1?', mit Witterungsbereinigung (Klimafaktor Ø '+fmt(o.kf,2)+').':', ohne Witterungsbereinigung.')));
+  }else if(o.verbN===1) f.push('Nur ein Verbrauchsjahr eingetragen'+(o.kf!==1?', mit Witterungsbereinigung (Klimafaktor '+fmt(o.kf,2)+'). Die Nutzung dieses Jahres ist nicht ausgeglichen.':'. Witterung und Nutzung dieses Jahres sind nicht ausgeglichen.')+' Mit zwei weiteren Jahren wird der Wert belastbarer.');
   if(o.hhN>0){
     var hs=o.hhN>1?(o.hhMax-o.hhMin)/((o.hhMax+o.hhMin)/2)*100:0;
     f.push('Haushaltsstrom: '+(o.hhN>1?'Mittel aus '+o.hhN+' Jahren'+(o.hhY&&o.hhY.length===o.hhN?' ('+o.hhY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(hs)+' %':'ein Jahr')+', etwa '+fmt(Math.round(o.hh/10)*10)+' kWh im Jahr'+(o.hh<1500?'. Der Wert ist niedrig, gehört Heizstrom oder ein zweiter Zähler dazu?':(o.hh>8000?'. Der Wert ist hoch, möglicherweise ist Heizstrom enthalten. Der gehört unter Heizung.':'.')));
@@ -984,7 +1001,7 @@ function render(){
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
   bar.innerHTML='<span>'+rt.t+'</span><span>Vorlauf '+Math.round(s1.vl)+' °C · '+fmt(s1.kw,1)+' kW · JAZ '+fmt(s1.jaz,1)+'</span>';
 
-  lastCtx={o:o,R:R,S:S,I:I,t:t,f:f,dk:dk,cu:cu,sav1:sav1,add2:add2,add3:add3,basis:basisTxt};
+  lastCtx={o:o,R:R,S:S,I:I,t:t,f:f,dk:dk,cu:cu,sav1:sav1,add2:add2,add3:add3,basis:basisTxt,pl:pl};
   lastText=['Vor-Ort-Check: '+(o.obj||'Objekt'),
    'Wohnfläche '+o.wf+' m², Heizwärme ca. '+fmt(I.qh)+' kWh/m²a, Heizlast ca. '+fmt(s1.kw,1)+' kW',
    'WP ohne Sanierung: '+rt.t+', Vorlauf ca. '+Math.round(s1.vl)+' °C, JAZ ca. '+fmt(s1.jaz,1),
@@ -1064,7 +1081,7 @@ function syncDm(){
     $('dshint').textContent='Gerechnet mit λ = '+lam.toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(+$('dbj').value===1||+$('dbj').value===2?', Einbau vor 1995':'')+')');
   }
 }
-function syncSolar(){$('pvrow').hidden=($('pvst').value==='0');$('strow').hidden=($('stst').value==='0')}
+function syncSolar(){var pv=$('pvst').value,st=$('stst').value;$('pvrow').hidden=(pv==='0');$('strow').hidden=(st==='0');$('l_inv5').hidden=$('l_inv6').hidden=(pv!=='2');$('l_inv7').hidden=(st!=='2')}
 // Texte zu PV und Solarthermie, für Ergebniskarte und Kundenbericht
 function solarLines(R){
   var s=R.solar,out=[],r10=function(x){return fmt(Math.round(x/10)*10)},stT=function(x){return x===1?'vorhanden':'geplant'};
@@ -1600,7 +1617,7 @@ function buildReport(internal,snap){
   var cols=[{n:'Bestand',s:null}];
   var vn=['V1 WP ohne Sanierung','V2 WP + '+X.dk.replace(' / oberste Geschossdecke',''),'V3 WP + komplette Hülle','V4 WP + Heizkörpertausch'];
   S.forEach(function(s,i){cols.push({n:vn[i]||s.name,s:s,i:i})});
-  var inv=[0,o.inv1,o.inv2,o.inv3,o.inv4],adds=[0,X.sav1,X.add2,X.add3,S[3]?S[0].cost-S[3].cost:0];
+  var inv=[0,o.inv1,o.inv2,o.inv3,o.inv4],pl=X.pl||{has:false,sav:X.sav1},adds=[0,pl.sav,X.add2,X.add3,S[3]?S[0].cost-S[3].cost:0];
   function row(lab,fn){return '<tr><td>'+lab+'</td>'+cols.map(function(c,ci){return '<td>'+fn(c,ci)+'</td>'}).join('')+'</tr>'}
   h+='<h2>Varianten im Vergleich</h2><table><thead><tr><th></th>'+cols.map(function(c){return '<th>'+esc(c.n)+'</th>'}).join('')+'</tr></thead><tbody>';
   h+=row('Heizwärme',function(c){return fmt((c.s||I).qh)+' kWh/m²a'});
@@ -1616,9 +1633,10 @@ function buildReport(internal,snap){
   h+=row('Ersparnis zur Bestandsheizung',function(c){return c.s?(I.cost-c.s.cost>=0?eur(I.cost-c.s.cost):'−'+eur(c.s.cost-I.cost))+'/a':'–'});
   if(inv.slice(1,S.length+1).some(function(v){return v>0})){
     h+=row('Investition',function(c,ci){return ci&&inv[ci]>0?eur(inv[ci]):'–'});
-    h+=row('Amortisation',function(c,ci){return ci?pay(inv[ci],adds[ci]).replace('Invest eintragen','–'):'–'});
+    h+=row('Amortisation'+(pl.has?' (ohne Solar)':''),function(c,ci){return ci?pay(inv[ci],adds[ci]).replace('Invest eintragen','–'):'–'});
   }
-  h+='</tbody></table><p style="font-size:.82em;color:#555">Amortisation: V1 gegenüber der Bestandsheizung, V2 bis V4 jeweils gegenüber V1.'+((hasST||hasPV)?' Vorhandene Solaranlagen wirken im Bestand und in allen Varianten, geplante nur in den Varianten. Der Vorteil der Photovoltaik umfasst nur den Wärmepumpenstrom, die Investition für Solaranlagen ist nicht enthalten.':'')+'</p>';
+  if(pl.has) h+=row('Amortisation Solar (geplant)',function(c,ci){return ci===1?pay(pl.inv,pl.ben).replace('Invest eintragen','–'):'–'});
+  h+='</tbody></table><p style="font-size:.82em;color:#555">Amortisation: V1 gegenüber der Bestandsheizung, V2 bis V4 jeweils gegenüber V1.'+(pl.has?' Geplante Solaranlagen sind getrennt amortisiert, mit ihrem Gesamtnutzen einschließlich Haushaltsstrom.':'')+((hasST||hasPV)?' Vorhandene Solaranlagen wirken im Bestand und in allen Varianten, geplante nur in den Varianten. Der Vorteil der Photovoltaik umfasst nur den Wärmepumpenstrom, die Investition für Solaranlagen ist nicht enthalten.':'')+'</p>';
   // Maßnahmen
   h+='<h2>Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
@@ -1626,8 +1644,8 @@ function buildReport(internal,snap){
   var sl2=solarLines(R);if(sl2.length) h+='<h2>Solar und Strom</h2>'+sl2.map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Hinweise
   h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
-  h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Keine Heizlastberechnung nach DIN EN 12831. Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p></div>';
-  h+='<div class="rep-page"><h1>So kommen die Zahlen zustande</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+'</p>'+srcHtml({o:o,R:R,S:S,I:I})+'<p class="rep-foot">Alle Werte sind Näherungen aus den Angaben beim Termin.</p></div>';
+  h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Keine Heizlastberechnung nach DIN EN 12831. Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
+  h+='<div class="rep-page"><h1>So kommen die Zahlen zustande</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+'</p>'+srcHtml({o:o,R:R,S:S,I:I})+'<p class="rep-foot">Alle Werte sind Näherungen aus den Angaben beim Termin.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
   if(internal){
     h+='<div class="rep-page"><h1>Intern: Eingaben und Annahmen</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+' · '+(snap?'gespeicherte Auswertung vom '+dateTime:date)+'</p>';
     if(nt) h+='<h2>Notiz</h2><p>'+esc(nt)+'</p>';
@@ -1647,7 +1665,7 @@ function makeSnap(){
   var X=lastCtx;
   try{
     return JSON.parse(JSON.stringify({v:1,at:new Date().toISOString(),
-      ctx:{o:X.o,R:X.R,S:X.S,I:X.I,t:X.t,f:X.f,dk:X.dk,cu:X.cu,sav1:X.sav1,add2:X.add2,add3:X.add3,basis:X.basis},
+      ctx:{o:X.o,R:X.R,S:X.S,I:X.I,t:X.t,f:X.f,dk:X.dk,cu:X.cu,sav1:X.sav1,add2:X.add2,add3:X.add3,basis:X.basis,pl:X.pl},
       inputs:collectInputs(),
       meta:{name:$('kd_name')?$('kd_name').value.trim():'',adr:$('kd_adr')?$('kd_adr').value.trim():'',note:$('kd_note')?$('kd_note').value.trim():''}}));
   }catch(e){return null}
@@ -1682,7 +1700,9 @@ function initReport(){
   }
   function renderPage(el,doc,state){
     var wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1';
-    var c=el.cloneNode(true);c.style.cssText='width:794px;max-width:none;margin:0;box-shadow:none';wrap.appendChild(c);document.body.appendChild(wrap);
+    var c=el.cloneNode(true);c.style.cssText='width:794px;max-width:none;margin:0;box-shadow:none;position:relative';wrap.appendChild(c);document.body.appendChild(wrap);
+    // Schnittstellen für lange Seiten: Oberkanten der Blöcke, eine Überschrift bleibt bei ihrem Absatz
+    var cuts=[];Array.prototype.forEach.call(c.children,function(ch,i){var t=ch.offsetTop;if(i>0&&c.children[i-1].tagName==='H2') t=c.children[i-1].offsetTop;if(t>0&&cuts.indexOf(t)<0) cuts.push(t)});
     return html2canvas(c,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:794}).then(function(cv){
       wrap.remove();
       var W=cv.width,H=cv.height,mm=210/W,hmm=H*mm;
@@ -1690,11 +1710,14 @@ function initReport(){
       if(hmm<=297) add(cv,0,0,210,hmm);
       else if(hmm<=297*1.12){var k=297/hmm;add(cv,(210-210*k)/2,0,210*k,297)}
       else{
-        var usable=281,sl=Math.floor(usable/mm);
-        for(var y=0;y<H;y+=sl){
-          var hh=Math.min(sl,H-y),t=document.createElement('canvas');t.width=W;t.height=hh;
+        var usable=281,sl=Math.floor(usable/mm),kk=W/794,y=0;
+        while(y<H){
+          var end=Math.min(H,y+sl);
+          if(end<H){var best=0;cuts.forEach(function(t){var tp=Math.round(t*kk);if(tp>y+sl*0.4&&tp<=y+sl&&tp>best) best=tp});if(best) end=best} // am letzten Blockanfang schneiden, der noch auf die Seite passt
+          var hh=end-y,t=document.createElement('canvas');t.width=W;t.height=hh;
           var g=t.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,hh);g.drawImage(cv,0,y,W,hh,0,0,W,hh);
           add(t,0,8,210,hh*mm);
+          y=end;
         }
       }
     },function(e){wrap.remove();throw e});
@@ -1739,8 +1762,8 @@ function initReport(){
 }
 
 function init(){
-  ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
+  ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7'].forEach(function(id){$(id).addEventListener('input',groupInput)});
+  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -1789,7 +1812,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 21:23',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 21:40',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

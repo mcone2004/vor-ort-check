@@ -1090,6 +1090,56 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     check();setTimeout(check,2500);setTimeout(check,7000);setTimeout(check,15000);
     navigator.serviceWorker.ready.then(function(){setTimeout(check,800)});
   })();
+
+  (function(){
+    var BUILD='2026-10-09 18:12',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
+    var st='ok',txt='',busy=false;
+    function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));
+      return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'. '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+    var span=document.createElement('span'),btn=document.createElement('button');btn.type='button';
+    btn.style.cssText='background:none;border:0;color:inherit;font:inherit;text-decoration:underline;padding:.35rem .5rem;margin-left:.3rem;cursor:pointer;min-height:32px';
+    el.appendChild(span);el.appendChild(btn);
+    function draw(kind,text,label){el.dataset.kind=kind;span.textContent=text;btn.textContent=label||'Nach Update suchen'}
+    draw('ok','Version '+fmt(BUILD)+' ·');
+    var remote=null;
+    function getRemote(){
+      return fetch('sw.js?_t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok) throw 0;return r.text()}).then(function(t){
+        var m=/Build: (\d{4}-\d\d-\d\d \d\d:\d\d) UTC/.exec(t);if(!m) throw 0;remote=m[1];return remote;
+      });
+    }
+    function check(manual){
+      if(busy) return Promise.resolve();
+      if(navigator.onLine===false){if(manual) draw('off','Offline, Suche nicht möglich ·');return Promise.resolve()}
+      busy=true;if(manual) draw('wait','Suche … ·');
+      return getRemote().then(function(r){
+        busy=false;
+        if(r<=BUILD){draw('ok','Version '+fmt(BUILD)+(manual?' (aktuell) ·':' ·'));return}
+        draw('off','Neue Version '+fmt(r)+' verfügbar ·','Jetzt aktualisieren');
+      },function(){busy=false;if(manual) draw('off','Suche fehlgeschlagen ·')});
+    }
+    function update(){
+      if(busy) return;busy=true;draw('wait','Lade neue Version … ·');
+      var tag=Date.now();
+      fetch('index.html?_t='+tag,{cache:'no-store'}).then(function(r){if(!r.ok) throw 0;return r}).then(function(res){
+        return caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k.indexOf('ocheck-')===0}).map(function(k){
+          return caches.open(k).then(function(c){return Promise.all([c.put('index.html',res.clone()),c.put('./',res.clone())])});
+        }))});
+      }).then(function(){
+        try{navigator.serviceWorker.getRegistration().then(function(g){if(g) g.update()})}catch(e){}
+        var last=null;try{last=sessionStorage.getItem('ocheck.upd')}catch(e){}
+        if(last&&last===remote){busy=false;draw('off','Neue Version liegt auf dem Server, wird aber noch nicht ausgeliefert. In einigen Minuten erneut suchen ·');try{sessionStorage.removeItem('ocheck.upd')}catch(e){}return}
+        try{sessionStorage.setItem('ocheck.upd',remote||'')}catch(e){}
+        location.replace(location.pathname+'?v='+tag);
+      }).catch(function(){busy=false;draw('off','Update fehlgeschlagen ·','Erneut versuchen')});
+    }
+    btn.addEventListener('click',function(){
+      if(remote&&remote>BUILD) update(); else check(true);
+    });
+    setTimeout(function(){check(false)},2500);
+    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible') check(false)});
+    setInterval(function(){if(document.visibilityState!=='hidden') check(false)},600000);
+  })();
 }else{var e=document.getElementById('offstate');if(e){e.hidden=false;e.textContent='Offline nicht verfügbar in diesem Browser'}}
 </script>
 </body></html>

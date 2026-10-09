@@ -43,6 +43,10 @@ p{margin:0}
 .top .offstate{font-family:var(--f-data);font-size:.78rem;font-weight:600;margin-top:.6rem}
 .offstate::before{content:"";display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:#A3A9AF;margin-right:.45rem}
 .offstate[data-kind="ok"]::before{background:var(--green)}
+.offstate[data-kind="off"]::before{background:#E0A030}
+.offstate+.offstate{margin-top:.2rem}
+.delbox{margin:.6rem 0;padding:.6rem .8rem;border:1px solid var(--line,#D8DCDF);border-radius:.5rem;background:#FBF3F2}
+.delbox[hidden]{display:none}
 .wrap{max-width:1180px;margin:0 auto;padding-block:1.4rem 2.4rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));display:grid;gap:1.4rem;grid-template-columns:minmax(0,1fr)}
 @media (min-width:1000px){.wrap{grid-template-columns:minmax(0,25rem) minmax(0,1fr);align-items:start}}
 @media (min-width:1280px){.wrap,.top>div{max-width:1360px}.wrap{grid-template-columns:minmax(0,27rem) minmax(0,1fr)}}
@@ -127,6 +131,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 <header class="top"><div>
   <h1>Vor-Ort-Check Sanierung</h1>
   <p>Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.</p>
+  <p class="offstate" id="netstate" data-kind="off">Offline</p>
   <p class="offstate" id="offstate" hidden></p>
 </div></header>
 
@@ -138,8 +143,20 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" placeholder="Straße, Ort"></label>
     <label for="kd_note">Notiz<input id="kd_note" type="text" placeholder="zum Beispiel Termin, Wunsch, Förderstatus"></label>
     <div class="btns"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_new" class="ghost">Neuer Kunde</button><button type="button" id="kd_del" class="ghost" hidden>Löschen</button></div>
+    <div class="delbox" id="kd_delbox" hidden>
+      <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
+    </div>
     <p class="syncstate" id="kd_state" hidden data-kind="off"></p>
     <span class="hint" id="kd_pend"></span>
+    <details id="kd_pwd"><summary>Löschschutz</summary>
+      <span class="hint" id="kd_pwstate"></span>
+      <label for="kd_pw0" id="kd_pw0l" hidden>Bisheriges Löschpasswort<input id="kd_pw0" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <label for="kd_pw1">Neues Löschpasswort (mindestens 4 Zeichen)<input id="kd_pw1" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <div class="btns"><button type="button" id="kd_pwset" class="ghost">Löschpasswort speichern</button></div>
+      <span class="hint" id="kd_pwmsg" role="status"></span>
+      <span class="hint">Ohne Löschpasswort kann kein Kunde gelöscht werden. Das Passwort gilt für dieses Gerät und muss auf jedem Gerät einmal gesetzt werden. Es schützt vor versehentlichem Löschen, nicht vor jemandem mit Zugriff auf die WordPress-Seite.</span>
+    </details>
     <details id="kd_sy" hidden><summary>Abgleich und Sicherung</summary>
       <label for="kd_sy_url">Adresse der WordPress-Seite<input id="kd_sy_url" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://energieberatung-lange.de"></label>
       <label for="kd_sy_user">Benutzername<input id="kd_sy_user" type="text" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
@@ -866,7 +883,7 @@ function importFile(be,file){
 }
 
 function initKunden(backendP){
-  var docs={},curId=null,delTimer=null,be=null,sync=null;
+  var docs={},curId=null,be=null,sync=null;
   function msg(t){$('kd_msg').textContent=t}
   function fields(){
     var out=[],els=document.querySelectorAll('form input,form select');
@@ -900,7 +917,7 @@ function initKunden(backendP){
     $('kd_del').hidden=!curId;
   }
   function clearKd(){$('kd_name').value='';$('kd_adr').value='';$('kd_note').value='';$('kd_del').hidden=true;resetDel()}
-  function resetDel(){var b=$('kd_del');b.textContent='Löschen';b.classList.remove('warn');b.classList.add('ghost');clearTimeout(delTimer)}
+  function resetDel(){var d=$('kd_delbox');if(d) d.hidden=true;var p=$('kd_delpw');if(p) p.value=''}
   function load(id){
     var d=docs[id];if(!d) return;
     curId=id;$('kd_name').value=d.name||'';$('kd_adr').value=d.adr||'';$('kd_note').value=d.note||'';
@@ -916,14 +933,52 @@ function initKunden(backendP){
     var b=$('kd_save');b.disabled=true;
     be.save(id,data).then(function(){curId=id;msg('Gespeichert: '+(name||adr)+'.')},function(e){msg(be.errText(e))}).then(function(){b.disabled=false});
   }
-  function del(){
-    if(!curId) return;var b=$('kd_del');
-    if(!b.classList.contains('warn')){
-      b.textContent='Wirklich löschen?';b.classList.remove('ghost');b.classList.add('warn');
-      delTimer=setTimeout(resetDel,4000);return;
+  // Löschschutz: Passwort wird nur als gesalzener Hash auf diesem Gerät gespeichert.
+  var DPK='ocheck.delpw';
+  function hex(buf){var a=new Uint8Array(buf),s='';for(var i=0;i<a.length;i++) s+=(a[i]<16?'0':'')+a[i].toString(16);return s}
+  function fbHash(str){var h1=0xdeadbeef,h2=0x41c6ce57;for(var i=0;i<str.length;i++){var ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (h2>>>0).toString(16)+(h1>>>0).toString(16)}
+  function sha(str){
+    try{if(window.crypto&&crypto.subtle&&window.TextEncoder) return crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)).then(hex)}catch(e){}
+    return Promise.resolve(fbHash(str));
+  }
+  function dpGet(){try{return JSON.parse(localStorage.getItem(DPK)||'null')}catch(e){return null}}
+  function dpPut(o){try{localStorage.setItem(DPK,JSON.stringify(o));return !!dpGet()}catch(e){return false}}
+  function dpCheck(pw){var d=dpGet();if(!d||!pw) return Promise.resolve(false);return sha(d.salt+':'+pw).then(function(h){return h===d.hash})}
+  function dpState(){
+    var d=dpGet();
+    $('kd_pwstate').textContent=d?'Löschschutz ist aktiv.':'Noch kein Löschpasswort gesetzt. Kunden können nicht gelöscht werden.';
+    $('kd_pw0l').hidden=!d;
+  }
+  function setPw(){
+    var m=$('kd_pwmsg'),n=$('kd_pw1').value,d=dpGet();
+    function go(){
+      if(n.length<4){m.textContent='Das Passwort braucht mindestens 4 Zeichen.';return}
+      var salt=Math.random().toString(36).slice(2)+Date.now().toString(36);
+      sha(salt+':'+n).then(function(h){
+        if(dpPut({salt:salt,hash:h})){m.textContent='Löschpasswort gespeichert.';$('kd_pw0').value='';$('kd_pw1').value='';dpState()}
+        else m.textContent='Konnte nicht gespeichert werden (Browser blockiert den Speicher).';
+      });
     }
-    var id=curId,n=(docs[id]&&docs[id].name)||'Eintrag';resetDel();
-    be.remove(id).then(function(){msg('Gelöscht: '+n+'.')},function(){msg('Löschen fehlgeschlagen.')});
+    if(d) dpCheck($('kd_pw0').value).then(function(ok){if(ok) go(); else m.textContent='Bisheriges Passwort falsch.'});
+    else go();
+  }
+  function del(){
+    if(!curId) return;
+    if(!dpGet()){
+      msg('Löschen ist gesperrt. Lege zuerst unter „Löschschutz" ein Löschpasswort fest.');
+      var d=$('kd_pwd');if(d){d.open=true;try{d.scrollIntoView({block:'center'})}catch(e){}}
+      return;
+    }
+    $('kd_delbox').hidden=false;$('kd_delpw').value='';$('kd_delpw').focus();
+  }
+  function delGo(){
+    if(!curId) return;
+    var id=curId,n=(docs[id]&&docs[id].name)||'Eintrag',b=$('kd_delgo');b.disabled=true;
+    dpCheck($('kd_delpw').value).then(function(ok){
+      if(!ok){msg('Passwort falsch. Nichts gelöscht.');$('kd_delpw').value='';setTimeout(function(){b.disabled=false},1500);return}
+      b.disabled=false;resetDel();
+      return be.remove(id).then(function(){msg('Gelöscht: '+n+'.')},function(){msg('Löschen fehlgeschlagen.')});
+    });
   }
   function setState(st){
     var el=$('kd_state');if(!el) return;
@@ -964,6 +1019,9 @@ function initKunden(backendP){
     $('kd_list').addEventListener('change',function(){var v=$('kd_list').value;if(v) load(v);else{curId=null;clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.')}});
     $('kd_save').addEventListener('click',save);
     $('kd_del').addEventListener('click',del);
+    $('kd_delgo').addEventListener('click',delGo);$('kd_delno').addEventListener('click',resetDel);
+    $('kd_delpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();delGo()}});
+    $('kd_pwset').addEventListener('click',setPw);dpState();
     $('kd_new').addEventListener('click',function(){curId=null;$('kd_list').value='';clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.');$('kd_name').focus()});
     function onDocs(m){docs=m;fillList()}
     if(be.mode==='pwa'){
@@ -975,6 +1033,24 @@ function initKunden(backendP){
       be.subscribe(onDocs,function(){msg('Kundenliste nicht verfügbar.')});
     }
   });
+}
+
+function initNet(){
+  var el=$('netstate');if(!el) return;
+  function show(on,text){el.dataset.kind=on?'ok':'off';el.textContent=text}
+  function probe(){
+    if(typeof navigator!=='undefined'&&navigator.onLine===false){show(false,'Offline');return}
+    var c=null;try{c=JSON.parse(localStorage.getItem('ocheck.sync')||'null')}catch(e){}
+    if(!(window.__PWA&&c&&c.url)){show(true,'Online');return}
+    var ctl=window.AbortController?new AbortController():null,to=setTimeout(function(){if(ctl) ctl.abort()},6000);
+    fetch(c.url.replace(/\/+$/,'')+'/wp-json/?_t='+Date.now(),{mode:'no-cors',signal:ctl?ctl.signal:undefined}).then(function(){clearTimeout(to);show(true,'Online')},function(){
+      clearTimeout(to);show(false,navigator.onLine===false?'Offline':'Offline (Server nicht erreichbar)');
+    });
+  }
+  probe();
+  window.addEventListener('online',probe);window.addEventListener('offline',probe);
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible') probe()});
+  setInterval(function(){if(document.visibilityState!=='hidden') probe()},30000);
 }
 
 function init(){
@@ -992,6 +1068,7 @@ function init(){
   $('bar').addEventListener('click',function(){try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
   syncKeller();syncWand();syncHk();
   render();
+  initNet();
   initKunden((typeof window!=='undefined'&&window.__PWA)?localBackend():artifactBackend());
 }
 if(typeof document!=='undefined') init();

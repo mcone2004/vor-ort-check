@@ -52,8 +52,11 @@ p{margin:0}
 @media (min-width:1000px){.wrap{grid-template-columns:minmax(0,25rem) minmax(0,1fr);align-items:start}}
 @media (min-width:1280px){.wrap,.top>div{max-width:1360px}.wrap{grid-template-columns:minmax(0,27rem) minmax(0,1fr)}}
 /* Touch: größere Ziele, kein Zoom beim Fokus */
-@media (pointer:coarse){input,select{min-height:48px;padding:.6rem .75rem}button{min-height:48px;padding:.7rem 1.3rem}summary{padding:.35rem 0}label{font-size:.88rem}.row{gap:.8rem}fieldset{padding:1rem 1.1rem 1.1rem;gap:.85rem}}
+@media (pointer:coarse),(any-pointer:coarse){input,select,textarea{min-height:48px;padding:.6rem .75rem}button{min-height:48px;padding:.7rem 1.3rem}summary{padding:.35rem 0}label{font-size:.88rem}.row{gap:.8rem}fieldset{padding:1rem 1.1rem 1.1rem;gap:.85rem}}
+@media (pointer:coarse),(any-pointer:coarse){summary{min-height:48px;display:flex;align-items:center}.offstate button,.top button{min-height:44px!important;padding-inline:1rem}}
 html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+textarea{resize:vertical;min-height:4.2rem;line-height:1.4}
+input[type=text]{-webkit-user-select:text;user-select:text}
 form{display:grid;gap:1rem}
 fieldset{border:1px solid var(--line);border-radius:6px;background:var(--surface);margin:0;padding:.9rem 1rem 1rem;display:grid;gap:.7rem;min-width:0}
 .bt{display:grid;gap:.7rem;min-width:0;padding:.75rem .9rem .95rem;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:6px;background:var(--bg)}
@@ -65,7 +68,7 @@ fieldset{border:1px solid var(--line);border-radius:6px;background:var(--surface
 .bt select,.bt input{background:var(--surface)}
 legend{font-family:var(--f-data);font-weight:600;color:var(--ink);padding:0 .4rem;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
 label{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}
-input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;width:100%;min-width:0}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;width:100%;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.7rem}
 .hint{font-size:.78rem;color:var(--muted)}
@@ -191,9 +194,9 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 <form onsubmit="return false" autocomplete="off">
   <fieldset id="kd" hidden><legend>Kunde</legend>
     <label for="kd_list">Gespeicherte Kunden<select id="kd_list"><option value="">Neuer Eintrag</option></select></label>
-    <label for="kd_name">Name<input id="kd_name" type="text" placeholder="Name des Kunden"></label>
-    <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" placeholder="Straße, Ort"></label>
-    <label for="kd_note">Notiz<input id="kd_note" type="text" placeholder="zum Beispiel Termin, Wunsch, Förderstatus"></label>
+    <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
+    <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße, Ort"></label>
+    <label for="kd_note">Notiz<textarea id="kd_note" rows="3" placeholder="zum Beispiel Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
     <div class="btns"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_new" class="ghost">Neuer Kunde</button><button type="button" id="kd_del" class="ghost" hidden>Löschen</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button></div>
     <div class="delbox" id="kd_delbox" hidden>
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
@@ -212,7 +215,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     </details>
     <details id="kd_sy" hidden><summary>Abgleich und Sicherung</summary>
       <label for="kd_sy_url">Adresse der WordPress-Seite<input id="kd_sy_url" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://energieberatung-lange.de"></label>
-      <label for="kd_sy_user">Benutzername<input id="kd_sy_user" type="text" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <label for="kd_sy_user">Benutzername<input id="kd_sy_user" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <label for="kd_sy_pw">Anwendungspasswort<input id="kd_sy_pw" type="password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_sy_test" class="ghost">Verbindung testen</button><button type="button" id="kd_sy_run">Jetzt abgleichen</button></div>
       <div class="btns"><button type="button" id="kd_exp" class="ghost">Sicherung exportieren</button><button type="button" id="kd_imp" class="ghost">Sicherung importieren</button></div>
@@ -223,12 +226,12 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <span class="hint" id="kd_msg" role="status">Gespeichert werden alle Eingaben und die Zusammenfassung des Ergebnisses. Die Daten liegen privat in deinem Konto, andere Personen mit Zugriff auf die Seite sehen sie nicht.</span>
   </fieldset>
   <fieldset><legend>Objekt</legend>
-    <label for="objekt">Bezeichnung (Beispieldaten)<input id="objekt" type="text" value="Beispiel: EFH Baujahr 1968"></label>
+    <label for="objekt">Bezeichnung (Beispieldaten)<input id="objekt" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="Beispiel: EFH Baujahr 1968"></label>
     <div class="row">
       <label for="typ">Gebäudetyp<select id="typ"><option value="efh">Einfamilienhaus freistehend</option><option value="dhh">Doppelhaushälfte, Reihenendhaus</option><option value="rmh">Reihenmittelhaus</option><option value="mfh">Mehrfamilienhaus, 4 bis 8 WE</option></select></label>
       <label for="baujahr">Baujahr<select id="baujahr"><option value="0">bis 1948</option><option value="1" selected>1949 bis 1977</option><option value="2">1978 bis 1994</option><option value="3">1995 bis 2001</option><option value="4">2002 bis 2015</option><option value="5">ab 2016</option></select></label>
     </div>
-    <label for="wf">Beheizte Wohnfläche in m², mit beheiztem Keller<input id="wf" type="text" inputmode="numeric" value="140"></label>
+    <label for="wf">Beheizte Wohnfläche in m², mit beheiztem Keller<input id="wf" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" value="140"></label>
   </fieldset>
 
   <fieldset><legend>Gebäudehülle</legend>
@@ -277,7 +280,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 
   <fieldset><legend>Jahresverbrauch</legend>
     <div class="row">
-      <label for="verb">Verbrauch pro Jahr (Beispielwert)<input id="verb" type="text" inputmode="decimal" value="2.800"></label>
+      <label for="verb">Verbrauch pro Jahr (Beispielwert)<input id="verb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="2.800"></label>
       <label for="einheit">Einheit<select id="einheit"><option selected>Liter</option><option>m³</option><option>kg</option><option>kWh</option></select></label>
     </div>
     <label for="basis">Rechnen mit<select id="basis"><option value="verbrauch" selected>Jahresverbrauch, wenn eingetragen</option><option value="bauteile">Bauteilangaben, Verbrauch nur zum Abgleich</option></select></label>
@@ -286,13 +289,13 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 
   <details><summary>Preise und Investitionen</summary>
     <div class="row">
-      <label for="p_alt">Bisherige Heizung, €/kWh<input id="p_alt" type="text" inputmode="decimal" value="0,11"></label>
-      <label for="p_wp">Strom Wärmepumpe, €/kWh<input id="p_wp" type="text" inputmode="decimal" value="0,27"></label>
+      <label for="p_alt">Bisherige Heizung, €/kWh<input id="p_alt" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,11"></label>
+      <label for="p_wp">Strom Wärmepumpe, €/kWh<input id="p_wp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,27"></label>
     </div>
-    <label for="inv1">Investition Wärmepumpe, € (optional)<input id="inv1" type="text" inputmode="numeric" placeholder="aus Angebot"></label>
-    <label for="inv2">Investition Dach (und Kellerdecke), € (optional)<input id="inv2" type="text" inputmode="numeric" placeholder="aus Angebot"></label>
-    <label for="inv3">Investition komplette Hülle, € (optional)<input id="inv3" type="text" inputmode="numeric" placeholder="aus Angebot"></label>
-    <label for="inv4">Investition Heizkörpertausch, € (optional)<input id="inv4" type="text" inputmode="numeric" placeholder="aus Angebot"></label>
+    <label for="inv1">Investition Wärmepumpe, € (optional)<input id="inv1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
+    <label for="inv2">Investition Dach (und Kellerdecke), € (optional)<input id="inv2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
+    <label for="inv3">Investition komplette Hülle, € (optional)<input id="inv3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
+    <label for="inv4">Investition Heizkörpertausch, € (optional)<input id="inv4" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
     <span class="hint">Amortisation ohne Förderung und ohne Preissteigerung.</span>
   </details>
 </form>
@@ -737,7 +740,7 @@ function syncKeller(){
   for(var i=0;i<3;i++) opt[i].textContent=T[i];
 }
 
-var WDOPT={voll:[24,30,36.5,42.5,49],hlz:[17.5,24,30,36.5,42.5],ks:[17.5,24,30,36.5],bruch:[40,50,60,70],mono:[24,30,36.5,42.5,49],block:[10,12,16,20,25],hrb:[8,10,12,14,18]};
+var WDOPT={voll:[24,30,36.5,42.5,49],hlz:[17.5,24,30,36.5,42.5],ks:[17.5,24,30,36.5],bruch:[40,50,60,70],mono:[24,30,36.5,42.5,49],block:[10,12,16,20,25],hrb:[8,10,12,14,16,18,20,22,24,26]};
 var WDREFUI={voll:36.5,hlz:30,ks:24,bruch:50,mono:36.5,block:16,hrb:12};
 var WSET={
   voll:{L:'Dämmzustand Außenwand, Vollmauerwerk',T:['Original, Stand Baujahr','Nachgedämmt, älter oder dünn (WDVS bis ca. 5 cm)','Gedämmt nach aktuellem Stand (WDVS ca. 14 cm)'],H:'Außendämmung (WDVS) meist gut machbar. Bei Sichtmauerwerk oder Stuck bleibt nur Innendämmung, das ist bauphysikalisch heikel.'},
@@ -1456,7 +1459,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 19:23',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 19:29',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

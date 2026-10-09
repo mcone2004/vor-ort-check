@@ -814,8 +814,21 @@ function makeSync(be,setState){
     });
   }
   function soon(){clearTimeout(timer);timer=setTimeout(function(){run().catch(function(){})},2000)}
+  function diag(c){
+    var base=c.url.replace(/\/+$/,'')+'/wp-json/',auth='Basic '+b64e(c.user+':'+c.pw),out=[];
+    function step(name,url,headers){
+      return fetch(url+(url.indexOf('?')>=0?'&':'?')+'_t='+Date.now(),{headers:headers||{}}).then(function(r){out.push(name+': lesbar, Status '+r.status)},function(e){out.push(name+': verworfen ('+((e&&e.message)||'Fehler')+')')});
+    }
+    return step('1 einfache Anfrage',base)
+      .then(function(){return step('2 mit Authorization',base+'wp/v2/users/me',{'Authorization':auth})})
+      .then(function(){return step('3 nur Accept',base+'wp/v2/users/me',{'Accept':'application/json'})})
+      .then(function(){return out.join(' | ')});
+  }
   function test(c){
-    return req(c,'/users/me?context=edit&_fields=id,name').then(function(r){return 'Verbindung steht, angemeldet als '+(r.json.name||'Benutzer')+'.'});
+    return req(c,'/users/me?context=edit&_fields=id,name').then(function(r){return 'Verbindung steht, angemeldet als '+(r.json.name||'Benutzer')+'.'},function(e){
+      if(e&&e.code==='cors') return diag(c).then(function(d){e.message+=' Diagnose: '+d;throw e},function(){throw e});
+      throw e;
+    });
   }
   return {cfg:cfg,saveCfg:saveCfg,run:run,soon:soon,test:test,pendingText:function(){var n=be.pending();return n?n+' Änderung(en) noch nicht abgeglichen':''}};
 }

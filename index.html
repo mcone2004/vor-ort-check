@@ -132,6 +132,10 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 .rep-tools label{display:flex;flex-direction:row;gap:.5rem;align-items:center;color:#fff;font-size:.85rem}
 .rep-tools button.ghost{background:transparent;color:#fff;border:1px solid #8a9096}
 .rep-page{background:#fff;color:#20252A;width:min(210mm,100%);margin:1rem auto;padding:14mm 15mm;box-shadow:0 1px 8px rgba(0,0,0,.25);font-size:9.6pt;line-height:1.4;font-family:var(--f-body)}
+.rep-head{display:flex;gap:6mm;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:.2rem}
+.rep-logo{display:block;width:88mm;max-width:100%;height:auto}
+.rep-title{flex:1 1 60mm;min-width:0}
+.rep-title h1{font-size:1.2rem}
 .rep-page h1{font-size:1.35rem;margin:0 0 .15rem;color:#20252A}
 .rep-page h2{font-size:.95rem;margin:.6rem 0 .25rem;padding-bottom:.15rem;break-after:avoid;border-bottom:2px solid #7CB028;color:#20252A}
 .rep-page p{margin:.3rem 0}
@@ -1135,8 +1139,8 @@ function buildReport(internal,snap){
   var when=snap?new Date(snap.at):new Date();
   var date=when.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
   var dateTime=date+(snap?', '+when.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr':'');
-  var h='<div class="rep-page"><h1>Ergebnis der Erstberatung</h1><p style="color:#555;margin:0">Vor-Ort-Check Sanierung · Wärmepumpe oder erst die Hülle</p>';
-  h+='<dl class="rep-meta"><dt>Kunde</dt><dd>'+(nm?esc(nm):'&nbsp;')+'</dd><dt>Objekt</dt><dd>'+esc(ad||o.obj||'')+'</dd><dt>'+(snap?'Stand':'Datum')+'</dt><dd>'+dateTime+'</dd></dl>';
+  var h='<div class="rep-page"><div class="rep-head"><img class="rep-logo" src="logo.jpg" alt="Energieberatung Lange UG (haftungsbeschränkt), Am Soll 12, 17498 Weitenhagen" onerror="this.remove()"><div class="rep-title"><h1>Ergebnis der Erstberatung</h1><p style="color:#555;margin:0">Vor-Ort-Check Sanierung</p>';
+  h+='<dl class="rep-meta"><dt>Kunde</dt><dd>'+(nm?esc(nm):'&nbsp;')+'</dd><dt>Objekt</dt><dd>'+esc(ad||o.obj||'')+'</dd><dt>'+(snap?'Stand':'Datum')+'</dt><dd>'+dateTime+'</dd></dl></div></div>';
   h+='<h2>Ergebnis für die Wärmepumpe im Bestand</h2>';
   h+='<div class="rep-verdict" style="--rc:'+RCOL[rt.k]+'"><div><strong>'+esc(rt.t)+'</strong><span>'+esc(rt.s)+'</span></div><div class="rep-kpi"><div><small>Heizlast, ca.</small><b>'+fmt(s1.kw,1)+' kW</b></div><div><small>Vorlauf nötig, ca.</small><b>'+Math.round(s1.vl)+' °C</b></div><div><small>Jahresarbeitszahl, ca.</small><b>'+fmt(s1.jaz,1)+'</b></div></div></div>';
   h+='<p>'+esc(X.t)+'</p>';
@@ -1246,7 +1250,7 @@ if(typeof document!=='undefined') init();
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
   (function(){
-    var el=document.getElementById('offstate'),NEED=13;if(!el) return;el.hidden=false;
+    var el=document.getElementById('offstate'),NEED=14;if(!el) return;el.hidden=false;
     function check(){
       caches.keys().then(function(ks){return ks.length?caches.open(ks[ks.length-1]).then(function(c){return c.keys()}):[]}).then(function(k){
         if(k.length>=NEED){el.dataset.kind='ok';el.textContent='Offline bereit'}
@@ -1258,7 +1262,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 18:28',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 18:36',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

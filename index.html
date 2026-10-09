@@ -61,6 +61,8 @@ input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);b
 input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.7rem}
 .hint{font-size:.78rem;color:var(--muted)}
+#kd_auto{font-weight:600;min-height:1.2em}#kd_auto[data-kind="warn"]{color:#B35C00}#kd_auto[data-kind="ok"]{color:#4F7A12}
+:root[data-theme="dark"] #kd_auto[data-kind="warn"]{color:#F0B35A}
 details{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:.7rem 1rem}
 summary{cursor:pointer;font-family:var(--f-data);font-weight:600;color:var(--ink);font-size:.85rem}
 details>*+*{margin-top:.7rem}
@@ -189,6 +191,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
     </div>
+    <span class="hint" id="kd_auto" role="status" data-kind=""></span>
     <p class="syncstate" id="kd_state" hidden data-kind="off"></p>
     <span class="hint" id="kd_pend"></span>
     <details id="kd_pwd"><summary>Löschschutz</summary>
@@ -938,6 +941,7 @@ function importFile(be,file){
 
 function initKunden(backendP){
   var docs={},curId=null,be=null,sync=null;
+  var dirty=false,chg=0,autoT=null,draftT=null,saving=false,restored=false,DRK='ocheck.draft';
   function msg(t){$('kd_msg').textContent=t}
   function fields(){
     var out=[],els=document.querySelectorAll('form input,form select');
@@ -975,18 +979,81 @@ function initKunden(backendP){
   function resetDel(){var d=$('kd_delbox');if(d) d.hidden=true;var p=$('kd_delpw');if(p) p.value=''}
   function load(id){
     var d=docs[id];if(!d) return;
-    curId=id;$('kd_name').value=d.name||'';$('kd_adr').value=d.adr||'';$('kd_note').value=d.note||'';
+    dirty=false;clearDraft();setAuto('','');curId=id;$('kd_name').value=d.name||'';$('kd_adr').value=d.adr||'';$('kd_note').value=d.note||'';
     $('kd_del').hidden=false;resetDel();updSnap();
     if(d.form) apply(d.form);
     msg('Geladen: '+(d.name||'Ohne Name')+(d.updated?', gespeichert am '+fmtDate(d.updated):'')+'.');
   }
-  function save(){
+  function hhmm(d){return (d||new Date()).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}
+  function setAuto(kind,text){var el=$('kd_auto');if(!el) return;el.dataset.kind=kind||'';el.textContent=text||''}
+  function hasNA(){return !!($('kd_name').value.trim()||$('kd_adr').value.trim())}
+  // Neue Kunden legt die automatische Speicherung erst an, wenn Name oder Adresse mindestens 3 Zeichen haben
+  function canAuto(){var n=$('kd_name').value.trim(),a=$('kd_adr').value.trim();return curId?!!(n||a):(n.length>=3||a.length>=3)}
+  function writeDraft(){
+    try{
+      if(!dirty){localStorage.removeItem(DRK);return}
+      localStorage.setItem(DRK,JSON.stringify({cur:curId,name:$('kd_name').value,adr:$('kd_adr').value,note:$('kd_note').value,form:collect(),at:Date.now()}));
+    }catch(e){}
+  }
+  function clearDraft(){try{localStorage.removeItem(DRK)}catch(e){}}
+  function scheduleAuto(){clearTimeout(autoT);autoT=setTimeout(autoSave,4000)}
+  function autoSave(){
+    if(!dirty) return Promise.resolve();
+    if(!canAuto()){setAuto('warn',curId?'Nicht gespeichert: Name oder Adresse fehlt':'Nicht gespeichert: Name oder Adresse eintragen');return Promise.resolve()}
+    return save(true);
+  }
+  function onEdit(e){
+    var id=e.target&&e.target.id;if(!id||/^(kd_list|kd_sy_|kd_pw|kd_delpw|kd_file|rep_)/.test(id)) return;
+    dirty=true;chg++;
+    setAuto('warn','Änderungen noch nicht gespeichert');
+    clearTimeout(draftT);draftT=setTimeout(writeDraft,400);scheduleAuto();
+  }
+  function flush(){
+    clearTimeout(draftT);clearTimeout(autoT);writeDraft();
+    if(dirty&&canAuto()&&be) save(true);
+  }
+  function restoreDraft(){
+    var d=null;try{d=JSON.parse(localStorage.getItem(DRK)||'null')}catch(e){}
+    if(!d) return;
+    if(d.cur&&docs[d.cur]&&docs[d.cur].updated&&new Date(docs[d.cur].updated).getTime()>d.at){clearDraft();return}
+    curId=(d.cur&&docs[d.cur])?d.cur:null;
+    $('kd_name').value=d.name||'';$('kd_adr').value=d.adr||'';$('kd_note').value=d.note||'';
+    if(d.form) apply(d.form);
+    $('kd_list').value=curId||'';$('kd_del').hidden=!curId;updSnap();
+    dirty=true;chg++;
+    setAuto('warn','Nicht gespeicherte Eingaben vom '+hhmm(new Date(d.at))+' Uhr wiederhergestellt');
+    scheduleAuto();
+  }
+  function save(silent){
     var name=$('kd_name').value.trim(),adr=$('kd_adr').value.trim();
-    if(!name&&!adr){msg('Bitte mindestens Name oder Adresse eintragen.');$('kd_name').focus();return}
+    if(!name&&!adr){
+      if(!silent){msg('Bitte mindestens Name oder Adresse eintragen.');$('kd_name').focus()}
+      return Promise.resolve(false);
+    }
+    if(saving){clearTimeout(autoT);autoT=setTimeout(autoSave,1000);return Promise.resolve(false)}
     var id=curId||('k'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),now=new Date().toISOString(),prev=docs[id]||{};
     var data={name:name,adr:adr,note:$('kd_note').value.trim(),form:collect(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};
-    var b=$('kd_save');b.disabled=true;
-    be.save(id,data).then(function(){curId=id;updSnap();msg('Gespeichert: '+(name||adr)+', mit Eingaben und Ergebnis.')},function(e){msg(be.errText(e))}).then(function(){b.disabled=false});
+    var b=$('kd_save'),mine=chg;b.disabled=true;saving=true;
+    if(!silent) setAuto('', 'Speichere …');
+    return be.save(id,data).then(function(){
+      curId=id;updSnap();$('kd_list').value=id;$('kd_del').hidden=false;
+      if(chg===mine){dirty=false;clearDraft();setAuto('ok',(silent?'Automatisch gespeichert ':'Gespeichert ')+hhmm()+' Uhr')}
+      else setAuto('warn','Änderungen noch nicht gespeichert');
+      if(!silent) msg('Gespeichert: '+(name||adr)+', mit Eingaben und Ergebnis.');
+      return true;
+    },function(e){setAuto('warn','Speichern fehlgeschlagen');msg(be.errText(e));return false}).then(function(r){saving=false;b.disabled=false;return r});
+  }
+  // Vor dem Laden eines anderen Kunden: offene Änderungen sichern oder nachfragen
+  function guard(next,onCancel){
+    if(!dirty){next();return}
+    if(canAuto()){
+      save(true).then(function(ok){
+        if(ok!==false){next();return}
+        if(window.confirm('Speichern ist fehlgeschlagen. Trotzdem wechseln? Nicht gespeicherte Eingaben gehen verloren.')){dirty=false;clearDraft();next()}
+        else if(onCancel) onCancel();
+      });
+    }else if(window.confirm('Die Eingaben haben keinen Namen und können nicht gespeichert werden. Trotzdem wechseln?')){dirty=false;clearDraft();setAuto('','');next()}
+    else if(onCancel) onCancel();
   }
   // Löschschutz: Passwort wird nur als gesalzener Hash auf diesem Gerät gespeichert.
   var DPK='ocheck.delpw';
@@ -1032,7 +1099,7 @@ function initKunden(backendP){
     dpCheck($('kd_delpw').value).then(function(ok){
       if(!ok){msg('Passwort falsch. Nichts gelöscht.');$('kd_delpw').value='';setTimeout(function(){b.disabled=false},1500);return}
       b.disabled=false;resetDel();
-      return be.remove(id).then(function(){msg('Gelöscht: '+n+'.')},function(){msg('Löschen fehlgeschlagen.')});
+      return be.remove(id).then(function(){dirty=false;clearDraft();setAuto('','');msg('Gelöscht: '+n+'.')},function(){msg('Löschen fehlgeschlagen.')});
     });
   }
   function setState(st){
@@ -1071,15 +1138,27 @@ function initKunden(backendP){
   Promise.resolve(backendP).then(function(b){
     if(!b) return;
     be=b;$('kd').hidden=false;
-    $('kd_list').addEventListener('change',function(){var v=$('kd_list').value;if(v) load(v);else{curId=null;clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.')}});
-    $('kd_save').addEventListener('click',save);
+    $('kd_list').addEventListener('change',function(){
+      var v=$('kd_list').value,prev=curId||'';
+      if(!v){guard(function(){curId=null;clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.')},function(){$('kd_list').value=prev});return}
+      guard(function(){load(v)},function(){$('kd_list').value=prev});
+    });
+    $('kd_save').addEventListener('click',function(){save(false)});
     $('kd_del').addEventListener('click',del);
     $('kd_snap').addEventListener('click',function(){var d=curId&&docs[curId];if(d&&d.snap&&repApi) repApi.open(d.snap)});
     $('kd_delgo').addEventListener('click',delGo);$('kd_delno').addEventListener('click',resetDel);
     $('kd_delpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();delGo()}});
     $('kd_pwset').addEventListener('click',setPw);dpState();
-    $('kd_new').addEventListener('click',function(){curId=null;$('kd_list').value='';clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.');$('kd_name').focus()});
-    function onDocs(m){docs=m;fillList()}
+    $('kd_new').addEventListener('click',function(){
+      function go(){curId=null;$('kd_list').value='';clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.');$('kd_name').focus()}
+      if(dirty&&curId&&hasNA()) save(true).then(go); else go();
+    });
+    var fm=document.querySelector('form');
+    if(fm){fm.addEventListener('input',onEdit);fm.addEventListener('change',onEdit)}
+    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden') flush()});
+    window.addEventListener('pagehide',flush);
+    window.addEventListener('beforeunload',function(e){if(dirty&&!canAuto()){writeDraft();e.preventDefault();e.returnValue=''}else if(dirty){flush()}});
+    function onDocs(m){docs=m;fillList();if(!restored){restored=true;restoreDraft()}}
     if(be.mode==='pwa'){
       msg('Gespeichert werden alle Eingaben und die Zusammenfassung des Ergebnisses, auf diesem Gerät und nach Einrichtung zusätzlich auf deiner WordPress-Seite.');
       sync=makeSync(be,setState);
@@ -1322,7 +1401,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 18:47',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 18:54',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

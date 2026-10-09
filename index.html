@@ -756,7 +756,7 @@ function makeSync(be,setState){
       // Browser meldet nur "Netzwerkfehler". Mit no-cors prüfen, ob die Seite überhaupt antwortet.
       var root=c.url.replace(/\/+$/,'')+'/wp-json/';
       return fetch(root+'?_t='+Date.now(),{mode:'no-cors'}).then(function(){
-        throw fail('cors','Die Seite ist erreichbar, aber der Browser verwirft die Antwort (CORS). Mögliche Ursachen: Firewall oder Sicherheits-Plugin der Seite, Zwischenspeicher (LiteSpeed), oder ein Inhaltsblocker, VPN oder Datenschutz-Relay auf diesem Gerät.');
+        throw fail('cors','Die Seite ist erreichbar, aber der Browser verwirft die Antwort (CORS). Mögliche Ursachen: Firewall oder Sicherheits-Plugin der Seite, Zwischenspeicher (LiteSpeed), oder ein Inhaltsblocker, VPN oder Datenschutz-Relay auf diesem Gerät. [Anfrage: '+(opt.method||'GET')+' '+path.split('?')[0]+']');
       },function(){
         throw fail('net','Keine Verbindung zur Seite. Offline, oder die Seite sperrt dieses Netz oder Gerät (Firewall), oder ein Inhaltsblocker, VPN oder Datenschutz-Relay blockiert sie.');
       });
@@ -816,12 +816,13 @@ function makeSync(be,setState){
   function soon(){clearTimeout(timer);timer=setTimeout(function(){run().catch(function(){})},2000)}
   function diag(c){
     var base=c.url.replace(/\/+$/,'')+'/wp-json/',auth='Basic '+b64e(c.user+':'+c.pw),out=[];
-    function step(name,url,headers){
-      return fetch(url+(url.indexOf('?')>=0?'&':'?')+'_t='+Date.now(),{headers:headers||{}}).then(function(r){out.push(name+': lesbar, Status '+r.status)},function(e){out.push(name+': verworfen ('+((e&&e.message)||'Fehler')+')')});
+    function step(name,url,headers,method){
+      return fetch(url+(url.indexOf('?')>=0?'&':'?')+'_t='+Date.now(),{method:method||'GET',headers:headers||{},body:method==='POST'?'{}':undefined}).then(function(r){out.push(name+': lesbar, Status '+r.status)},function(e){out.push(name+': verworfen ('+((e&&e.message)||'Fehler')+')')});
     }
     return step('1 einfache Anfrage',base)
       .then(function(){return step('2 mit Authorization',base+'wp/v2/users/me',{'Authorization':auth})})
-      .then(function(){return step('3 nur Accept',base+'wp/v2/users/me',{'Accept':'application/json'})})
+      .then(function(){return step('3 Beitragsliste',base+'wp/v2/posts?status=private&per_page=1&context=edit&_fields=id,slug',{'Authorization':auth})})
+      .then(function(){return step('4 POST mit JSON',base+'wp/v2/posts/0',{'Authorization':auth,'Content-Type':'application/json'},'POST')})
       .then(function(){return out.join(' | ')});
   }
   function test(c){
@@ -830,7 +831,7 @@ function makeSync(be,setState){
       throw e;
     });
   }
-  return {cfg:cfg,saveCfg:saveCfg,run:run,soon:soon,test:test,pendingText:function(){var n=be.pending();return n?n+' Änderung(en) noch nicht abgeglichen':''}};
+  return {cfg:cfg,saveCfg:saveCfg,diag:diag,run:run,soon:soon,test:test,pendingText:function(){var n=be.pending();return n?n+' Änderung(en) noch nicht abgeglichen':''}};
 }
 
 function exportFile(be){
@@ -930,7 +931,7 @@ function initKunden(backendP){
       if(!c2.url||!c2.user||!c2.pw){smsg('Bitte Adresse, Benutzer und Anwendungspasswort eintragen.');return}
       smsg('Prüfe …');sync.test(c2).then(smsg,function(e){smsg(e.message)});
     });
-    $('kd_sy_run').addEventListener('click',function(){sync.saveCfg(read());smsg('');sync.run(true).then(function(){smsg('Abgleich abgeschlossen.')},function(e){smsg(e.message)})});
+    $('kd_sy_run').addEventListener('click',function(){sync.saveCfg(read());smsg('');sync.run(true).then(function(){smsg('Abgleich abgeschlossen.')},function(e){if(e&&e.code==='cors'){smsg(e.message+' Prüfe …');sync.diag(read()).then(function(d){smsg(e.message+' Diagnose: '+d)},function(){smsg(e.message)})}else smsg(e.message)})});
     $('kd_exp').addEventListener('click',function(){var n=exportFile(be);smsg(n+' Kunde(n) exportiert.')});
     $('kd_imp').addEventListener('click',function(){$('kd_file').click()});
     $('kd_file').addEventListener('change',function(){

@@ -74,6 +74,9 @@ fieldset{border:1px solid var(--line);border-radius:6px;background:var(--surface
 .bt-dach{border-left-color:var(--z4)}.bt-dach .bt-h svg{stroke:currentColor}
 .bt-keller{border-left-color:var(--z3)}.bt-keller .bt-h svg{stroke:currentColor}
 .bt-fenster{border-left-color:var(--z2)}
+.bt-pv{border-left-color:#E0A030}.bt-pv .bt-h svg{stroke:#E0A030}
+.bt-st{border-left-color:#C0612B}.bt-st .bt-h svg{stroke:#C0612B}
+
 .bt select,.bt input{background:var(--surface)}
 legend{font-family:var(--f-data);font-weight:600;color:var(--ink);padding:0 .4rem;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
 label{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}
@@ -83,7 +86,21 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .vrow{align-items:end}
 .row3{grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))}
 .hint{font-size:.78rem;color:var(--muted)}
-#kd_auto{font-weight:600;min-height:1.2em}#kd_auto[data-kind="warn"]{color:#B35C00}#kd_auto[data-kind="ok"]{color:#4F7A12}
+.kdbox{gap:.8rem}
+.kdbox textarea{min-height:0;height:4.4rem}
+.kd-actions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.kd-actions .kd-del{margin-left:auto;background:transparent;color:#B3261E;border:0;font-weight:600;text-decoration:underline;padding:.5rem .2rem}
+.kd-actions .kd-del:hover{background:transparent;color:#8E1B15}
+:root[data-theme="dark"] .kd-actions .kd-del{color:#F2998F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kd-actions .kd-del{color:#F2998F}}
+.kd-status{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .9rem;font-size:.78rem;color:var(--muted);min-height:1.4rem}
+.kd-status>*{margin:0}.kd-status>*:empty{display:none}
+.kd-status #kd_state{padding:.2rem .6rem;font-size:.78rem}
+.kd-set{background:var(--bg)}
+.kd-set>.kd-sec{display:grid;gap:.6rem;padding-top:.8rem;border-top:1px solid var(--line)}
+.kd-sec h4{margin:0;font-family:var(--f-data);font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+.kd-sec[hidden]{display:none}
+#kd_auto{font-weight:600}#kd_auto[data-kind="warn"]{color:#B35C00}#kd_auto[data-kind="ok"]{color:#4F7A12}
 :root[data-theme="dark"] #kd_auto[data-kind="warn"]{color:#F0B35A}
 details{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:.7rem 1rem}
 summary{cursor:pointer;font-family:var(--f-data);font-weight:600;color:var(--ink);font-size:.85rem}
@@ -204,28 +221,22 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 
 <main class="wrap">
 <form onsubmit="return false" autocomplete="off">
-  <fieldset id="kd" hidden><legend>Kunde</legend>
-    <label for="kd_list">Gespeicherte Kunden<select id="kd_list"><option value="">Neuer Eintrag</option></select></label>
-    <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
-    <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße, Ort"></label>
-    <label for="kd_note">Notiz<textarea id="kd_note" rows="3" placeholder="zum Beispiel Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
-    <div class="btns"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_del" class="ghost" hidden>Löschen</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button></div>
+  <fieldset id="kd" hidden class="kdbox"><legend>Kunde</legend>
+    <label for="kd_list">Kunde wählen oder neu anlegen<select id="kd_list"><option value="">Neuer Eintrag</option></select></label>
+    <div class="row">
+      <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
+      <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße, Ort"></label>
+    </div>
+    <label for="kd_note">Notiz<textarea id="kd_note" rows="2" placeholder="Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
+    <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
     <div class="delbox" id="kd_delbox" hidden>
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
     </div>
-    <span class="hint" id="kd_auto" role="status" data-kind=""></span>
-    <p class="syncstate" id="kd_state" hidden data-kind="off"></p>
-    <span class="hint" id="kd_pend"></span>
-    <details id="kd_pwd"><summary>Löschschutz</summary>
-      <span class="hint" id="kd_pwstate"></span>
-      <label for="kd_pw0" id="kd_pw0l" hidden>Bisheriges Löschpasswort<input id="kd_pw0" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-      <label for="kd_pw1">Neues Löschpasswort (mindestens 4 Zeichen)<input id="kd_pw1" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-      <div class="btns"><button type="button" id="kd_pwset" class="ghost">Löschpasswort speichern</button></div>
-      <span class="hint" id="kd_pwmsg" role="status"></span>
-      <span class="hint">Ohne Löschpasswort kann kein Kunde gelöscht werden. Das Passwort gilt für dieses Gerät und muss auf jedem Gerät einmal gesetzt werden. Es schützt vor versehentlichem Löschen, nicht vor jemandem mit Zugriff auf die WordPress-Seite.</span>
-    </details>
-    <details id="kd_sy" hidden><summary>Abgleich und Sicherung</summary>
+    <div class="kd-status" role="status"><span id="kd_auto" data-kind=""></span><p class="syncstate" id="kd_state" hidden data-kind="off"></p><span id="kd_pend"></span><span id="kd_msg"></span></div>
+    <details id="kd_set" class="kd-set"><summary>Abgleich, Sicherung und Löschschutz</summary>
+      <span class="hint">Gespeichert werden alle Eingaben und die Zusammenfassung des Ergebnisses, auf diesem Gerät und nach Einrichtung zusätzlich privat auf deiner WordPress-Seite.</span>
+<section class="kd-sec" id="kd_sy" hidden><h4>Abgleich und Sicherung</h4>
       <label for="kd_sy_url">Adresse der WordPress-Seite<input id="kd_sy_url" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://energieberatung-lange.de"></label>
       <label for="kd_sy_user">Benutzername<input id="kd_sy_user" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <label for="kd_sy_pw">Anwendungspasswort<input id="kd_sy_pw" type="password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
@@ -234,8 +245,16 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
       <input type="file" id="kd_file" accept="application/json,.json" hidden>
       <span class="hint" id="kd_sy_msg" role="status"></span>
       <span class="hint">Die Zugangsdaten bleiben nur auf diesem Gerät. Der Abgleich speichert jeden Kunden als privaten Beitrag auf der WordPress-Seite und läuft automatisch, sobald eine Verbindung besteht. Bei gleichzeitiger Änderung auf zwei Geräten gewinnt der zuletzt gespeicherte Stand.</span>
+    </section>
+<section class="kd-sec" id="kd_pwd"><h4>Löschschutz</h4>
+      <span class="hint" id="kd_pwstate"></span>
+      <label for="kd_pw0" id="kd_pw0l" hidden>Bisheriges Löschpasswort<input id="kd_pw0" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <label for="kd_pw1">Neues Löschpasswort (mindestens 4 Zeichen)<input id="kd_pw1" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <div class="btns"><button type="button" id="kd_pwset" class="ghost">Löschpasswort speichern</button></div>
+      <span class="hint" id="kd_pwmsg" role="status"></span>
+      <span class="hint">Ohne Löschpasswort kann kein Kunde gelöscht werden. Das Passwort gilt für dieses Gerät und muss auf jedem Gerät einmal gesetzt werden. Es schützt vor versehentlichem Löschen, nicht vor jemandem mit Zugriff auf die WordPress-Seite.</span>
+    </section>
     </details>
-    <span class="hint" id="kd_msg" role="status">Gespeichert werden alle Eingaben und die Zusammenfassung des Ergebnisses. Die Daten liegen privat in deinem Konto, andere Personen mit Zugriff auf die Seite sehen sie nicht.</span>
   </fieldset>
   <fieldset><legend>Objekt</legend>
     <label for="objekt">Bezeichnung (Beispieldaten)<input id="objekt" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="Beispiel: EFH Baujahr 1968"></label>
@@ -296,6 +315,25 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <span class="hint">Der gemessene Vorlauf ist die beste Prüfung vor Ort und ersetzt die Schätzung.</span>
   </fieldset>
 
+  <fieldset><legend>Solar und Speicher</legend>
+    <section class="bt bt-pv"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg> Photovoltaik und Batteriespeicher</h3>
+    <label for="pvst">Photovoltaik<select id="pvst"><option value="0" selected>nicht vorhanden, nicht geplant</option><option value="1">vorhanden</option><option value="2">geplant, kommt in Betracht</option></select></label>
+    <div class="row" id="pvrow" hidden>
+      <label for="pvkwp">Leistung in kWp<input id="pvkwp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="zum Beispiel 8"></label>
+      <label for="pvsp">Batteriespeicher in kWh<input id="pvsp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="0 = kein Speicher"></label>
+    </div>
+    <span class="hint" id="pvhint" hidden></span>
+    </section>
+    <section class="bt bt-st"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h18l-2 9H5zM9 8l-1 9M15 8l1 9M4.5 12.5h15M12 17v4M8 21h8"/></svg> Solarthermie</h3>
+    <label for="stst">Solarthermie<select id="stst"><option value="0" selected>nicht vorhanden, nicht geplant</option><option value="1">vorhanden</option><option value="2">geplant, kommt in Betracht</option></select></label>
+    <div class="row" id="strow" hidden>
+      <label for="stm2">Kollektorfläche in m²<input id="stm2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="zum Beispiel 6"></label>
+      <label for="stnu">Nutzung<select id="stnu"><option value="ww" selected>nur Warmwasser</option><option value="kombi">Warmwasser und Heizungsunterstützung</option></select></label>
+    </div>
+    <span class="hint" id="sthint" hidden></span>
+    </section>
+  </fieldset>
+
   <fieldset><legend>Jahresverbrauch</legend>
     <div class="row vrow">
       <label for="verb">Verbrauch letztes Jahr (Beispielwert)<input id="verb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="2.800"></label>
@@ -319,6 +357,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <div class="row">
       <label for="p_alt">Bisherige Heizung, €/kWh<input id="p_alt" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,11"></label>
       <label for="p_wp">Strom Wärmepumpe, €/kWh<input id="p_wp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,27"></label>
+      <label for="p_einsp">Einspeisevergütung PV, €/kWh<input id="p_einsp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,08"></label>
     </div>
     <label for="inv1">Investition Wärmepumpe, € (optional)<input id="inv1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
     <label for="inv2">Investition Dach (und Kellerdecke), € (optional)<input id="inv2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
@@ -349,6 +388,8 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
       <li>Jahresarbeitszahl als Näherung für Luft-Wasser-Wärmepumpen, sinkt mit steigendem Vorlauf. Warmwasser pauschal 12,5 kWh/m²a.</li>
       <li>1 Liter Öl und 1 m³ Gas gelten als 10 kWh, 1 kg Pellets als 4,8 kWh.</li>
       <li>Bauteilflächen ohne Eingabe: aus Wohnfläche und Gebäudetyp geschätzt (Außenwand 0,75, Fenster 0,14, Dach 0,50, Boden 0,45 m² je m² Wohnfläche beim freistehenden EFH). Eingegebene Flächen ersetzen den jeweiligen Schätzwert. Außenwand netto ohne Fenster.</li>
+      <li>Photovoltaik: Ertrag 950 kWh je kWp und Jahr. Vom Strom der Wärmepumpe deckt die PV direkt etwa 22 % (höchstens 35 % des Ertrags), ein Speicher je kWh weitere ca. 150 kWh im Jahr (höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms). Haushaltsstrom ist nicht angerechnet. Eingespeister Strom wird mit der Einspeisevergütung bewertet.</li>
+      <li>Solarthermie: 350 kWh je m² und Jahr nur Warmwasser, 280 kWh mit Heizungsunterstützung. Angerechnet höchstens 60 % des Warmwasserbedarfs, bei Kombianlagen zusätzlich 8 % der Heizwärme. Eine vorhandene Anlage wird bei der Heizwärme aus dem Verbrauch mit berücksichtigt.</li>
       <li>Mehrere Verbrauchsjahre: Mittel der eingetragenen Jahre, keine Witterungsbereinigung.</li>
       <li>Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet.</li>
     </ul>
@@ -532,6 +573,30 @@ function rate(vl){
   return {k:4,t:'Nicht empfohlen',s:'Erst Gebäudehülle verbessern'};
 }
 
+// Solar: PV-Ertrag 950 kWh/kWp·a (Norddeutschland, Mittel). Solarthermie 350 kWh/m²a nur Warmwasser, 280 kWh/m²a mit Heizungsunterstützung.
+var PVY=950;
+function stNutz(o,q){
+  if(!(o.stSt>0&&+o.stM2>0)) return 0;
+  var ww=WW*o.wf,raw=o.stM2*(o.stNu==='kombi'?280:350);
+  var cap=(o.stNu==='kombi')?(0.6*ww+0.08*q*o.wf):0.6*ww;
+  return Math.min(raw,cap);
+}
+// Deckung des Wärmepumpenstroms: direkt ca. 22 %, höchstens 35 % des Ertrags; Speicher bringt je kWh ca. 150 kWh/a, höchstens 20 % des Ertrags und 15 % des WP-Stroms
+function solar(o,S,ist,q){
+  var r={pv:null,st:null},E=S[0].strom,pe=(+o.pEin>0)?+o.pEin:0.08;
+  if(o.pvSt>0){
+    var kwp=+o.pvKwp||0,sp=+o.pvSp||0,rec=Math.max(2,Math.round((E+3500)/PVY*2)/2);
+    if(kwp>0){
+      var Y=kwp*PVY,dir=Math.min(0.22*E,0.35*Y),sto=Math.min(sp*150,0.20*Y,0.15*E),cov=Math.min(dir+sto,0.6*Y);
+      r.pv={st:o.pvSt,kwp:kwp,sp:sp,Y:Y,cov:cov,pct:E>0?cov/E:0,save:cov*(o.pWp-pe),rec:rec,pe:pe,E:E};
+    }else r.pv={st:o.pvSt,kwp:0,sp:sp,rec:rec,E:E,pe:pe};
+  }
+  if(o.stSt>0&&+o.stM2>0){
+    var n=stNutz(o,q),st=n/S[0].jaz;
+    r.st={st:o.stSt,m2:+o.stM2,nu:o.stNu||'ww',nutz:n,strom:st,save:st*o.pWp,saveAlt:n/ist.eta*o.pAlt};
+  }
+  return r;
+}
 function compute(o){
   var uIst=uOf(o,o.st,o.fen), uO=uOrig(o);
   var qBT=qh(o,uIst), qOrig=qh(o,uO);
@@ -539,7 +604,7 @@ function compute(o){
   var qIst=qBT, qVerb=null;
   if(o.verb>0){
     var end=o.verb*KWH[o.einh];
-    qVerb=Math.max(15,(end*eta-WW*o.wf)/o.wf);
+    qVerb=Math.max(15,(end*eta+(o.stSt===1?stNutz(o,qBT):0)-WW*o.wf)/o.wf); // vorhandene Solarthermie hat schon Wärme geliefert, die im Verbrauch fehlt
   }
   // Rechenbasis: Verbrauch, Bauteile oder Mix (Mittelwert beider). Automatisch: Verbrauch, wenn er zum Bauteilmodell passt
   // (Abweichung bis 25 %) oder aus mindestens zwei Jahren mit höchstens 20 % Streuung besteht, sonst Mix.
@@ -596,7 +661,7 @@ function compute(o){
     hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':null)});
   });
   hebel.sort(function(a,b){return b.d-a.d});
-  return {areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
+  return {solar:solar(o,S,ist,qIst),areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
 return {AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
@@ -645,7 +710,7 @@ function read(){
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
-    pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,
+    pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4')
   };
 }
@@ -782,7 +847,12 @@ function render(){
       'Überwiegend Typ 33. Bei gleicher Baugröße gibt es keinen leistungsstärkeren Typ. Mehr Leistung bringen nur größere Baugrößen oder zusätzliche Heizkörper.')+'</p></section>';
   }
 
-  $('out').innerHTML=top+rec+hkp+sc+hb+bf;
+  var sl=solarLines(R),solp=sl.length?'<section class="panel"><h2>Solar und Strom</h2>'+sl.map(function(x){return '<p>'+esc(x)+'</p>'}).join('')+'</section>':'';
+  (function(){
+    var h=$('pvhint'),s=R.solar&&R.solar.pv;
+    if(s&&s.st===2&&!(s.kwp>0)){h.hidden=false;h.textContent='Richtwert für die Auslegung: etwa '+fmt(s.rec,1)+' kWp.'}else h.hidden=true;
+  })();
+  $('out').innerHTML=top+rec+hkp+solp+sc+hb+bf;
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
   bar.innerHTML='<span>'+rt.t+'</span><span>Vorlauf '+Math.round(s1.vl)+' °C · '+fmt(s1.kw,1)+' kW · JAZ '+fmt(s1.jaz,1)+'</span>';
 
@@ -865,6 +935,24 @@ function syncDm(){
     var w=+$('wlg').value,lam=CALC.lamKnown({ds:$('dstoff').value,wlg:w,bj:+$('dbj').value||0});
     $('dshint').textContent='Gerechnet mit λ = '+lam.toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(+$('dbj').value===1||+$('dbj').value===2?', Einbau vor 1995':'')+')');
   }
+}
+function syncSolar(){$('pvrow').hidden=($('pvst').value==='0');$('strow').hidden=($('stst').value==='0')}
+// Texte zu PV und Solarthermie, für Ergebniskarte und Kundenbericht
+function solarLines(R){
+  var s=R.solar,out=[],r10=function(x){return fmt(Math.round(x/10)*10)},stT=function(x){return x===1?'vorhanden':'geplant'};
+  if(!s) return out;
+  if(s.pv){
+    var p=s.pv;
+    if(p.kwp>0){
+      out.push('Photovoltaik ('+stT(p.st)+'): '+fmt(p.kwp,1)+' kWp'+(p.sp>0?' mit '+fmt(p.sp,1)+' kWh Batteriespeicher':' ohne Speicher')+', Ertrag etwa '+r10(p.Y)+' kWh im Jahr. Davon deckt sie etwa '+r10(p.cov)+' kWh ('+fmt(Math.round(p.pct*100))+' %) des Wärmepumpenstroms von etwa '+r10(p.E)+' kWh im Jahr. Das spart rechnerisch etwa '+r10(p.save)+' € im Jahr gegenüber Netzstrom. Der übrige Ertrag wird mit '+fmt(p.pe,2)+' €/kWh bewertet, Haushaltsstrom ist nicht angerechnet.');
+      if(p.sp>0&&p.cov-Math.min(0.22*p.E,0.35*p.Y)<50) out.push('Der Batteriespeicher bringt beim Wärmepumpenstrom hier kaum etwas. Ob er sich über den Haushaltsstrom rechnet, ist gesondert zu prüfen.');
+    }else out.push('Photovoltaik geplant: Richtwert für die Auslegung etwa '+fmt(p.rec,1)+' kWp (Wärmepumpenstrom plus 3.500 kWh Haushaltsstrom bei 950 kWh je kWp). Mit eingetragener Leistung wird der Nutzen gerechnet.');
+  }
+  if(s.st){
+    var t=s.st;
+    out.push('Solarthermie ('+stT(t.st)+'): '+fmt(t.m2,1)+' m², '+(t.nu==='kombi'?'mit Heizungsunterstützung':'nur Warmwasser')+', Wärmeertrag angerechnet etwa '+r10(t.nutz)+' kWh im Jahr. Mit Wärmepumpe entspricht das etwa '+r10(t.strom)+' kWh Strom oder '+r10(t.save)+' € im Jahr.'+(t.st===2?' Neben einer Wärmepumpe ist eine neue Solarthermieanlage meist weniger wirtschaftlich als zusätzliche Photovoltaik. Im Einzelfall prüfen.':' Eine vorhandene Anlage kann für das Warmwasser weiter genutzt werden. Anschluss an den Wärmepumpenspeicher prüfen.'));
+  }
+  return out;
 }
 function syncHk(){var f=$('hk').value==='fbh';$('hktypl').hidden=f;$('hktyph').hidden=f}
 
@@ -1095,7 +1183,7 @@ function initKunden(backendP){
       var old=e.value;e.value=f[e.id];
       if(e.tagName==='SELECT'&&e.value!==f[e.id]) e.value=old;
     });
-    syncDm();
+    syncDm();syncSolar();
     render();
   }
   function fmtDate(iso){try{return new Date(iso).toLocaleDateString('de-DE')}catch(e){return ''}}
@@ -1233,7 +1321,7 @@ function initKunden(backendP){
     if(!curId) return;
     if(!dpGet()){
       msg('Löschen ist gesperrt. Lege zuerst unter „Löschschutz" ein Löschpasswort fest.');
-      var d=$('kd_pwd');if(d){d.open=true;try{d.scrollIntoView({block:'center'})}catch(e){}}
+      var d=$('kd_pwd'),s=$('kd_set');if(s) s.open=true;if(d){try{d.scrollIntoView({block:'center'})}catch(e){}}
       return;
     }
     $('kd_delbox').hidden=false;$('kd_delpw').value='';$('kd_delpw').focus();
@@ -1311,7 +1399,7 @@ function initKunden(backendP){
     window.addEventListener('beforeunload',function(e){if(dirty&&!canAuto()){writeDraft();e.preventDefault();e.returnValue=''}else if(dirty){flush()}});
     function onDocs(m){docs=m;fillList();if(!restored){restored=true;restoreDraft()}}
     if(be.mode==='pwa'){
-      msg('Gespeichert werden alle Eingaben und die Zusammenfassung des Ergebnisses, auf diesem Gerät und nach Einrichtung zusätzlich auf deiner WordPress-Seite.');
+      msg('');
       sync=makeSync(be,setState);
       be.load().then(function(){be.subscribe(onDocs);initSync()});
       try{if(navigator.storage&&navigator.storage.persist) navigator.storage.persist()}catch(e){}
@@ -1404,6 +1492,7 @@ function buildReport(internal,snap){
   h+='<h2>Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
   else{var mx=R.hebel[0].d;h+=R.hebel.map(function(x){return '<div class="rep-two"><span>'+esc(x.label||NAMES[x.k])+'</span><span>'+fmt(x.d/1000,1)+' MWh/a, ca. '+eur(x.eur)+'/a · Vorlauf danach etwa '+Math.round(x.vl)+' °C</span></div><div class="rep-bar"><i style="width:'+(x.d/mx*100)+'%"></i></div>'}).join('')}
+  var sl2=solarLines(R);if(sl2.length) h+='<h2>Solar und Strom</h2>'+sl2.map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Hinweise
   h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
   h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Keine Heizlastberechnung nach DIN EN 12831. Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p></div>';
@@ -1519,7 +1608,7 @@ function initReport(){
 
 function init(){
   ['wf','verb','verb2','verb3','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','aw','af','ad','ak','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
+  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -1535,11 +1624,12 @@ function init(){
   $('dstoff').addEventListener('change',function(){$('wlg').value='0';syncDm();render()});
   $('dbj').addEventListener('change',function(){syncDm();render()});
   $('wlg').addEventListener('change',function(){syncDm();render()});
+  ['pvst','stst'].forEach(function(id){$(id).addEventListener('change',function(){syncSolar();render()})});
   $('wd').addEventListener('change',render);
   $('wlgg').addEventListener('change',render);
   $('hk').addEventListener('change',syncHk);
   $('bar').addEventListener('click',function(){try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
-  syncKeller();syncWand();syncHk();
+  syncKeller();syncWand();syncHk();syncSolar();
   render();
   initNet();
   initReport();
@@ -1566,7 +1656,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 20:30',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 20:44',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

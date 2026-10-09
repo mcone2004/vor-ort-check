@@ -334,7 +334,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     </section>
   </fieldset>
 
-  <fieldset><legend>Jahresverbrauch</legend>
+  <fieldset><legend>Jahresverbrauch Heizung</legend>
     <div class="row vrow">
       <label for="verb">Verbrauch letztes Jahr (Beispielwert)<input id="verb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="2.800"></label>
       <label for="vj1">Jahr<input id="vj1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
@@ -353,11 +353,28 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <span class="hint" id="bhint"></span>
   </fieldset>
 
+  <fieldset><legend>Jahresverbrauch Haushaltsstrom</legend>
+    <div class="row vrow">
+      <label for="sv1">Stromverbrauch letztes Jahr, kWh<input id="sv1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
+      <label for="sj1">Jahr<input id="sj1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+    </div>
+    <div class="row vrow">
+      <label for="sv2">Stromverbrauch Vorjahr, kWh, optional<input id="sv2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
+      <label for="sj2">Jahr<input id="sj2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+    </div>
+    <div class="row vrow">
+      <label for="sv3">Stromverbrauch Jahr davor, kWh, optional<input id="sv3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
+      <label for="sj3">Jahr<input id="sj3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="4"></label>
+    </div>
+    <span class="hint">Strom für Haushalt und Geräte laut Stromrechnung, ohne Heizstrom. Wird die Heizung mit Strom betrieben (Direktheizung, Nachtspeicher, vorhandene Wärmepumpe), gehört dieser Verbrauch oben unter Heizung. Der Haushaltsstrom bestimmt, wie viel einer PV-Anlage und eines Speichers im Haus genutzt wird. Mit mehreren Jahren rechnet die App mit dem Mittel.</span>
+  </fieldset>
+
   <details><summary>Preise und Investitionen</summary>
     <div class="row">
       <label for="p_alt">Bisherige Heizung, €/kWh<input id="p_alt" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,11"></label>
       <label for="p_wp">Strom Wärmepumpe, €/kWh<input id="p_wp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,27"></label>
       <label for="p_einsp">Einspeisevergütung PV, €/kWh<input id="p_einsp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,08"></label>
+      <label for="p_hh">Strompreis Haushalt, €/kWh<input id="p_hh" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="0,35"></label>
     </div>
     <label for="inv1">Investition Wärmepumpe, € (optional)<input id="inv1" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
     <label for="inv2">Investition Dach (und Kellerdecke), € (optional)<input id="inv2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus Angebot"></label>
@@ -390,6 +407,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
       <li>Bauteilflächen ohne Eingabe: aus Wohnfläche und Gebäudetyp geschätzt (Außenwand 0,75, Fenster 0,14, Dach 0,50, Boden 0,45 m² je m² Wohnfläche beim freistehenden EFH). Eingegebene Flächen ersetzen den jeweiligen Schätzwert. Außenwand netto ohne Fenster.</li>
       <li>Photovoltaik: Ertrag 950 kWh je kWp und Jahr. Vom Strom der Wärmepumpe deckt die PV direkt etwa 22 % (höchstens 35 % des Ertrags), ein Speicher je kWh weitere ca. 150 kWh im Jahr (höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms). Haushaltsstrom ist nicht angerechnet. Eingespeister Strom wird mit der Einspeisevergütung bewertet.</li>
       <li>Solarthermie: 350 kWh je m² und Jahr nur Warmwasser, 280 kWh mit Heizungsunterstützung. Angerechnet höchstens 60 % des Warmwasserbedarfs, bei Kombianlagen zusätzlich 8 % der Heizwärme. Eine vorhandene Anlage wird bei der Heizwärme aus dem Verbrauch mit berücksichtigt.</li>
+      <li>Haushaltsstrom (falls eingetragen): Die PV deckt davon direkt etwa 28 %, gemeinsam mit dem Wärmepumpenstrom höchstens 35 % des Ertrags. Der Speicher bringt je kWh ca. 150 kWh im Jahr, höchstens 20 % des Ertrags und 15 % des Wärmepumpenstroms plus 20 % des Haushaltsstroms. Selbst genutzter Haushaltsstrom wird mit dem Haushaltsstrompreis bewertet.</li>
       <li>Mehrere Verbrauchsjahre: Mittel der eingetragenen Jahre, keine Witterungsbereinigung.</li>
       <li>Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet.</li>
     </ul>
@@ -583,13 +601,17 @@ function stNutz(o,q){
 }
 // Deckung des Wärmepumpenstroms: direkt ca. 22 %, höchstens 35 % des Ertrags; Speicher bringt je kWh ca. 150 kWh/a, höchstens 20 % des Ertrags und 15 % des WP-Stroms
 function solar(o,S,ist,q){
-  var r={pv:null,st:null},E=S[0].strom,pe=(+o.pEin>0)?+o.pEin:0.08;
+  var r={pv:null,st:null},E=S[0].strom,H=+o.hh>0?+o.hh:0,pe=(+o.pEin>0)?+o.pEin:0.08,pH=(+o.pHH>0)?+o.pHH:0.35;
   if(o.pvSt>0){
-    var kwp=+o.pvKwp||0,sp=+o.pvSp||0,rec=Math.max(2,Math.round((E+3500)/PVY*2)/2);
+    var kwp=+o.pvKwp||0,sp=+o.pvSp||0,rec=Math.max(2,Math.round((E+(H>0?H:3500))/PVY*2)/2);
     if(kwp>0){
-      var Y=kwp*PVY,dir=Math.min(0.22*E,0.35*Y),sto=Math.min(sp*150,0.20*Y,0.15*E),cov=Math.min(dir+sto,0.6*Y);
-      r.pv={st:o.pvSt,kwp:kwp,sp:sp,Y:Y,cov:cov,pct:E>0?cov/E:0,save:cov*(o.pWp-pe),rec:rec,pe:pe,E:E};
-    }else r.pv={st:o.pvSt,kwp:0,sp:sp,rec:rec,E:E,pe:pe};
+      var Y=kwp*PVY,dE=0.22*E,dH=0.28*H,dir=Math.min(dE+dH,0.35*Y),f=(dE+dH)>0?dir/(dE+dH):0;
+      dE*=f;dH*=f;
+      var sto=Math.min(sp*150,0.20*Y,0.15*E+0.20*H),sE=(E+H)>0?sto*(0.15*E)/(0.15*E+0.20*H):0,sH=sto-sE;
+      var cE=dE+sE,cH=dH+sH,cap=0.65*Y,s=(cE+cH)>cap?cap/(cE+cH):1;cE*=s;cH*=s;
+      var cov=cE+cH;
+      r.pv={st:o.pvSt,kwp:kwp,sp:sp,Y:Y,cov:cov,covE:cE,covH:cH,stoUse:sto*s,H:H,pct:E>0?cE/E:0,pctAll:(E+H)>0?cov/(E+H):0,save:cE*(o.pWp-pe)+cH*(pH-pe),rec:rec,pe:pe,E:E};
+    }else r.pv={st:o.pvSt,kwp:0,sp:sp,rec:rec,E:E,H:H,pe:pe};
   }
   if(o.stSt>0&&+o.stM2>0){
     var n=stNutz(o,q),st=n/S[0].jaz;
@@ -697,20 +719,22 @@ function groupInput(e){
   }
 }
 // Verbrauch: bis zu drei Jahre, gerechnet wird mit dem Mittel der eingetragenen Jahre
-function verbMean(){
+function yearMean(pairs){
   var v=[],y=[];
-  [['verb','vj1'],['verb2','vj2'],['verb3','vj3']].forEach(function(p){var x=numG(p[0]);if(x>0){v.push(x);var j=parseInt($(p[1]).value,10);if(j>=1990&&j<=2100) y.push(j)}});
+  pairs.forEach(function(p){var x=numG(p[0]);if(x>0){v.push(x);var j=parseInt($(p[1]).value,10);if(j>=1990&&j<=2100) y.push(j)}});
   if(!v.length) return {m:0,n:0,lo:0,hi:0,y:[]};
   var s=v.reduce(function(a,b){return a+b},0);
   return {m:s/v.length,n:v.length,lo:Math.min.apply(null,v),hi:Math.max.apply(null,v),y:y};
 }
+function verbMean(){return yearMean([['verb','vj1'],['verb2','vj2'],['verb3','vj3']])}
+function hhMean(){return yearMean([['sv1','sj1'],['sv2','sj2'],['sv3','sj3']])}
 function read(){
   return {
     obj:$('objekt').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
-    pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
+    pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4')
   };
 }
@@ -736,7 +760,7 @@ function render(){
   var o=read(),R=CALC.compute(o),S=R.S,I=R.ist;
   (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
   (function(){
-    var y=new Date().getFullYear();['vj1','vj2','vj3'].forEach(function(id,i){$(id).placeholder=String(y-1-i)});
+    var y=new Date().getFullYear();['vj1','vj2','vj3','sj1','sj2','sj3'].forEach(function(id,i){$(id).placeholder=String(y-1-(i%3))});
     var bh={auto:'Der Rechner wählt selbst: Verbrauch, wenn er zum Bauteilmodell passt oder über mehrere Jahre stabil ist, sonst den Mittelwert aus beiden. Ohne Verbrauch gelten die Bauteilangaben.',
       verbrauch:'Der Verbrauch bestimmt die Heizwärme. Wand, Dach, Fenster und Keller wirken nur auf die Varianten.',
       bauteile:'Die Bauteilangaben bestimmen die Heizwärme. Der Verbrauch dient nur zum Abgleich.',
@@ -820,6 +844,10 @@ function render(){
     var sp=(o.verbMax-o.verbMin)/((o.verbMax+o.verbMin)/2)*100;
     f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel, ohne Witterungsbereinigung.'):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren'+(o.verbY&&o.verbY.length===o.verbN?' ('+o.verbY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(sp)+' %, ohne Witterungsbereinigung.'));
   }else if(o.verbN===1) f.push('Nur ein Verbrauchsjahr eingetragen. Witterung und Nutzung dieses Jahres sind nicht ausgeglichen. Mit zwei weiteren Jahren wird der Wert belastbarer.');
+  if(o.hhN>0){
+    var hs=o.hhN>1?(o.hhMax-o.hhMin)/((o.hhMax+o.hhMin)/2)*100:0;
+    f.push('Haushaltsstrom: '+(o.hhN>1?'Mittel aus '+o.hhN+' Jahren'+(o.hhY&&o.hhY.length===o.hhN?' ('+o.hhY.slice().sort().join(', ')+')':'')+', Streuung '+fmt(hs)+' %':'ein Jahr')+', etwa '+fmt(Math.round(o.hh/10)*10)+' kWh im Jahr'+(o.hh<1500?'. Der Wert ist niedrig, gehört Heizstrom oder ein zweiter Zähler dazu?':(o.hh>8000?'. Der Wert ist hoch, möglicherweise ist Heizstrom enthalten. Der gehört unter Heizung.':'.')));
+  }
   var AN={w:'Außenwand',f:'Fenster',d:'Dach bzw. oberste Decke',k:'Boden bzw. Kellerdecke'},mn=[],odd=[];
   ['w','f','d','k'].forEach(function(k){if(R.areas.meas[k]){mn.push(AN[k]);var q=R.areas.use[k]/R.areas.est[k];if(q<0.5||q>2) odd.push(AN[k]+' '+fmt(R.areas.use[k])+' m² statt geschätzt '+fmt(R.areas.est[k])+' m²')}});
   if(mn.length) f.push('Bauteilflächen eingegeben: '+mn.join(', ')+'. Die übrigen sind aus Wohnfläche und Gebäudetyp geschätzt.');
@@ -944,9 +972,9 @@ function solarLines(R){
   if(s.pv){
     var p=s.pv;
     if(p.kwp>0){
-      out.push('Photovoltaik ('+stT(p.st)+'): '+fmt(p.kwp,1)+' kWp'+(p.sp>0?' mit '+fmt(p.sp,1)+' kWh Batteriespeicher':' ohne Speicher')+', Ertrag etwa '+r10(p.Y)+' kWh im Jahr. Davon deckt sie etwa '+r10(p.cov)+' kWh ('+fmt(Math.round(p.pct*100))+' %) des Wärmepumpenstroms von etwa '+r10(p.E)+' kWh im Jahr. Das spart rechnerisch etwa '+r10(p.save)+' € im Jahr gegenüber Netzstrom. Der übrige Ertrag wird mit '+fmt(p.pe,2)+' €/kWh bewertet, Haushaltsstrom ist nicht angerechnet.');
-      if(p.sp>0&&p.cov-Math.min(0.22*p.E,0.35*p.Y)<50) out.push('Der Batteriespeicher bringt beim Wärmepumpenstrom hier kaum etwas. Ob er sich über den Haushaltsstrom rechnet, ist gesondert zu prüfen.');
-    }else out.push('Photovoltaik geplant: Richtwert für die Auslegung etwa '+fmt(p.rec,1)+' kWp (Wärmepumpenstrom plus 3.500 kWh Haushaltsstrom bei 950 kWh je kWp). Mit eingetragener Leistung wird der Nutzen gerechnet.');
+      out.push('Photovoltaik ('+stT(p.st)+'): '+fmt(p.kwp,1)+' kWp'+(p.sp>0?' mit '+fmt(p.sp,1)+' kWh Batteriespeicher':' ohne Speicher')+', Ertrag etwa '+r10(p.Y)+' kWh im Jahr. Davon deckt sie etwa '+r10(p.covE)+' kWh ('+fmt(Math.round(p.pct*100))+' %) des Wärmepumpenstroms von etwa '+r10(p.E)+' kWh im Jahr'+(p.H>0?' und etwa '+r10(p.covH)+' kWh des Haushaltsstroms von '+r10(p.H)+' kWh. Zusammen sind das '+fmt(Math.round(p.pctAll*100))+' % des gesamten Strombedarfs':'')+'. Das spart rechnerisch etwa '+r10(p.save)+' € im Jahr gegenüber Netzstrom. Der übrige Ertrag wird mit '+fmt(p.pe,2)+' €/kWh bewertet'+(p.H>0?'.':', Haushaltsstrom ist nicht angerechnet.'));
+      if(p.sp>0&&p.stoUse<50) out.push('Der Batteriespeicher bringt hier kaum zusätzlichen Eigenverbrauch. Ob er sich rechnet, ist gesondert zu prüfen.');
+    }else out.push('Photovoltaik geplant: Richtwert für die Auslegung etwa '+fmt(p.rec,1)+' kWp (Wärmepumpenstrom plus '+(p.H>0?'Haushaltsstrom von '+fmt(Math.round(p.H/10)*10):'3.500')+' kWh'+(p.H>0?'':' Haushaltsstrom')+' bei 950 kWh je kWp). Mit eingetragener Leistung wird der Nutzen gerechnet.');
   }
   if(s.st){
     var t=s.st;
@@ -1607,8 +1635,8 @@ function initReport(){
 }
 
 function init(){
-  ['wf','verb','verb2','verb3','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
+  ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
+  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -1656,7 +1684,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 20:44',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 20:55',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

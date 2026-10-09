@@ -124,6 +124,44 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 .mbar{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.65rem 16px calc(.65rem + env(safe-area-inset-bottom,0px));font-family:var(--f-data);font-size:.82rem;font-weight:600;cursor:pointer;border-top:1px solid var(--line)}
 .mbar span{min-width:0}
 .mbar.r1{background:var(--r1bg);color:var(--r1fg)}.mbar.r2{background:var(--r2bg);color:var(--r2fg)}.mbar.r3{background:var(--r3bg);color:var(--r3fg)}.mbar.r4{background:var(--r4bg);color:var(--r4fg)}
+
+/* Kundenergebnis (Bildschirm und Druck) */
+#rep{position:fixed;inset:0;z-index:50;background:#E4E7E9;overflow:auto;-webkit-overflow-scrolling:touch;color:#20252A}
+#rep[hidden]{display:none}
+.rep-tools{position:sticky;top:0;z-index:2;display:flex;gap:.9rem;align-items:center;flex-wrap:wrap;padding:.7rem 1rem;padding-top:max(.7rem,env(safe-area-inset-top));background:#20252A;color:#fff}
+.rep-tools label{display:flex;flex-direction:row;gap:.5rem;align-items:center;color:#fff;font-size:.85rem}
+.rep-tools button.ghost{background:transparent;color:#fff;border:1px solid #8a9096}
+.rep-page{background:#fff;color:#20252A;width:min(210mm,100%);margin:1rem auto;padding:14mm 15mm;box-shadow:0 1px 8px rgba(0,0,0,.25);font-size:9.6pt;line-height:1.4;font-family:var(--f-body)}
+.rep-page h1{font-size:1.35rem;margin:0 0 .15rem;color:#20252A}
+.rep-page h2{font-size:.95rem;margin:.6rem 0 .25rem;padding-bottom:.15rem;break-after:avoid;border-bottom:2px solid #7CB028;color:#20252A}
+.rep-page p{margin:.3rem 0}
+.rep-meta{display:grid;grid-template-columns:auto 1fr;gap:.1rem .9rem;margin:.6rem 0 .2rem;font-size:.95em}
+.rep-meta dt{color:#555}.rep-meta dd{margin:0;font-weight:600;text-align:left}
+.rep-verdict{display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap;border:1px solid #C1C1C1;border-left:6px solid var(--rc,#7CB028);padding:.5rem .9rem;margin:.4rem 0;break-inside:avoid}
+.rep-verdict strong{font-size:1.5rem;display:block;line-height:1.1}
+.rep-kpi{display:flex;gap:1.4rem;flex-wrap:wrap}
+.rep-kpi div{min-width:5rem}.rep-kpi small{display:block;color:#555;font-size:.78em}.rep-kpi b{font-size:1.15rem}
+.rep-page table{width:100%;border-collapse:collapse;font-size:.85em;break-inside:avoid}
+.rep-page th,.rep-page td{border-bottom:1px solid #D4D7DA;padding:.18rem .35rem;text-align:right;vertical-align:top}
+.rep-page th:first-child,.rep-page td:first-child{text-align:left;color:#444}
+.rep-page thead th{background:#F1F3EE;font-weight:700;color:#20252A;text-align:right}
+.rep-page thead th:first-child{background:#F1F3EE}
+.rep-page ul{margin:.25rem 0;padding-left:1.1rem}.rep-page li{margin:.1rem 0}
+.rep-cls{display:inline-block;min-width:1.9em;text-align:center;font-weight:700;color:#fff;border-radius:3px;padding:0 .3em;margin-right:.3em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rep-cls.c1{background:#5E8F16}.rep-cls.c2{background:#A58E10}.rep-cls.c3{background:#C66A12}.rep-cls.c4{background:#B03A2E}
+.rep-foot{margin-top:.5rem;padding-top:.35rem;border-top:1px solid #C1C1C1;font-size:.76em;color:#555}
+.rep-bar{height:.4rem;background:#E7ECDD;margin:.15rem 0 .1rem;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rep-bar i{display:block;height:100%;background:#7CB028}
+.rep-two{display:flex;justify-content:space-between;gap:1rem;font-size:.92em}
+.rep-int{border:1px dashed #999;padding:.1rem .6rem;margin-top:.6rem;font-size:.82em;color:#555}
+@media print{
+  html,body{background:#fff!important}
+  body>*:not(#rep){display:none!important}
+  #rep{position:static!important;overflow:visible!important;background:#fff!important}
+  .rep-tools{display:none!important}
+  .rep-page{box-shadow:none;margin:0;padding:0;width:auto}
+  .rep-page+.rep-page{break-before:page}
+  @page{size:A4;margin:11mm 13mm}
+}
 .wrap{padding-bottom:5rem}
 @media (prefers-reduced-motion:no-preference){.gauge b{transition:left .25s ease}}
 </style>
@@ -142,7 +180,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <label for="kd_name">Name<input id="kd_name" type="text" placeholder="Name des Kunden"></label>
     <label for="kd_adr">Adresse oder Objekt<input id="kd_adr" type="text" placeholder="Straße, Ort"></label>
     <label for="kd_note">Notiz<input id="kd_note" type="text" placeholder="zum Beispiel Termin, Wunsch, Förderstatus"></label>
-    <div class="btns"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_new" class="ghost">Neuer Kunde</button><button type="button" id="kd_del" class="ghost" hidden>Löschen</button></div>
+    <div class="btns"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_new" class="ghost">Neuer Kunde</button><button type="button" id="kd_del" class="ghost" hidden>Löschen</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button></div>
     <div class="delbox" id="kd_delbox" hidden>
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
@@ -235,11 +273,12 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 <div style="display:grid;gap:1.1rem;min-width:0">
   <div id="out" aria-live="polite"></div>
   <div style="display:grid;gap:.6rem">
-    <button type="button" id="copy">Zusammenfassung kopieren</button>
+    <button type="button" id="rep_open">Kundenergebnis anzeigen und drucken</button>
+    <button type="button" id="copy" class="ghost">Zusammenfassung kopieren</button>
     <textarea id="copybox" hidden readonly aria-label="Zusammenfassung"></textarea>
   </div>
-  <details><summary>Annahmen und Grenzen</summary>
-    <ul class="small" style="margin:0;padding-left:1.1rem">
+  <details id="ann"><summary>Annahmen und Grenzen</summary>
+    <ul class="small" id="annlist" style="margin:0;padding-left:1.1rem">
       <li>Vereinfachtes Bauteilmodell mit typischen U-Werten je Baujahrband und pauschaler Hüllfläche je m² Wohnfläche. Genauigkeit grob ±25 %.</li>
       <li>Unten: Bodenplatte mit Wärmeverlust inklusive Erdreich (Beton, Dämmung nach Baujahr), Kellerdecke mit Faktor 0,6 gegen unbeheizten Keller, Kriechkeller mit 0,8, beheizter Keller über Boden und erdberührte Wände. Bei teilweiser Unterkellerung zu je 50 %. Nachgedämmt wird in Variante 2 und 3 nur die Decke über unbeheiztem Keller oder Kriechkeller.</li>
       <li>Heizkörpertyp: Leistung je Baugröße relativ zu Typ 22 angesetzt mit Gliederheizkörper 0,9, Typ 10 0,5, Typ 11 0,65, Typ 21 0,85, Typ 33 1,45. Richtwerte, je Hersteller etwa ±10 %. Der Typ ändert den Ausgangsvorlauf nicht, nur die Variante Heizkörpertausch auf Typ 33 in gleicher Baugröße. Dabei werden alle Heizkörper dieses Typs getauscht.</li>
@@ -256,6 +295,15 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
   </details>
 </div>
 </main>
+
+<div id="rep" hidden>
+  <div class="rep-tools">
+    <button type="button" id="rep_print">Drucken / als PDF sichern</button>
+    <label class="rep-chk"><input type="checkbox" id="rep_int"> Interne Seite mit Eingaben und Annahmen</label>
+    <button type="button" id="rep_close" class="ghost">Schließen</button>
+  </div>
+  <div id="rep_body"></div>
+</div>
 
 <div id="bar" class="mbar" role="status" hidden></div>
 
@@ -464,7 +512,7 @@ var UNIT={oel:'Liter',gas:'m³',pellets:'kg',fern:'kWh',strom:'kWh'};
 var NAMES={wand:'Außenwand',dach:'Dach / oberste Geschossdecke',keller:'Kellerdecke / Bodenplatte',fenster:'Fenster'};
 var HKN={g:'Gliederheizkörper',10:'Typ 10',11:'Typ 11',21:'Typ 21',22:'Typ 22',33:'Typ 33'};
 var TRN={oel:'Öl',gas:'Gas',pellets:'Pellets',fern:'Fernwärme',strom:'Strom (Direkt/Speicher)'};
-var lastText='';
+var lastText='',lastCtx=null;
 
 function num(id){var v=parseFloat(String($(id).value).replace(',','.'));return isNaN(v)?0:v}
 // Mengenfelder: Punkt ist Tausendertrenner, Komma ist Dezimalzeichen
@@ -608,6 +656,7 @@ function render(){
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
   bar.innerHTML='<span>'+rt.t+'</span><span>Vorlauf '+Math.round(s1.vl)+' °C · '+fmt(s1.kw,1)+' kW · JAZ '+fmt(s1.jaz,1)+'</span>';
 
+  lastCtx={o:o,R:R,S:S,I:I,t:t,f:f,dk:dk,cu:cu,sav1:sav1,add2:add2,add3:add3,basis:basisTxt};
   lastText=['Vor-Ort-Check: '+(o.obj||'Objekt'),
    'Wohnfläche '+o.wf+' m², Heizwärme ca. '+fmt(I.qh)+' kWh/m²a, Heizlast ca. '+fmt(s1.kw,1)+' kW',
    'WP ohne Sanierung: '+rt.t+', Vorlauf ca. '+Math.round(s1.vl)+' °C, JAZ ca. '+fmt(s1.jaz,1),
@@ -914,14 +963,15 @@ function initKunden(backendP){
     });
     if(curId&&!docs[curId]){curId=null;clearKd()}
     sel.value=curId||'';
-    $('kd_del').hidden=!curId;
+    $('kd_del').hidden=!curId;updSnap();
   }
-  function clearKd(){$('kd_name').value='';$('kd_adr').value='';$('kd_note').value='';$('kd_del').hidden=true;resetDel()}
+  function clearKd(){$('kd_name').value='';$('kd_adr').value='';$('kd_note').value='';$('kd_del').hidden=true;resetDel();updSnap()}
+  function updSnap(){var b=$('kd_snap');if(b) b.hidden=!(curId&&docs[curId]&&docs[curId].snap)}
   function resetDel(){var d=$('kd_delbox');if(d) d.hidden=true;var p=$('kd_delpw');if(p) p.value=''}
   function load(id){
     var d=docs[id];if(!d) return;
     curId=id;$('kd_name').value=d.name||'';$('kd_adr').value=d.adr||'';$('kd_note').value=d.note||'';
-    $('kd_del').hidden=false;resetDel();
+    $('kd_del').hidden=false;resetDel();updSnap();
     if(d.form) apply(d.form);
     msg('Geladen: '+(d.name||'Ohne Name')+(d.updated?', gespeichert am '+fmtDate(d.updated):'')+'.');
   }
@@ -929,9 +979,9 @@ function initKunden(backendP){
     var name=$('kd_name').value.trim(),adr=$('kd_adr').value.trim();
     if(!name&&!adr){msg('Bitte mindestens Name oder Adresse eintragen.');$('kd_name').focus();return}
     var id=curId||('k'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),now=new Date().toISOString(),prev=docs[id]||{};
-    var data={name:name,adr:adr,note:$('kd_note').value.trim(),form:collect(),summary:lastText,created:prev.created||now,updated:now};
+    var data={name:name,adr:adr,note:$('kd_note').value.trim(),form:collect(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};
     var b=$('kd_save');b.disabled=true;
-    be.save(id,data).then(function(){curId=id;msg('Gespeichert: '+(name||adr)+'.')},function(e){msg(be.errText(e))}).then(function(){b.disabled=false});
+    be.save(id,data).then(function(){curId=id;updSnap();msg('Gespeichert: '+(name||adr)+', mit Eingaben und Ergebnis.')},function(e){msg(be.errText(e))}).then(function(){b.disabled=false});
   }
   // Löschschutz: Passwort wird nur als gesalzener Hash auf diesem Gerät gespeichert.
   var DPK='ocheck.delpw';
@@ -1019,6 +1069,7 @@ function initKunden(backendP){
     $('kd_list').addEventListener('change',function(){var v=$('kd_list').value;if(v) load(v);else{curId=null;clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.')}});
     $('kd_save').addEventListener('click',save);
     $('kd_del').addEventListener('click',del);
+    $('kd_snap').addEventListener('click',function(){var d=curId&&docs[curId];if(d&&d.snap&&repApi) repApi.open(d.snap)});
     $('kd_delgo').addEventListener('click',delGo);$('kd_delno').addEventListener('click',resetDel);
     $('kd_delpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();delGo()}});
     $('kd_pwset').addEventListener('click',setPw);dpState();
@@ -1053,6 +1104,120 @@ function initNet(){
   setInterval(function(){if(document.visibilityState!=='hidden') probe()},30000);
 }
 
+// ---- Kundenergebnis: Bildschirmansicht und Druck (A4). Seite 2 ist intern (Eingaben, Annahmen). ----
+var RCOL={1:'#5E8F16',2:'#A8C24A',3:'#E0A030',4:'#B03A2E'};
+function rcls(k,eA){
+  var t=(k==='A+'||k==='A'||k==='B')?1:(k==='C'||k==='D')?2:(k==='E'||k==='F')?3:4;
+  return '<span class="rep-cls c'+t+'">'+k+'</span>'+fmt(eA)+' kWh/m²a';
+}
+function collectInputs(){
+  var out=[],fs=document.querySelectorAll('form fieldset');
+  for(var i=0;i<fs.length;i++){
+    var f=fs[i];if(f.id==='kd') continue;
+    var lg=f.querySelector('legend'),rows=[],ls=f.querySelectorAll('label');
+    for(var j=0;j<ls.length;j++){
+      var l=ls[j],c=l.querySelector('select,input');if(!c||l.closest('[hidden]')) continue;
+      var name='';for(var k=0;k<l.childNodes.length;k++){if(l.childNodes[k].nodeType===3) name+=l.childNodes[k].textContent}
+      name=name.replace(/\s+/g,' ').trim();if(!name) continue;
+      var v=c.tagName==='SELECT'?(c.selectedOptions[0]?c.selectedOptions[0].textContent:''):c.value;
+      v=String(v).trim();if(v==='') continue;
+      rows.push([name,v]);
+    }
+    if(rows.length) out.push({h:lg?lg.textContent:'',rows:rows});
+  }
+  return out;
+}
+function buildReport(internal,snap){
+  var X=snap?snap.ctx:lastCtx;if(!X) return '<div class="rep-page"><p>Noch kein Ergebnis berechnet.</p></div>';
+  var o=X.o,R=X.R,S=X.S,I=X.I,rt=S[0].rate,s1=S[0],s2=S[1],s3=S[2];
+  var nm=$('kd_name')?$('kd_name').value.trim():'',ad=$('kd_adr')?$('kd_adr').value.trim():'',nt=$('kd_note')?$('kd_note').value.trim():'';
+  if(snap&&snap.meta){nm=snap.meta.name||'';ad=snap.meta.adr||'';nt=snap.meta.note||''}
+  var when=snap?new Date(snap.at):new Date();
+  var date=when.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var dateTime=date+(snap?', '+when.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr':'');
+  var h='<div class="rep-page"><h1>Ergebnis der Erstberatung</h1><p style="color:#555;margin:0">Vor-Ort-Check Sanierung · Wärmepumpe oder erst die Hülle</p>';
+  h+='<dl class="rep-meta"><dt>Kunde</dt><dd>'+(nm?esc(nm):'&nbsp;')+'</dd><dt>Objekt</dt><dd>'+esc(ad||o.obj||'')+'</dd><dt>'+(snap?'Stand':'Datum')+'</dt><dd>'+dateTime+'</dd></dl>';
+  h+='<h2>Ergebnis für die Wärmepumpe im Bestand</h2>';
+  h+='<div class="rep-verdict" style="--rc:'+RCOL[rt.k]+'"><div><strong>'+esc(rt.t)+'</strong><span>'+esc(rt.s)+'</span></div><div class="rep-kpi"><div><small>Heizlast, ca.</small><b>'+fmt(s1.kw,1)+' kW</b></div><div><small>Vorlauf nötig, ca.</small><b>'+Math.round(s1.vl)+' °C</b></div><div><small>Jahresarbeitszahl, ca.</small><b>'+fmt(s1.jaz,1)+'</b></div></div></div>';
+  h+='<p>'+esc(X.t)+'</p>';
+  // Varianten
+  var cols=[{n:'Bestand',s:null}];
+  var vn=['V1 WP ohne Sanierung','V2 WP + '+X.dk.replace(' / oberste Geschossdecke',''),'V3 WP + komplette Hülle','V4 WP + Heizkörpertausch'];
+  S.forEach(function(s,i){cols.push({n:vn[i]||s.name,s:s,i:i})});
+  var inv=[0,o.inv1,o.inv2,o.inv3,o.inv4],adds=[0,X.sav1,X.add2,X.add3,S[3]?S[0].cost-S[3].cost:0];
+  function row(lab,fn){return '<tr><td>'+lab+'</td>'+cols.map(function(c,ci){return '<td>'+fn(c,ci)+'</td>'}).join('')+'</tr>'}
+  h+='<h2>Varianten im Vergleich</h2><table><thead><tr><th></th>'+cols.map(function(c){return '<th>'+esc(c.n)+'</th>'}).join('')+'</tr></thead><tbody>';
+  h+=row('Heizwärme',function(c){return fmt((c.s||I).qh)+' kWh/m²a'});
+  h+=row('Energieklasse, ca.',function(c){var s=c.s||I;return rcls(s.klasse,s.eA)});
+  h+=row('Heizlast',function(c){return fmt((c.s||I).kw,1)+' kW'});
+  h+=row('Vorlauf',function(c){return c.s?Math.round(c.s.vl)+' °C':'–'});
+  h+=row('Jahresarbeitszahl',function(c){return c.s?fmt(c.s.jaz,1):'–'});
+  h+=row('Energieeinsatz',function(c){return c.s?fmt(c.s.strom/1000,1)+' MWh/a Strom':fmt(I.end/1000,1)+' MWh/a'});
+  h+=row('Heizkosten',function(c){return eur((c.s||I).cost)+'/a'});
+  h+=row('Ersparnis zur Bestandsheizung',function(c){return c.s?(I.cost-c.s.cost>=0?eur(I.cost-c.s.cost):'−'+eur(c.s.cost-I.cost))+'/a':'–'});
+  if(inv.slice(1,S.length+1).some(function(v){return v>0})){
+    h+=row('Investition',function(c,ci){return ci&&inv[ci]>0?eur(inv[ci]):'–'});
+    h+=row('Amortisation',function(c,ci){return ci?pay(inv[ci],adds[ci]).replace('Invest eintragen','–'):'–'});
+  }
+  h+='</tbody></table><p style="font-size:.82em;color:#555">Amortisation: V1 gegenüber der Bestandsheizung, V2 bis V4 jeweils gegenüber V1.</p>';
+  // Maßnahmen
+  h+='<h2>Wirksamste Maßnahmen einzeln</h2>';
+  if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
+  else{var mx=R.hebel[0].d;h+=R.hebel.map(function(x){return '<div class="rep-two"><span>'+esc(x.label||NAMES[x.k])+'</span><span>'+fmt(x.d/1000,1)+' MWh/a, ca. '+eur(x.eur)+'/a · Vorlauf danach etwa '+Math.round(x.vl)+' °C</span></div><div class="rep-bar"><i style="width:'+(x.d/mx*100)+'%"></i></div>'}).join('')}
+  // Hinweise
+  h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+  h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Keine Heizlastberechnung nach DIN EN 12831. Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p></div>';
+  if(internal){
+    h+='<div class="rep-page"><h1>Intern: Eingaben und Annahmen</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+' · '+(snap?'gespeicherte Auswertung vom '+dateTime:date)+'</p>';
+    if(nt) h+='<h2>Notiz</h2><p>'+esc(nt)+'</p>';
+    h+='<h2>Eingaben</h2>';
+    (snap?(snap.inputs||[]):collectInputs()).forEach(function(g){
+      h+='<table><thead><tr><th colspan="2" style="text-align:left">'+esc(g.h)+'</th></tr></thead><tbody>'+g.rows.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'</tbody></table>';
+    });
+    h+='<h2>Rechenbasis</h2><ul><li>'+esc(X.basis)+'</li><li>Außenwand: U ca. '+fmt(R.uWand,2)+' W/m²K, Bestandsfenster: Uw ca. '+fmt(R.uFen,2)+' W/m²K</li>'+
+      '<li>Nutzungsgrad Bestandsheizung ca. '+Math.round(I.eta*100)+' %, Endenergie '+fmt(I.end/1000,1)+' MWh/a</li></ul>';
+    var al=$('annlist');if(al) h+='<h2>Annahmen und Grenzen</h2><ul style="font-size:.85em">'+al.innerHTML+'</ul>';
+    h+='</div>';
+  }
+  return h;
+}
+function makeSnap(){
+  if(!lastCtx) return null;
+  var X=lastCtx;
+  try{
+    return JSON.parse(JSON.stringify({v:1,at:new Date().toISOString(),
+      ctx:{o:X.o,R:X.R,S:X.S,I:X.I,t:X.t,f:X.f,dk:X.dk,cu:X.cu,sav1:X.sav1,add2:X.add2,add3:X.add3,basis:X.basis},
+      inputs:collectInputs(),
+      meta:{name:$('kd_name')?$('kd_name').value.trim():'',adr:$('kd_adr')?$('kd_adr').value.trim():'',note:$('kd_note')?$('kd_note').value.trim():''}}));
+  }catch(e){return null}
+}
+var repApi=null;
+function initReport(){
+  var open=$('rep_open'),box=$('rep'),body=$('rep_body'),chk=$('rep_int');
+  if(!open||!box) return;
+  try{chk.checked=localStorage.getItem('ocheck.repint')==='1'}catch(e){}
+  var cur=null;
+  function draw(){body.innerHTML=buildReport(chk.checked,cur)}
+  function show(snap){
+    cur=snap||null;
+    if(cur) chk.checked=true; else {try{chk.checked=localStorage.getItem('ocheck.repint')==='1'}catch(e){chk.checked=false}}
+    draw();box.hidden=false;box.scrollTop=0;document.body.style.overflow='hidden';
+  }
+  repApi={open:show};
+  open.addEventListener('click',function(){show(null)});
+  $('rep_close').addEventListener('click',function(){box.hidden=true;document.body.style.overflow=''});
+  chk.addEventListener('change',function(){if(!cur){try{localStorage.setItem('ocheck.repint',chk.checked?'1':'0')}catch(e){}}draw()});
+  var old=document.title;
+  $('rep_print').addEventListener('click',function(){
+    var nm=$('kd_name')?$('kd_name').value.trim():'';
+    document.title='Ergebnis Erstberatung'+(nm?' '+nm:'')+' '+new Date().toISOString().slice(0,10);
+    try{window.print()}catch(e){}
+    setTimeout(function(){document.title=old},1500);
+  });
+  window.addEventListener('afterprint',function(){document.title=old});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!box.hidden) $('rep_close').click()});
+}
+
 function init(){
   ['wf','verb','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
   var ids=['objekt','typ','baujahr','wf','wand','dach','keller','fenster','hz_alter','hk','vlm','verb','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
@@ -1069,6 +1234,7 @@ function init(){
   syncKeller();syncWand();syncHk();
   render();
   initNet();
+  initReport();
   initKunden((typeof window!=='undefined'&&window.__PWA)?localBackend():artifactBackend());
 }
 if(typeof document!=='undefined') init();
@@ -1092,7 +1258,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 18:12',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 18:28',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

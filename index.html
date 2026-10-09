@@ -71,6 +71,7 @@ label{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;width:100%;min-width:0}
 input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.7rem}
+.row3{grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr))}
 .hint{font-size:.78rem;color:var(--muted)}
 #kd_auto{font-weight:600;min-height:1.2em}#kd_auto[data-kind="warn"]{color:#B35C00}#kd_auto[data-kind="ok"]{color:#4F7A12}
 :root[data-theme="dark"] #kd_auto[data-kind="warn"]{color:#F0B35A}
@@ -247,9 +248,11 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <span class="hint" id="dshint" hidden></span>
     <span class="hint" id="whint"></span>
     <span class="hint" id="wuw"></span>
+    <label for="aw">Außenwandfläche in m², ohne Fenster (optional, wenn aufgemessen)<input id="aw" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     <section class="bt bt-dach"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12 12 4l9.5 8M5.5 10.5V20h13v-9.5"/></svg>Dach oder oberste Geschossdecke</h3>
     <label for="dach">Dämmzustand Dach oder Geschossdecke<select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option></select></label>
+    <label for="ad">Dachfläche bzw. Fläche der obersten Geschossdecke in m² (optional)<input id="ad" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     <section class="bt bt-keller"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M3 9v11h18V9M7 20v-5h10v5M12 3v6M9 6l3 3 3-3"/></svg>Keller und Bodenplatte</h3>
     <div class="row">
@@ -258,6 +261,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     </div>
     <label for="keller"><span id="kstl">Dämmzustand Bodenplatte</span><select id="keller"><option value="0" selected>Original</option><option value="1">Nachgedämmt</option><option value="2">Aktuell gedämmt</option></select></label>
     <span class="hint" id="khint"></span>
+    <label for="ak">Fläche Bodenplatte bzw. Kellerdecke in m² (optional)<input id="ak" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     <section class="bt bt-fenster"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM12 3v18M5 12h14"/></svg>Fenster</h3>
     <label for="fenster">Fenster, vorhandene Bauart<select id="fenster"><option value="0">Einfachverglasung</option><option value="1">Kasten- oder Verbundfenster, älter</option><option value="2">2-fach Isolierglas, bis 1994</option><option value="3" selected>2-fach Wärmeschutzglas, 1995 bis 2009</option><option value="4">2-fach Wärmeschutzglas, ab 2010</option><option value="5">3-fach Wärmeschutzglas</option><option value="6">Kastenfenster neu oder saniert, mit Wärmeschutzglas</option></select></label>
@@ -265,6 +269,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
     <label for="fdicht">Dichtheit der Fenster<select id="fdicht"><option value="0" selected>normal</option><option value="1">spürbar undicht, Zugluft an den Fugen</option></select></label>
     <span class="hint">Maßgeblich ist die Verglasung, nicht das Baujahr des Hauses. Angesetzt sind Uw-Werte von 4,7 (Einfach) über 2,6 (Kasten alt), 2,8, 1,5 und 1,2 (2-fach) bis 0,95 (3-fach) und 1,1 (Kastenfenster neu). Der Dichtheitsaufschlag gilt nur für ältere Fenster. Rahmen als Aufschlag auf den Uw: Kunststoff Bezug, Holz und Holz-Aluminium +0,05, Aluminium getrennt +0,3, Aluminium ohne Trennung +0,9.</span>
     <span class="hint" id="fuw"></span>
+    <label for="af">Fensterfläche gesamt in m² (optional)<input id="af" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
   </fieldset>
 
@@ -281,12 +286,15 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
   </fieldset>
 
   <fieldset><legend>Jahresverbrauch</legend>
-    <div class="row">
-      <label for="verb">Verbrauch pro Jahr (Beispielwert)<input id="verb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="2.800"></label>
-      <label for="einheit">Einheit<select id="einheit"><option selected>Liter</option><option>m³</option><option>kg</option><option>kWh</option></select></label>
+    <div class="row row3">
+      <label for="verb">Verbrauch letztes Jahr (Beispielwert)<input id="verb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" value="2.800"></label>
+      <label for="verb2">Vorjahr, optional<input id="verb2" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
+      <label for="verb3">Jahr davor, optional<input id="verb3" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal"></label>
     </div>
+    <label for="einheit">Einheit, wie auf der Rechnung<select id="einheit"><option selected>Liter</option><option>m³</option><option>kg</option><option>kWh</option></select></label>
+    <span class="hint" id="vhint">Bei Gas steht auf der Rechnung meist kWh, dann kWh wählen. m³ rechnet die App mit 10 kWh je m³ um. Mit mehreren Jahren rechnet sie mit dem Mittel.</span>
     <label for="basis">Rechnen mit<select id="basis"><option value="verbrauch" selected>Jahresverbrauch, wenn eingetragen</option><option value="bauteile">Bauteilangaben, Verbrauch nur zum Abgleich</option></select></label>
-    <span class="hint">Mit Verbrauch bestimmt er die Heizwärme. Wand, Dach, Fenster und Keller wirken dann nur auf die Varianten. Leer lassen oder Bauteile wählen, um mit den Bauteilangaben zu rechnen. Mittel aus drei Jahren ist am besten.</span>
+    <span class="hint">Mit Verbrauch bestimmt er die Heizwärme. Wand, Dach, Fenster und Keller wirken dann nur auf die Varianten. Leer lassen oder Bauteile wählen, um mit den Bauteilangaben zu rechnen. Das Mittel aus drei Jahren ist am besten.</span>
   </fieldset>
 
   <details><summary>Preise und Investitionen</summary>
@@ -322,6 +330,8 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
       <li>Vorlauftemperatur aus dem Verhältnis von heutiger Heizlast zur Auslegung der Heizkörper im Originalzustand. Bei gemessenem Vorlauf wird das Modell darauf verschoben.</li>
       <li>Jahresarbeitszahl als Näherung für Luft-Wasser-Wärmepumpen, sinkt mit steigendem Vorlauf. Warmwasser pauschal 12,5 kWh/m²a.</li>
       <li>1 Liter Öl und 1 m³ Gas gelten als 10 kWh, 1 kg Pellets als 4,8 kWh.</li>
+      <li>Bauteilflächen ohne Eingabe: aus Wohnfläche und Gebäudetyp geschätzt (Außenwand 0,75, Fenster 0,14, Dach 0,50, Boden 0,45 m² je m² Wohnfläche beim freistehenden EFH). Eingegebene Flächen ersetzen den jeweiligen Schätzwert. Außenwand netto ohne Fenster.</li>
+      <li>Mehrere Verbrauchsjahre: Mittel der eingetragenen Jahre, keine Witterungsbereinigung.</li>
       <li>Förderung, Wartung, Grundpreise und Preisentwicklung sind nicht eingerechnet.</li>
     </ul>
   </details>
@@ -383,6 +393,13 @@ var GEW=22, GT=72, WW=12.5, VBH=1700; // Gewinne, Gradtag-Faktor (kKh), Warmwass
 var DTN=[47.5,47.5,47.5,42.5,35,30];  // Heizkörper-Übertemperatur bei Auslegung je Baujahrband
 var BASE={w:0.75,f:0.14,d:0.50,k:0.45}; // Hüllfläche je m² Wohnfläche (EFH freistehend)
 var GEO={efh:{w:1,f:1,d:1,k:1},dhh:{w:0.8,f:0.95,d:1,k:1},rmh:{w:0.4,f:0.8,d:1,k:1},mfh:{w:0.7,f:0.9,d:0.4,k:0.4}};
+// Bauteilflächen in m²: gemessene Eingabe (aW Außenwand netto, aF Fenster, aD Dach/oberste Decke, aK Boden/Kellerdecke), sonst Schätzung aus Wohnfläche und Gebäudetyp
+function AR(o){
+  var g=GEO[o.typ]||GEO.efh,wf=o.wf,e={w:BASE.w*g.w*wf,f:BASE.f*g.f*wf,d:BASE.d*g.d*wf,k:BASE.k*g.k*wf};
+  var m={w:+o.aW>0,f:+o.aF>0,d:+o.aD>0,k:+o.aK>0};
+  var u={w:m.w?+o.aW:e.w,f:m.f?+o.aF:e.f,d:m.d?+o.aD:e.d,k:m.k?+o.aK:e.k};
+  return {est:e,use:u,meas:m,n:(m.w?1:0)+(m.f?1:0)+(m.d?1:0)+(m.k?1:0)};
+}
 var ETA={oel:[0.78,0.85,0.88,0.91],gas:[0.78,0.85,0.92,0.94],pellets:[0.70,0.78,0.82,0.85],fern:[0.95,0.95,0.95,0.95],strom:[1,1,1,1]};
 var KWH={'Liter':10,'m³':10,'kg':4.8,'kWh':1};
 // Leistung je Baugröße (Länge x Höhe) relativ zu Typ 22, Richtwerte, je Hersteller etwa ±10 %
@@ -456,7 +473,7 @@ function uOrig(o){var b=o.band;return {wand:uWall(o,0),dach:U0.dach[b],kst:0,fen
 // Wärmeverlust nach unten in W/K je m² Wohnfläche. kShare 0 = kein Keller, 0.5 = teilweise, 1 = komplett.
 // kArt: ub unbeheizt, bh beheizt, kk Kriechkeller. Der nicht unterkellerte Teil ist Bodenplatte.
 function kellerTerm(o,st){
-  var b=o.band,F=BASE.k*GEO[o.typ].k;
+  var b=o.band,F=AR(o).use.k/o.wf;
   var s=(o.kShare==null)?1:o.kShare, t=o.kArt||'ub';
   var restSt=(s>0&&t!=='bh')?0:st;
   var part=0;
@@ -478,8 +495,8 @@ function kLabel(o){
 }
 
 function qh(o,u){
-  var g=GEO[o.typ];
-  var a={w:BASE.w*g.w,f:BASE.f*g.f,d:BASE.d*g.d,k:BASE.k*g.k};
+  var A=AR(o).use;
+  var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
   var ht=a.w*u.wand+a.f*u.fenster+a.d*u.dach+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k);
   return Math.max(15,ht*GT+QV[o.band]+u.leak-GEW);
 }
@@ -549,9 +566,9 @@ function compute(o){
     hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':null)});
   });
   hebel.sort(function(a,b){return b.d-a.d});
-  return {ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
+  return {areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -563,7 +580,7 @@ var fmt=function(x,d){return Number(x).toLocaleString('de-DE',{minimumFractionDi
 var eur=function(x){return fmt(Math.round(x/10)*10)+' €'};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 var DEF={oel:0.11,gas:0.11,pellets:0.07,fern:0.13,strom:0.32};
-var UNIT={oel:'Liter',gas:'m³',pellets:'kg',fern:'kWh',strom:'kWh'};
+var UNIT={oel:'Liter',gas:'kWh',pellets:'kg',fern:'kWh',strom:'kWh'};
 var NAMES={wand:'Außenwand',dach:'Dach / oberste Geschossdecke',keller:'Kellerdecke / Bodenplatte',fenster:'Fenster'};
 var HKN={g:'Gliederheizkörper',10:'Typ 10',11:'Typ 11',21:'Typ 21',22:'Typ 22',33:'Typ 33'};
 var TRN={oel:'Öl',gas:'Gas',pellets:'Pellets',fern:'Fernwärme',strom:'Strom (Direkt/Speicher)'};
@@ -584,12 +601,19 @@ function groupInput(e){
     try{el.setSelectionRange(i,i)}catch(x){}
   }
 }
+// Verbrauch: bis zu drei Jahre, gerechnet wird mit dem Mittel der eingetragenen Jahre
+function verbMean(){
+  var v=['verb','verb2','verb3'].map(numG).filter(function(x){return x>0});
+  if(!v.length) return {m:0,n:0,lo:0,hi:0};
+  var s=v.reduce(function(a,b){return a+b},0);
+  return {m:s/v.length,n:v.length,lo:Math.min.apply(null,v),hi:Math.max.apply(null,v)};
+}
 function read(){
   return {
     obj:$('objekt').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
-    vlm:$('vlm').value===''?null:+$('vlm').value,verb:numG('verb'),einh:$('einheit').value,
+    vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbMin:verbMean().lo,verbMax:verbMean().hi,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4')
   };
@@ -614,6 +638,7 @@ function card(title,sub,rows,cls){
 
 function render(){
   var o=read(),R=CALC.compute(o),S=R.S,I=R.ist;
+  (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
   var s1=S[0],s2=S[1],s3=S[2],rt=s1.rate;
   var cu=CALC.canUp(o), dk=cu?'Dach und Kellerdecke':'Dach';
   $('wuw').textContent='Angesetzt für die Außenwand: U ca. '+fmt(R.uWand,2)+' W/m²K';
@@ -684,6 +709,14 @@ function render(){
     if(Math.abs(ab)>25) f.push('Verbrauch weicht um '+fmt(Math.abs(ab))+' % von der Bauteilschätzung ab ('+(ab<0?'niedriger':'höher')+'). Bauteilangaben, Abrechnungszeitraum, Zusatzheizung (Ofen) und Leerstand prüfen. '+(R.anchored?'Gerechnet wird mit dem Verbrauch.':'Gerechnet wird mit den Bauteilen.'));
     else f.push('Verbrauch und Bauteilschätzung liegen innerhalb von 25 %. Das stützt die Eingaben.');
   }else f.push('Kein Verbrauch eingetragen. Das Ergebnis beruht nur auf Baujahr und Bauteilen. Mit dem Jahresverbrauch der letzten drei Jahre wird es deutlich belastbarer.');
+  if(o.verbN>1){
+    var sp=(o.verbMax-o.verbMin)/((o.verbMax+o.verbMin)/2)*100;
+    f.push(sp>20?('Die '+o.verbN+' Verbrauchsjahre schwanken um '+fmt(sp)+' %. Nutzung, Leerstand, Zusatzheizung oder Abrechnungszeiträume klären. Gerechnet wird mit dem Mittel, ohne Witterungsbereinigung.'):('Gerechnet wird mit dem Mittel aus '+o.verbN+' Verbrauchsjahren (Streuung '+fmt(sp)+' %), ohne Witterungsbereinigung.'));
+  }else if(o.verbN===1) f.push('Nur ein Verbrauchsjahr eingetragen. Witterung und Nutzung dieses Jahres sind nicht ausgeglichen. Mit zwei weiteren Jahren wird der Wert belastbarer.');
+  var AN={w:'Außenwand',f:'Fenster',d:'Dach bzw. oberste Decke',k:'Boden bzw. Kellerdecke'},mn=[],odd=[];
+  ['w','f','d','k'].forEach(function(k){if(R.areas.meas[k]){mn.push(AN[k]);var q=R.areas.use[k]/R.areas.est[k];if(q<0.5||q>2) odd.push(AN[k]+' '+fmt(R.areas.use[k])+' m² statt geschätzt '+fmt(R.areas.est[k])+' m²')}});
+  if(mn.length) f.push('Bauteilflächen eingegeben: '+mn.join(', ')+'. Die übrigen sind aus Wohnfläche und Gebäudetyp geschätzt.');
+  if(odd.length) f.push('Auffällige Flächenangabe: '+odd.join('; ')+'. Maße und Netto-Ansatz (Außenwand ohne Fenster) prüfen.');
   if(o.vlm!=null && Math.abs(R.vlModelIst-o.vlm)>8) f.push('Modell ergibt etwa '+Math.round(R.vlModelIst)+' °C Vorlauf, gemessen wurden '+o.vlm+' °C. Heizkörper sind vermutlich größer als angenommen oder der Dämmstand besser. Gerechnet wird mit dem gemessenen Wert.');
   if(o.vlm==null && o.hk!=='fbh') f.push('Höchsten Vorlauf an kalten Tagen im letzten Winter erfragen oder am Kessel ablesen. Das ist die beste Vor-Ort-Prüfung für die Wärmepumpe.');
   if((o.tr==='oel'||o.tr==='gas')&&o.ha===0) f.push('Kessel ist älter als 30 Jahre. Nutzungsgrad ist schlecht, ein Austausch steht ohnehin an.');
@@ -1429,11 +1462,15 @@ function initReport(){
 }
 
 function init(){
-  ['wf','verb','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
+  ['wf','verb','verb2','verb3','inv1','inv2','inv3','inv4'].forEach(function(id){$(id).addEventListener('input',groupInput)});
+  var ids=['objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','aw','af','ad','ak','einheit','p_alt','p_wp','inv1','inv2','inv3','inv4','wtyp','hktyp','basis','fdicht','frahmen'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
-    var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');render();
+    var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
+    // Beispielwert an die Einheit anpassen, solange er unverändert ist
+    var EX={oel:'2.800',gas:'28.000',pellets:'6.000',fern:'28.000',strom:'28.000'},vs=Object.keys(EX).map(function(k){return EX[k]});
+    if(vs.indexOf($('verb').value)>=0&&!$('verb2').value&&!$('verb3').value) $('verb').value=EX[t];
+    render();
   });
   ['kshare','kart'].forEach(function(id){$(id).addEventListener('change',function(){syncKeller();render()})});
   $('copy').addEventListener('click',copy);
@@ -1473,7 +1510,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-09 19:43',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-09 20:18',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

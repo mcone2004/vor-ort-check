@@ -7,7 +7,7 @@ var C=window.ERFCALC;if(!C) return;
 var N=C.N,has=C.has,f2=C.f2,f3=C.f3;
 var E=C.newErf();
 var step='stamm',curFloor=null,selWall=null,selKat=null,selSurf=null,root=null,main=null,nav=null,onChange=function(){},onClose=function(){},isOpen=false,kdName='';
-var PH_MAX=12;
+var PH_MAX=30;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function clone(o){return JSON.parse(JSON.stringify(o))}
@@ -66,6 +66,9 @@ function btn(a,label,o){
 
 /* ---------- Fotos ---------- */
 function photoCount(){var n=0;for(var k in E.photos) n+=(E.photos[k]||[]).length;return n}
+function photoMB(){var b=0;for(var k in E.photos)(E.photos[k]||[]).forEach(function(p){b+=String(p.d||'').length*0.75});return b/1048576}
+function dropPhotos(key){if(E.photos[key]) delete E.photos[key]}
+function photoNum(key){return (E.photos[key]||[]).length}
 function photoBox(key,label){
   var arr=E.photos[key]||[];
   return '<div class="erf-ph"><div class="erf-phl">'+esc(label)+'</div><div class="erf-phg">'+arr.map(function(p,i){
@@ -77,9 +80,9 @@ function shrink(file){
     var u=URL.createObjectURL(file),im=new Image();
     im.onload=function(){
       try{
-        var k=Math.min(1,900/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k));
+        var k=Math.min(1,800/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k));
         var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);
-        URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.55));
+        URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.5));
       }catch(e){URL.revokeObjectURL(u);rej(e)}
     };
     im.onerror=function(){URL.revokeObjectURL(u);rej(new Error('Bild nicht lesbar'))};
@@ -214,7 +217,8 @@ function outW(id){
   var r=findWall(id);if(!r) return '';
   var g=C.wallGeom(r.fl,r.w,E),k=C.findKat(E,r.w.bt);
   var nm=r.w.type==='nachbar'?'Trennwand zu Nachbar':(k&&k.name?k.name:'Bauteil fehlt');
-  return '<span class="n">'+(r.i+1)+'</span><span>'+esc(C.dirName(bearing(r.fl,r.i))+' · '+f2(N(r.w.len))+' m · '+nm+' · '+f2(g.net)+' m² netto')+'</span>';
+  var pn=photoNum('w:'+id);
+  return '<span class="n">'+(r.i+1)+'</span><span>'+esc(C.dirName(bearing(r.fl,r.i))+' · '+f2(N(r.w.len))+' m · '+nm+' · '+f2(g.net)+' m² netto'+(pn?' · '+pn+(pn===1?' Foto':' Fotos'):''))+'</span>';
 }
 function outU(id){
   var k=C.findKat(E,id);if(!k) return '';
@@ -365,7 +369,7 @@ function updateBadges(){
     var b=nav.querySelector('[data-bd="'+s.k+'"]');if(!b) return;
     var n=cnt[s.k]||0;b.textContent=n?String(n):'✓';b.className='erf-bd'+(n?'':' z');
   });
-  var t=root.querySelector('#erf-count');if(t) t.textContent=M.length?('Fehlt noch: '+M.length):'Alle Pflichtangaben vorhanden';
+  var t=root.querySelector('#erf-count');if(t) t.textContent=(M.length?('Fehlt noch: '+M.length):'Alle Pflichtangaben vorhanden')+' · Fotos '+photoCount()+' von '+PH_MAX+' ('+f2(photoMB())+' MB)';
 }
 var touchT=null;
 function touch(){
@@ -425,6 +429,7 @@ function wallCard(fl,w,i){
       '</div>';
     if(w.type!=='nachbar'&&!E.kat.some(function(k){return kinds.indexOf(k.kind)>=0})) h+='<div class="erf-row"><span class="erf-hint">Noch kein passendes Bauteil vorhanden.</span>'+btn('step','Zu den Bauteilen',{x:'bt'})+'</div>';
     h+=openingsBlock('gesch/'+fl.id+'/walls/'+w.id,w.id,w.ow,false);
+    h+=photoBox('w:'+w.id,'Fotos zu dieser Wand (Aufbau, Schäden, Fenster)');
     h+='<div class="erf-row">'+btn('wall-ins','Wand danach einfügen',{x:w.id})+btn('wall-del','Wand löschen',{x:w.id})+'</div></div>';
   }
   return h+'</div>';
@@ -445,7 +450,7 @@ function viewGeo(){
   var tools='<div class="erf-row"><label class="erf-f" style="width:7rem"><span>Breite m</span><input type="text" inputmode="decimal" id="erf-rw" autocomplete="off"></label><label class="erf-f" style="width:7rem"><span>Tiefe m</span><input type="text" inputmode="decimal" id="erf-rd" autocomplete="off"></label>'+btn('rect-make','Rechteck erzeugen')+
     (others.length?'<label class="erf-f" style="min-width:11rem"><span>Wände kopieren von</span><select id="erf-cp">'+others.map(function(f){return '<option value="'+f.id+'">'+esc(f.name)+'</option>'}).join('')+'</select></label><label class="erf-ck"><input type="checkbox" id="erf-cpo"><span>mit Fenstern</span></label>'+btn('floor-copy','Kopieren'):'')+
     btn('floor-del','Geschoss löschen')+'</div>';
-  h+=sec('Geschoss '+(fl.name||''),props+tools);
+  h+=sec('Geschoss '+(fl.name||''),props+tools+photoBox('f:'+fl.id,'Fotos zum Geschoss (Raum, Decke, Gesamteindruck)'));
   var walls=fl.walls.map(function(w,i){return wallCard(fl,w,i)}).join('');
   var left='<div class="erf-svgbox"><svg class="erf-svg" viewBox="0 0 460 340" role="img" aria-label="Skizze des Wandzugs" data-out="svg">'+svgFor(fl)+'</svg></div>';
   var right='<div style="display:grid;gap:.6rem;min-width:0"><div class="erf-row" style="gap:.8rem"><span data-out="closure">'+outClosure()+'</span></div><div data-out="closebtn">'+outCloseBtn()+'</div>'+walls+'<div class="erf-row">'+btn('wall-add','Wand hinzufügen',{cls:''})+'</div></div>';
@@ -521,6 +526,7 @@ function surfCard(s){
     h+='<div class="erf-row"><button type="button" class="ghost" data-a="surf-sugg" data-x="'+s.id+'" data-out="sg:'+s.id+'">'+esc(outSugg(s.id)||'Vorschlag nicht möglich')+'</button></div>';
     if(roof) h+=openingsBlock('surf/'+s.id,s.id,s.ow,true);
     h+='<div class="erf-hint">Dachflächen: Fläche ohne Dachüberstand, Dachflächenfenster unten abziehen. Der Vorschlag nutzt die Grundfläche des obersten (bzw. untersten) beheizten Geschosses, bei Dachschrägen geteilt durch den Kosinus der Neigung.</div>';
+    h+=photoBox('s:'+s.id,'Fotos zu dieser Fläche (Dachboden, Decke, Boden)');
     h+='<div class="erf-row">'+btn('surf-del','Fläche löschen',{x:s.id})+'</div></div>';
   }
   return h+'</div>';
@@ -575,11 +581,12 @@ function sheetHTML(){
   h+='<section><h4>2. Grundriss und Wände</h4>';
   E.gesch.forEach(function(fl){
     var tr=C.trace(fl,g.h0);
-    h+='<div><b>'+esc(fl.name)+'</b> · '+(fl.heated==='nein'?'unbeheizt':'beheizt')+' · Höhe '+f2(N(fl.h))+' m · Grundfläche '+f2(tr.area)+' m² · Umfang '+f2(tr.perim)+' m'+(tr.closed?'':' · <b>Wandzug nicht geschlossen</b>')+'</div>';
+    h+='<div><b>'+esc(fl.name)+'</b> · '+(fl.heated==='nein'?'unbeheizt':'beheizt')+' · Höhe '+f2(N(fl.h))+' m · Grundfläche '+f2(tr.area)+' m² · Umfang '+f2(tr.perim)+' m'+(tr.closed?'':' · <b>Wandzug nicht geschlossen</b>')+'</div>'+photosHTML('f:'+fl.id);
     h+='<div class="erf-wrapx"><table class="erf-tb"><thead><tr><th>Wand</th><th class="r">Länge m</th><th>Richtung</th><th>Grenzt an</th><th>Bauteil</th><th class="r">Höhe m</th><th class="r">Brutto m²</th><th class="r">Öffnungen m²</th><th class="r">Netto m²</th></tr></thead><tbody>';
     fl.walls.forEach(function(w,i){
       var gm=C.wallGeom(fl,w,E),k=C.findKat(E,w.bt);
       h+='<tr><td>'+(i+1)+'</td><td class="r">'+f2(N(w.len))+'</td><td>'+esc(C.dirName(C.wallBearing(tr,i)))+'</td><td>'+esc(C.WTYPE[w.type])+'</td><td>'+esc(w.type==='nachbar'?'':(k?k.name:''))+'</td><td class="r">'+f2(gm.H)+'</td><td class="r">'+f2(gm.gross)+'</td><td class="r">'+f2(gm.open)+'</td><td class="r">'+f2(gm.net)+'</td></tr>';
+      if(photoNum('w:'+w.id)) h+='<tr><td></td><td colspan="8">'+photosHTML('w:'+w.id)+'</td></tr>';
       (w.ow||[]).forEach(function(o){
         var ko=C.findKat(E,o.bt);
         h+='<tr><td></td><td colspan="4" style="color:#555">'+(o.kind==='tuer'?'Tür':'Fenster')+': '+esc(ko?ko.name:'ohne Bauteil')+(o.kind==='tuer'?'':(o.roll==='ja'?', mit Rollladenkasten':''))+'</td><td class="r">'+f2(N(o.b))+' × '+f2(N(o.h))+'</td><td class="r">× '+esc(String(Math.max(1,Math.round(N(o.n)||1))))+'</td><td></td><td class="r">'+f2(C.oArea(o))+'</td></tr>';
@@ -613,6 +620,7 @@ function sheetHTML(){
     E.surf.forEach(function(s){
       var k=C.findKat(E,s.bt),ow=0;(s.ow||[]).forEach(function(o){ow+=C.oArea(o)});
       h+='<tr><td>'+esc((C.SURF[s.art]||{}).n||'')+'</td><td>'+esc(k?k.name:'')+'</td><td class="r">'+(s.art==='dach_s'?esc(s.neig)+'°':'')+'</td><td>'+(s.art==='dach_s'?esc(s.dir):'')+'</td><td class="r">'+f2(N(s.a))+'</td><td class="r">'+f2(ow)+'</td></tr>';
+      if(photoNum('s:'+s.id)) h+='<tr><td colspan="6">'+photosHTML('s:'+s.id)+'</td></tr>';
     });
     h+='</tbody></table></div>';
   }else h+='<div>Keine Flächen erfasst.</div>';
@@ -684,12 +692,14 @@ function actions(a,t){
     case 'floor-del':
       fl=floorObj();if(!fl) return;
       if(!window.confirm('Geschoss „'+fl.name+'“ mit allen Wänden und Fenstern löschen?')) return;
+      dropPhotos('f:'+fl.id);fl.walls.forEach(function(w0){dropPhotos('w:'+w0.id)});
       E.gesch=E.gesch.filter(function(f2_){return f2_.id!==fl.id});curFloor=E.gesch.length?E.gesch[0].id:null;selWall=null;touch();render();return;
     case 'rect-make':{
       fl=floorObj();if(!fl) return;
       var bw=N(document.getElementById('erf-rw').value),bd=N(document.getElementById('erf-rd').value);
       if(!(bw>0&&bd>0)){window.alert('Breite und Tiefe in Metern eintragen.');return}
       if(fl.walls.length&&!window.confirm('Vorhandene Wände dieses Geschosses ersetzen?')) return;
+      fl.walls.forEach(function(w0){dropPhotos('w:'+w0.id)});
       fl.walls=[C.newWall(bw,90),C.newWall(bd,90),C.newWall(bw,90),C.newWall(bd,90)];selWall=fl.walls[0].id;touch();render();return;
     }
     case 'floor-copy':{
@@ -697,6 +707,7 @@ function actions(a,t){
       var src=E.gesch.filter(function(f3){return f3.id===document.getElementById('erf-cp').value})[0];if(!src) return;
       if(fl.walls.length&&!window.confirm('Vorhandene Wände dieses Geschosses ersetzen?')) return;
       var withOw=document.getElementById('erf-cpo').checked;
+      fl.walls.forEach(function(w0){dropPhotos('w:'+w0.id)});
       fl.walls=reId(clone(src.walls));
       fl.walls.forEach(function(w){if(!withOw) w.ow=[];else w.ow=w.ow||[]});
       selWall=fl.walls.length?fl.walls[0].id:null;touch();render();return;
@@ -711,7 +722,7 @@ function actions(a,t){
     case 'wall-del':{
       r=findWall(x);if(!r) return;
       if(!window.confirm('Wand '+(r.i+1)+' löschen?')) return;
-      r.fl.walls.splice(r.i,1);selWall=null;touch();render();return;
+      dropPhotos('w:'+r.w.id);r.fl.walls.splice(r.i,1);selWall=null;touch();render();return;
     }
     case 'wall-sel':
       selWall=(selWall===x&&t.tagName!=='line')?null:x;render();if(selWall) setTimeout(function(){scrollToId('erf-w-'+x)},30);return;
@@ -733,7 +744,7 @@ function actions(a,t){
     case 'kat-del':{
       var kd=C.findKat(E,x);if(!kd) return;var n=usage(x);
       if(!window.confirm(n?'„'+(kd.name||'Bauteil')+'“ wird '+n+'× verwendet. Löschen entfernt die Zuordnung. Trotzdem löschen?':'Bauteil löschen?')) return;
-      E.kat=E.kat.filter(function(q){return q.id!==x});
+      dropPhotos('kat:'+x);E.kat=E.kat.filter(function(q){return q.id!==x});
       E.gesch.forEach(function(f4){f4.walls.forEach(function(w2){if(w2.bt===x) w2.bt='';(w2.ow||[]).forEach(function(q){if(q.bt===x) q.bt=''})})});
       E.surf.forEach(function(s2){if(s2.bt===x) s2.bt='';(s2.ow||[]).forEach(function(q){if(q.bt===x) q.bt=''})});
       selKat=null;touch();render();return;
@@ -751,7 +762,7 @@ function actions(a,t){
       if(ly.w) delete ly.w;else ly.w={m:'holz',l:'0,13',a:'12'};touch();render();return;
     }
     case 'surf-sel':selSurf=(selSurf===x)?null:x;render();return;
-    case 'surf-del':{if(!window.confirm('Fläche löschen?')) return;E.surf=E.surf.filter(function(s3){return s3.id!==x});selSurf=null;touch();render();return}
+    case 'surf-del':{if(!window.confirm('Fläche löschen?')) return;dropPhotos('s:'+x);E.surf=E.surf.filter(function(s3){return s3.id!==x});selSurf=null;touch();render();return}
     case 'surf-sugg':{var s4=findSurf(x);if(!s4) return;var av=C.suggestArea(E,s4.art,s4.neig);if(av>0){s4.a=String(Math.round(av*100)/100).replace('.',',');touch();render()}return}
     case 'ph-del':{var arr=E.photos[x];if(arr){arr.splice(+y,1);if(!arr.length) delete E.photos[x]}touch();render();return}
     case 'jump':{locate(y);go(x,true);if(y) setTimeout(function(){scrollToId('erf-w-'+y);scrollToId('erf-k-'+y)},40);return}

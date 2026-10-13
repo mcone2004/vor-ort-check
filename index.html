@@ -239,7 +239,7 @@ body[data-mode="erfassung"] .wrap{grid-template-columns:minmax(0,44rem)!importan
 
 <section id="home" class="home" aria-label="Start">
   <button type="button" class="hbtn" id="go_check"><strong>Vor-Ort-Check</strong><span>Erstberatung beim Kunden: Wärmepumpe oder erst die Hülle. Mit Ergebnis, Varianten, Förderung und Kundenbericht.</span></button>
-  <button type="button" class="hbtn" id="go_erf"><strong>Gebäudeerfassung</strong><span>Gebäudedaten für den Bedarfsausweis aufnehmen: Wände, Bauteile, Anlagentechnik, Fotos und Datenblatt für die Begehung.</span></button>
+  <button type="button" class="hbtn" id="go_erf"><strong>Gebäudeerfassung</strong><span>Kunde erfassen, dann das Gebäude für den Bedarfsausweis aufnehmen: Wände, Bauteile, Anlagentechnik, Fotos und Datenblatt als PDF.</span></button>
   <p class="hint home-note">Die Kunden sind in beiden Bereichen dieselben. Jeder Kunde hat seine Eingaben für den Vor-Ort-Check und seine Gebäudeerfassung.</p>
 </section>
 
@@ -2020,8 +2020,34 @@ function initKunden(backendP){
     if(!b) return;
     be=b;$('kd').hidden=false;$('hdract').hidden=false;
     if(window.ERF){
-      ERF.init({onChange:function(){onEdit({target:{id:'erf'}})},onClose:erfInfo});
-      $('kd_erf').addEventListener('click',function(){ERF.open($('kd_name').value.trim()||$('kd_adr').value.trim())});
+      // Kundenerfassung (Tab 1 der Gebäudeerfassung) greift über diese Schnittstelle auf den Kundenstamm zu
+      var KDAPI={
+        get:function(){
+          var ap=adrParts(),list=Object.keys(docs).sort(function(a,b){return String(docs[a].name||'').localeCompare(String(docs[b].name||''),'de')}).map(function(id){return {id:id,label:(docs[id].name||'Ohne Name')+(docs[id].adr?', '+docs[id].adr:'')}});
+          return {id:curId,name:$('kd_name').value,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value,list:list};
+        },
+        set:function(k,v){
+          var m={name:'kd_name',str:'kd_str',nr:'kd_nr',plz:'kd_plz',ort:'kd_ort',note:'kd_note'}[k];if(!m) return;
+          var e=$(m);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));
+        },
+        select:function(id,after){
+          var prev=curId||'';
+          if(!id){KDAPI.neu(after);return}
+          guard(function(){load(id);$('kd_list').value=id;if(after) after()},function(){if(after) after()});
+        },
+        neu:function(after){
+          guard(function(){
+            curId=null;$('kd_list').value='';clearKd();dirty=false;clearDraft();setAuto('','');apply(DEF0);erfSet(null);
+            msg('Neuer Kunde.');if(after) after();
+          },function(){if(after) after()});
+        },
+        save:function(){return save(false).then(function(){return $('kd_msg').textContent})}
+      };
+      ERF.init({onChange:function(){onEdit({target:{id:'erf'}})},onClose:function(){erfInfo();if(document.body.getAttribute('data-mode')==='erfassung') setMode('home')},kunden:KDAPI});
+      var openErf=function(step){ERF.open($('kd_name').value.trim()||$('kd_adr').value.trim(),step)};
+      $('kd_erf').addEventListener('click',function(){openErf()});
+      erfLauncher=function(){openErf('kunde')};
+      if(document.body.getAttribute('data-mode')==='erfassung') erfLauncher();
     }else{$('kd_erf').hidden=true}
     $('kd_list').addEventListener('change',function(){
       var v=$('kd_list').value,prev=curId||'';
@@ -2286,7 +2312,8 @@ function initReport(){
 }
 
 // Startseite: zwei Bereiche auf denselben Kundendaten. Der Bereich steht im Hash, damit ein Neuladen (iPad räumt Hintergrund-Apps ab) im Bereich bleibt.
-var MODES={home:['Energieberatung Lange','Bereich wählen.'],check:['Vor-Ort-Check Sanierung','Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.'],erfassung:['Gebäudeerfassung','Kunde wählen oder anlegen, dann die Gebäudeerfassung öffnen.']};
+var erfLauncher=null;
+var MODES={home:['Energieberatung Lange','Bereich wählen.'],check:['Vor-Ort-Check Sanierung','Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.'],erfassung:['Gebäudeerfassung','Kunde wählen oder anlegen, dann das Gebäude aufnehmen.']};
 function setMode(m,noScroll){
   if(!MODES[m]) m='home';
   document.body.setAttribute('data-mode',m);
@@ -2298,7 +2325,7 @@ function initHome(){
   var h=(location.hash||'').replace('#','');
   setMode(h==='check'||h==='erfassung'?h:'home',true);
   $('go_check').addEventListener('click',function(){setMode('check')});
-  $('go_erf').addEventListener('click',function(){setMode('erfassung')});
+  $('go_erf').addEventListener('click',function(){setMode('erfassung');if(erfLauncher) erfLauncher()});
   $('hdr_home').addEventListener('click',function(){setMode('home')});
 }
 function init(){
@@ -2354,7 +2381,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-13 22:52',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-13 23:03',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

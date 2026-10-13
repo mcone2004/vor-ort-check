@@ -6,7 +6,7 @@
 var C=window.ERFCALC;if(!C) return;
 var N=C.N,has=C.has,f2=C.f2,f3=C.f3;
 var E=C.newErf();
-var step='stamm',curFloor=null,selWall=null,selKat=null,selSurf=null,root=null,main=null,nav=null,onChange=function(){},onClose=function(){},isOpen=false,kdName='';
+var step='kunde',KD=null,curFloor=null,selWall=null,selKat=null,selSurf=null,root=null,main=null,nav=null,onChange=function(){},onClose=function(){},isOpen=false,kdName='';
 var PH_MAX=30;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -562,6 +562,28 @@ function jumpList(items){
     return '<li>'+btn('jump','Hin',{x:m.step,y:m.ref||''})+'<span><b>'+esc(sn?sn.n:'')+':</b> '+esc(m.t)+'</span></li>';
   }).join('')+'</ul>';
 }
+/* Kundenerfassung: Kundenstamm der App (Auswahl, neu anlegen, Daten). Die Felder liegen in der App, hier nur Ein- und Ausgabe. */
+function kdLine(){
+  var K=KD?KD.get():null;if(!K) return kdName;
+  var a=[K.str+(K.nr?' '+K.nr:''),(K.plz+' '+K.ort).trim()].filter(function(x){return String(x).trim()}).join(', ');
+  return [K.name,a].filter(Boolean).join(', ');
+}
+function kF(k,label,v,o){
+  o=o||{};
+  return '<label class="erf-f'+(o.cls?' '+o.cls:'')+'"><span>'+esc(label)+'</span><input type="text" data-k="'+k+'"'+(o.num?' inputmode="numeric"':'')+(o.max?' maxlength="'+o.max+'"':'')+' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="'+esc(v)+'"></label>';
+}
+function viewKunde(){
+  var K=KD?KD.get():null;
+  if(!K) return sec('Kunde','<div class="erf-hint">Die Kundenverwaltung ist hier nicht verfügbar.</div>');
+  var opts='<option value="">Neuer Kunde</option>'+K.list.map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===K.id?' selected':'')+'>'+esc(x.label)+'</option>'}).join('');
+  var h=sec('Kunde wählen oder neu anlegen','<div class="erf-g"><label class="erf-f wide"><span>Gespeicherte Kunden</span><select data-k="_sel">'+opts+'</select></label></div>'+
+    '<div class="erf-row">'+btn('kd-new','Neuer Kunde')+btn('kd-save','Speichern',{cls:''})+'<span class="erf-hint" id="erf-kdmsg" role="status"></span></div>'+
+    '<div class="erf-hint">'+(K.id?'Geöffnet: '+esc(K.name||'Ohne Name')+'. Änderungen werden automatisch gespeichert.':'Neuer Kunde. Name oder Adresse eintragen, dann wird automatisch gespeichert.')+'</div>');
+  h+=sec('Kundendaten','<div class="erf-g">'+kF('name','Name',K.name,{cls:'wide'})+'</div>'+
+    '<div class="erf-g">'+kF('str','Straße',K.str)+kF('nr','Nr.',K.nr,{max:10})+kF('plz','PLZ',K.plz,{num:1,max:5})+kF('ort','Ort',K.ort)+'</div>'+
+    '<label class="erf-f"><span>Notiz</span><textarea rows="3" data-k="note">'+esc(K.note)+'</textarea></label>');
+  return h;
+}
 function viewAbs(){
   var M=C.missing(E),W=C.warnings(E);
   var h=sec('Mängel, Empfehlungen, offene Punkte',TA('abs/maengel','Mängel und Auffälligkeiten (Feuchte, Wärmebrücken, Undichtigkeiten, Bauschäden)',4)+TA('abs/empf','Sanierungsmöglichkeiten für die Modernisierungsempfehlungen',4)+TA('abs/offen','Offene Punkte: was noch nachgereicht oder geklärt werden muss',3)+photoBox('abs','Fotos zu Mängeln'));
@@ -575,7 +597,7 @@ function kv(pairs){return '<div class="kv">'+pairs.filter(function(p){return has
 function photosHTML(key){return (E.photos[key]||[]).map(function(p){return '<img src="'+p.d+'" alt="">'}).join('')}
 function sheetHTML(){
   var g=E.g,h='<div class="erf-sheet" id="erf-sheet"><h2>Datenerfassung Energieausweis (Bedarf)</h2>';
-  h+='<div class="erf-hint" style="color:#555">'+esc(kdName)+(kdName?' · ':'')+'Stand '+new Date().toLocaleDateString('de-DE')+'. Erfassung vor Ort zur Übertragung in den Energieberater, keine Berechnung nach GEG.</div>';
+  h+='<div class="erf-hint" style="color:#555">'+esc(kdLine())+(kdLine()?' · ':'')+'Stand '+new Date().toLocaleDateString('de-DE')+'. Erfassung vor Ort zur Übertragung in den Energieberater, keine Berechnung nach GEG.</div>';
   h+='<section><h4>1. Gebäude</h4>'+kv([['Gebäudetyp',g.typ],['Baujahr',g.bj],['Bauantrag',g.antrag],['Wohneinheiten',g.we],['Vollgeschosse',g.vg],['Keller',g.keller],['Dachform',g.dachform],['Dachgeschoss',g.dg],['Wohnfläche',has(g.wf)?g.wf+' m²':''],['Denkmalschutz',g.denk],['Anbauten',g.anbau],['Besonderheiten',g.bem],['Laufrichtung 1. Wand',g.h0+'°']]);
   h+='<div style="margin-top:.5rem"><b>Unterlagen</b><br>'+C.UNTERL.map(function(u){return (E.unterl[u[0]]==='1'?'☑ ':'☐ ')+esc(u[1])}).join('<br>')+'</div>'+photosHTML('gebaeude')+'</section>';
   h+='<section><h4>2. Grundriss und Wände</h4>';
@@ -717,6 +739,7 @@ function render(){
   var st=main.scrollTop;
   var h;
   switch(step){
+    case 'kunde':h=viewKunde();break;
     case 'stamm':h=viewStamm();break;
     case 'geo':h=viewGeo();break;
     case 'bt':h=viewBt();break;
@@ -731,7 +754,7 @@ function render(){
   drawNav();updateOuts();
 }
 function drawNav(){
-  nav.innerHTML=C.STEPS.map(function(s,i){return '<button type="button" data-a="step" data-x="'+s.k+'" aria-current="'+(s.k===step)+'">'+(i+1)+'. '+esc(s.n)+((s.k==='blatt'||s.k==='abs')?'':'<span class="erf-bd" data-bd="'+s.k+'"></span>')+'</button>'}).join('');
+  nav.innerHTML=C.STEPS.map(function(s,i){return '<button type="button" data-a="step" data-x="'+s.k+'" aria-current="'+(s.k===step)+'">'+(i+1)+'. '+esc(s.n)+((s.k==='blatt'||s.k==='abs'||s.k==='kunde')?'':'<span class="erf-bd" data-bd="'+s.k+'"></span>')+'</button>'}).join('');
   updateBadges();
 }
 function go(s,keep){
@@ -837,6 +860,8 @@ function actions(a,t){
     case 'jump':{locate(y);go(x,true);if(y) setTimeout(function(){scrollToId('erf-w-'+y);scrollToId('erf-k-'+y)},40);return}
     case 'sheet-print':window.print();return;
     case 'sheet-pdf':sheetPdf(t);return;
+    case 'kd-new':{if(KD) KD.neu(function(){render()});return}
+    case 'kd-save':{if(!KD) return;KD.save().then(function(tx){if(step==='kunde') render();var m=document.getElementById('erf-kdmsg');if(m) m.textContent=tx||''});return}
     case 'sheet-copy':{
       var sh=document.getElementById('erf-sheet'),txt=sh?sh.innerText:'';
       var m=document.getElementById('erf-cpmsg');
@@ -863,11 +888,14 @@ function bind(){
   nav.addEventListener('click',onClick);
   main.addEventListener('input',function(ev){
     var t=ev.target;if(!t||!t.getAttribute) return;
+    var kk=t.getAttribute('data-k');
+    if(kk){if(kk!=='_sel'&&KD){KD.set(kk,t.value);kdName=KD.get().name||kdLine();var hd=root.querySelector('#erf-kd');if(hd) hd.textContent=kdName}return}
     var p=t.getAttribute('data-p');if(!p||t.tagName==='SELECT'||t.type==='checkbox') return;
     if(pset(p,t.value)) touch();
   });
   main.addEventListener('change',function(ev){
     var t=ev.target;if(!t||!t.getAttribute) return;
+    if(t.getAttribute('data-k')==='_sel'){if(KD) KD.select(t.value,function(){render()});return}
     if(t.type==='file'&&t.getAttribute('data-ph')){addPhotos(t);return}
     var a=t.getAttribute('data-a');
     if(a==='h0-pick'){if(t.value!==''){pset('g/h0',t.value);touch();render()}return}
@@ -916,8 +944,9 @@ function build(){
   document.addEventListener('keydown',function(e){if(isOpen&&e.key==='Escape') close()});
   bind();
 }
-function open(name){
+function open(name,startStep){
   build();kdName=name||'';
+  if(startStep&&C.STEPS.some(function(x){return x.k===startStep})) step=startStep;
   root.querySelector('#erf-kd').textContent=kdName;
   root.hidden=false;isOpen=true;document.body.style.overflow='hidden';
   if(!curFloor&&E.gesch.length) curFloor=E.gesch[0].id;
@@ -939,12 +968,12 @@ function hasData(){
   return false;
 }
 window.ERF={
-  init:function(o){o=o||{};onChange=o.onChange||function(){};onClose=o.onClose||function(){}},
+  init:function(o){o=o||{};onChange=o.onChange||function(){};onClose=o.onClose||function(){};KD=o.kunden||null},
   open:open,close:close,
   getData:function(noPhotos){if(!hasData()) return null;var c=clone(E);if(noPhotos) c.photos={};return c},
   setData:function(d){E=C.normalize(d?clone(d):C.newErf());curFloor=null;selWall=null;selKat=null;selSurf=null;if(E.gesch.length) curFloor=E.gesch[0].id;if(isOpen) render()},
   pdf:function(){return sheetPdfBlob()},
-  reset:function(){E=C.newErf();curFloor=null;selWall=null;selKat=null;selSurf=null;step='stamm';if(isOpen) render()},
+  reset:function(){E=C.newErf();curFloor=null;selWall=null;selKat=null;selSurf=null;step='kunde';if(isOpen) render()},
   openCount:function(){return hasData()?C.missing(E).length:null},
   hasData:hasData,
   isOpen:function(){return isOpen}

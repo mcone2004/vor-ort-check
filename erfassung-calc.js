@@ -352,6 +352,7 @@ function suggestArea(e,art,neig){
 
 /* ---------- Prüfungen ---------- */
 var STEPS=[
+  {k:'kunde',n:'Kundenerfassung'},
   {k:'stamm',n:'Gebäude'},
   {k:'geo',n:'Grundriss und Wände'},
   {k:'bt',n:'Bauteile'},

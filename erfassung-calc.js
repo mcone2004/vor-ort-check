@@ -246,7 +246,7 @@ function normalize(e){
   for(var k2 in n.g) if(e.g[k2]==null) e.g[k2]=n.g[k2];
   return e;
 }
-function newFloor(name,art,heated,h){return {id:uid(),name:name,art:art||'voll',heated:heated===false?'nein':'ja',h:String(h||'2,50'),walls:[]}}
+function newFloor(name,art,heated,h){return {id:uid(),name:name,art:art||'voll',heated:heated===false?'nein':'ja',h:String(h||'2,50'),hm:'ok',hl:'',dd:'',walls:[]}}
 function newWall(len,turn){return {id:uid(),len:len==null?'':String(len),turn:String(turn==null?90:turn),type:'aussen',bt:'',h:'',giebel:'',ow:[]}}
 function newOpening(kind){return {id:uid(),kind:kind||'fenster',bt:'',b:'',h:'',n:'1',roll:'nein'}}
 function newSurface(art){var s=SURF[art]||SURF.decke_o;return {id:uid(),art:art,bt:'',a:'',neig:s.ori?'35':'0',dir:'',ow:[]}}
@@ -256,6 +256,68 @@ function newKat(kind,name){
   return k;
 }
 function findKat(e,id){for(var i=0;i<e.kat.length;i++) if(e.kat[i].id===id) return e.kat[i];return null}
+
+/* ---------- Grundrissformen ----------
+   Lokales Koordinatensystem: x nach rechts, y nach oben. Die erste Wand ist die obere Kante und läuft nach rechts,
+   die Punkte folgen im Uhrzeigersinn. Die Wandrichtung im Gebäude kommt aus der Laufrichtung der ersten Wand. */
+function polyWalls(pts){
+  var q=[],n=pts.length,i;
+  for(i=0;i<n;i++){
+    var pr=pts[(i+n-1)%n],cu=pts[i],nx=pts[(i+1)%n];
+    var ax=cu[0]-pr[0],ay=cu[1]-pr[1],bx=nx[0]-cu[0],by=nx[1]-cu[1];
+    if(Math.sqrt(ax*ax+ay*ay)<1e-6) continue;
+    if(Math.abs(ax*by-ay*bx)<1e-9&&(ax*bx+ay*by)>0) continue; // Punkt auf gerader Linie
+    q.push(cu);
+  }
+  var m=q.length,hd=[],ln=[];
+  for(i=0;i<m;i++){var nn=q[(i+1)%m],dx=nn[0]-q[i][0],dy=nn[1]-q[i][1];ln.push(Math.sqrt(dx*dx+dy*dy));hd.push(Math.atan2(dx,dy)*180/Math.PI)}
+  var out=[];
+  for(i=0;i<m;i++){
+    var t=hd[(i+1)%m]-hd[i];while(t>180) t-=360;while(t<=-180) t+=360;
+    out.push(newWall(String(Math.round(ln[i]*100)/100).replace('.',','),String(Math.round(t*10)/10).replace('.',',')));
+  }
+  return out;
+}
+var SHAPES={
+  rechteck:{n:'Rechteck',params:[{k:'B',l:'Breite B in m'},{k:'T',l:'Tiefe T in m'}],demo:{B:12,T:8},
+    hint:'Vier Wände mit rechten Winkeln.',
+    chk:function(p){if(!(p.B>0&&p.T>0)) return 'Breite und Tiefe eintragen.'},
+    pts:function(p){return [[0,0],[p.B,0],[p.B,-p.T],[0,-p.T]]}},
+  l:{n:'L-Form',params:[{k:'B',l:'Gesamtbreite B in m'},{k:'T',l:'Gesamttiefe T in m'},{k:'a',l:'Breite des senkrechten Schenkels a in m'},{k:'b',l:'Tiefe des waagerechten Schenkels b in m'}],demo:{B:12,T:10,a:5,b:5},
+    hint:'Der waagerechte Schenkel (Tiefe b) liegt oben über die ganze Breite B, der senkrechte Schenkel (Breite a) links bis zur Gesamttiefe T. Mit der Laufrichtung der ersten Wand drehst du die Form. Sechs Wände, eine Ecke nach innen.',
+    chk:function(p){if(!(p.B>0&&p.T>0&&p.a>0&&p.b>0)) return 'Alle vier Maße eintragen.';if(!(p.a<p.B&&p.b<p.T)) return 'a muss kleiner als B und b kleiner als T sein.'},
+    pts:function(p){return [[0,0],[p.B,0],[p.B,-p.b],[p.a,-p.b],[p.a,-p.T],[0,-p.T]]}},
+  u:{n:'U-Form',params:[{k:'B',l:'Gesamtbreite B in m'},{k:'T',l:'Gesamttiefe T in m'},{k:'b',l:'Tiefe des Querbaus oben b in m'},{k:'a',l:'Breite linker Flügel a in m'},{k:'c',l:'Breite rechter Flügel c in m',ph:'wie a'}],demo:{B:14,T:11,b:5,a:4,c:4},
+    hint:'Der Querbau (Tiefe b) liegt oben über die ganze Breite B, die beiden Flügel (Breite a und c) gehen nach unten bis zur Gesamttiefe T. Zwischen den Flügeln liegt der Innenhof, acht Wände.',
+    chk:function(p){if(!(p.B>0&&p.T>0&&p.b>0&&p.a>0)) return 'B, T, b und a eintragen.';var c=p.c>0?p.c:p.a;if(!(p.a+c<p.B)) return 'a plus c muss kleiner als B sein.';if(!(p.b<p.T)) return 'b muss kleiner als T sein.'},
+    pts:function(p){var c=p.c>0?p.c:p.a;return [[0,0],[p.B,0],[p.B,-p.T],[p.B-c,-p.T],[p.B-c,-p.b],[p.a,-p.b],[p.a,-p.T],[0,-p.T]]}},
+  t:{n:'T-Form',params:[{k:'B',l:'Gesamtbreite B in m'},{k:'T',l:'Gesamttiefe T in m'},{k:'b',l:'Tiefe des Querbalkens oben b in m'},{k:'s',l:'Breite des Stegs s in m'},{k:'p',l:'Abstand des Stegs von links p in m',ph:'mittig'}],demo:{B:14,T:11,b:5,s:5,p:4.5},
+    hint:'Der Querbalken (Tiefe b) liegt oben über die ganze Breite B, der Steg (Breite s) geht nach unten bis zur Gesamttiefe T. Ohne Abstand p sitzt der Steg mittig. Acht Wände.',
+    chk:function(p){if(!(p.B>0&&p.T>0&&p.b>0&&p.s>0)) return 'B, T, b und s eintragen.';var q=(p.p>0)?p.p:(p.B-p.s)/2;if(!(p.s<=p.B&&q>=0&&q+p.s<=p.B+1e-9)) return 'Der Steg liegt nicht innerhalb der Breite B.';if(!(p.b<p.T)) return 'b muss kleiner als T sein.'},
+    pts:function(p){var q=(p.p>0)?p.p:(p.B-p.s)/2;return [[0,0],[p.B,0],[p.B,-p.b],[q+p.s,-p.b],[q+p.s,-p.T],[q,-p.T],[q,-p.b],[0,-p.b]]}},
+  kreuz:{n:'Kreuz',params:[{k:'B',l:'Gesamtbreite B in m'},{k:'T',l:'Gesamttiefe T in m'},{k:'w',l:'Breite des senkrechten Arms w in m'},{k:'h',l:'Tiefe des waagerechten Arms h in m'}],demo:{B:14,T:14,w:5,h:5},
+    hint:'Zwei sich kreuzende Bauteile, mittig angeordnet: senkrechter Arm der Breite w über die Gesamttiefe T, waagerechter Arm der Tiefe h über die Gesamtbreite B. Zwölf Wände, vier Ecken nach innen.',
+    chk:function(p){if(!(p.B>0&&p.T>0&&p.w>0&&p.h>0)) return 'Alle vier Maße eintragen.';if(!(p.w<p.B&&p.h<p.T)) return 'w muss kleiner als B und h kleiner als T sein.'},
+    pts:function(p){var xa=(p.B-p.w)/2,ya=(p.T-p.h)/2;return [[xa,0],[xa+p.w,0],[xa+p.w,-ya],[p.B,-ya],[p.B,-ya-p.h],[xa+p.w,-ya-p.h],[xa+p.w,-p.T],[xa,-p.T],[xa,-ya-p.h],[0,-ya-p.h],[0,-ya],[xa,-ya]]}},
+  sonder:{n:'Sonderform (Wände einzeln)',params:[{k:'n',l:'Anzahl der Wände'}],demo:null,
+    hint:'Legt leere Wände an. Länge und Ecke trägst du je Wand ein. Den Winkel gibst du als Innenwinkel in Grad ein (90 = rechter Winkel, 135 = stumpf, 270 = einspringende Ecke) oder wählst eine Ecke aus der Liste.',
+    chk:function(p){if(!(p.n>=3&&p.n<=30)) return 'Anzahl der Wände zwischen 3 und 30 eintragen.'},
+    pts:null}
+};
+function shapeVals(P){var o={};for(var k in P) o[k]=N(P[k]);return o}
+/* Ergebnis: {walls:[...]} oder {err:'...'} */
+function shapeWalls(key,P){
+  var sh=SHAPES[key];if(!sh) return {err:'Form unbekannt.'};
+  var p=shapeVals(P||{}),e=sh.chk(p);if(e) return {err:e};
+  if(key==='sonder'){var w=[];for(var i=0;i<Math.round(p.n);i++) w.push(newWall('',90));return {walls:w}}
+  return {walls:polyWalls(sh.pts(p))};
+}
+function shapePoints(key,P){
+  var sh=SHAPES[key];if(!sh||!sh.pts) return null;
+  var p=shapeVals(P||{});
+  if(sh.chk(p)) p=sh.demo;
+  return sh.pts(p);
+}
 
 /* ---------- Geometrie des Wandzugs ---------- */
 function norm360(a){a=a%360;return a<0?a+360:a}
@@ -385,6 +447,7 @@ function missing(e){
     if(!f.walls.length){m('geo',f.name+': Wandzug fehlt',f.id);return}
     if(!tr.closed) m('geo',f.name+': Wandzug nicht geschlossen'+(tr.gap>0.02?' (Lücke '+f2(tr.gap)+' m)':' (Eckwinkel ergeben keine geschlossene Figur)'),f.id);
     if(!(N(f.h)>0)) m('geo',f.name+': Geschosshöhe fehlt',f.id);
+    if(f.hm==='licht'){if(!(N(f.hl)>0)) m('geo',f.name+': lichte Raumhöhe fehlt',f.id);if(!(N(f.dd)>0)) m('geo',f.name+': Deckenstärke fehlt',f.id)}
     if(f.heated==='nein') return;
     f.walls.forEach(function(w,i){
       var tag=f.name+', Wand '+(i+1)+': ';
@@ -479,7 +542,7 @@ function warnings(e){
 }
 function openCount(e){return missing(e).length}
 
-var api={N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
+var api={SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
   newErf:newErf,normalize:normalize,newFloor:newFloor,newWall:newWall,newOpening:newOpening,newSurface:newSurface,newKat:newKat,findKat:findKat,
   trace:trace,wallBearing:wallBearing,sector:sector,dirName:dirName,closeFix:closeFix,oArea:oArea,wallGeom:wallGeom,summary:summary,suggestArea:suggestArea,
   missing:missing,warnings:warnings,openCount:openCount,bauantragVor1977:bauantragVor1977,year:year};

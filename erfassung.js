@@ -198,6 +198,8 @@ var CSS='\
 .erf-sheet .erf-tb th{color:#555}.erf-sheet .erf-tb th,.erf-sheet .erf-tb td{border-bottom-color:#C9CED3}\
 .erf-sheet .kv{display:grid;grid-template-columns:minmax(10rem,16rem) 1fr;gap:.15rem .8rem}.erf-sheet .kv span:nth-child(odd){color:#555}\
 .erf-sheet img{max-width:8rem;max-height:6rem;border:1px solid #C9CED3;border-radius:3px;margin:.2rem .3rem 0 0}\
+.erf-shape{border:1px solid var(--line);border-radius:6px;padding:.6rem;display:grid;gap:.5rem;margin:.4rem 0}\
+.erf-shp{width:100%;max-width:20rem;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:4px}\
 @media (pointer:coarse),(any-pointer:coarse){.erf-main input,.erf-main select,.erf-main textarea{min-height:48px}}\
 @media print{\
  html,body{height:auto!important;overflow:visible!important;background:#fff!important}\
@@ -237,7 +239,7 @@ function outUDetail(id){
 function outClosure(){
   var fl=floorObj();if(!fl) return '';
   var tr=C.trace(fl,E.g.h0);
-  if(!tr.n) return 'Noch keine Wände. Rechteck erzeugen oder Wand hinzufügen.';
+  if(!tr.n) return 'Noch keine Wände. Grundrissform erzeugen oder Wand hinzufügen.';
   var h;
   if(tr.closed) h='<span class="erf-ok">Wandzug geschlossen</span>';
   else if(tr.gap>0.02) h='<span class="erf-bad">Nicht geschlossen: Lücke '+f2(tr.gap)+' m</span>';
@@ -357,6 +359,8 @@ function updateOuts(){
     else if(p[0]==='sg') t=outSugg(p[1]);
     else if(p[0]==='pflicht'){t=outPflicht();el.hidden=!t}
     else if(p[0]==='hull') t=outHull();
+    else if(p[0]==='shprev') t=shapeSvg();
+    else if(p[0]==='hcalc'){var hf=E.gesch.filter(function(f){return f.id===p[1]})[0];t=hf?esc(outH(hf)):''}
     if(el.innerHTML!==t) el.innerHTML=t;
   }
   updateBadges();
@@ -399,6 +403,40 @@ function viewStamm(){
   return sec('Gebäude',g)+sec('Unterlagen, die vorliegen',u)+sec('Fotos',photoBox('gebaeude','Straßenansicht, Fassaden'));
 }
 
+var SH={key:'rechteck',P:{}};
+function round2s(v){return String(Math.round(v*100)/100).replace('.',',')}
+function outH(fl){
+  if(fl.hm==='licht'){var s=N(fl.hl)+N(fl.dd);return (N(fl.hl)>0&&N(fl.dd)>0)?('Geschosshöhe OKFF zu OKFF: '+f2(s)+' m (lichte Höhe '+f2(N(fl.hl))+' m plus Decke '+f2(N(fl.dd))+' m)'):'Geschosshöhe wird aus lichter Höhe plus Deckenstärke berechnet.'}
+  return '';
+}
+function syncH(path){
+  var m=/^gesch\/([^\/]+)\/(hl|dd)$/.exec(path||'');if(!m) return;
+  var fl=E.gesch.filter(function(f){return f.id===m[1]})[0];if(!fl||fl.hm!=='licht') return;
+  if(N(fl.hl)>0&&N(fl.dd)>0) fl.h=round2s(N(fl.hl)+N(fl.dd));
+}
+function shapeSvg(){
+  var pts=C.shapePoints(SH.key,SH.P);
+  if(!pts) return '<text x="150" y="80" text-anchor="middle" font-size="12">Wände werden einzeln eingegeben</text>';
+  var minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+  pts.forEach(function(q){minx=Math.min(minx,q[0]);maxx=Math.max(maxx,q[0]);miny=Math.min(miny,q[1]);maxy=Math.max(maxy,q[1])});
+  var W=300,H=170,pad=14,sc=Math.min((W-2*pad)/Math.max(maxx-minx,0.1),(H-2*pad)/Math.max(maxy-miny,0.1));
+  var ox=(W-(maxx-minx)*sc)/2,oy=(H-(maxy-miny)*sc)/2;
+  var d=pts.map(function(q,i){return (i?'L':'M')+(ox+(q[0]-minx)*sc).toFixed(1)+','+(oy+(maxy-q[1])*sc).toFixed(1)}).join(' ')+' Z';
+  var q0=pts[0],q1=pts[1];
+  var ax=ox+(q0[0]-minx)*sc,ay=oy+(maxy-q0[1])*sc;
+  return '<path d="'+d+'" fill="var(--tint)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><circle cx="'+ax.toFixed(1)+'" cy="'+ay.toFixed(1)+'" r="4.5" fill="var(--green)"/><text x="'+(ax+8).toFixed(1)+'" y="'+(ay-6).toFixed(1)+'" font-size="11">Wand 1 →</text>';
+}
+function shapeBlock(fl){
+  var sh=C.SHAPES[SH.key]||C.SHAPES.rechteck;
+  var opts=Object.keys(C.SHAPES).map(function(k){return '<option value="'+k+'"'+(k===SH.key?' selected':'')+'>'+esc(C.SHAPES[k].n)+'</option>'}).join('');
+  var h='<div class="erf-shape"><div class="erf-row" style="align-items:flex-end"><label class="erf-f" style="min-width:12rem"><span>Grundrissform</span><select data-sh="_key">'+opts+'</select></label></div>';
+  h+='<div class="erf-g">'+sh.params.map(function(q){return '<label class="erf-f"><span>'+esc(q.l)+'</span><input type="text" inputmode="decimal" autocomplete="off" data-sh="'+q.k+'" value="'+esc(SH.P[q.k]||'')+'"'+(q.ph?' placeholder="'+esc(q.ph)+'"':'')+'></label>'}).join('')+'</div>';
+  h+='<div class="erf-hint">'+esc(sh.hint)+'</div>';
+  if(sh.pts) h+='<svg class="erf-shp" viewBox="0 0 300 170" role="img" aria-label="Vorschau der Grundrissform" data-out="shprev">'+shapeSvg()+'</svg>';
+  h+='<div class="erf-row">'+btn('shape-make',sh.n+' erzeugen',{cls:''})+'</div></div>';
+  return h;
+}
+
 var FLOOR_PRESETS={keller:{n:'Keller',art:'keller',heated:false,h:'2,40'},eg:{n:'Erdgeschoss',art:'voll',heated:true,h:'2,50'},og:{n:'Obergeschoss',art:'voll',heated:true,h:'2,50'},dg:{n:'Dachgeschoss',art:'dach',heated:true,h:'1,20'}};
 var TURNS=[{v:'90',t:'Ecke nach rechts (90°)'},{v:'-90',t:'Ecke nach links (90°)'},{v:'45',t:'schräg rechts (45°)'},{v:'-45',t:'schräg links (45°)'},{v:'135',t:'spitz rechts (135°)'},{v:'-135',t:'spitz links (135°)'},{v:'0',t:'gerade weiter (0°)'}];
 function openingHTML(ownerPath,ownerId,o,j,isRoof){
@@ -414,6 +452,12 @@ function openingsBlock(ownerPath,ownerId,ow,isRoof){
   if(!E.kat.some(function(k){return k.kind==='fenster'})) h+='<div class="erf-hint">Es gibt noch kein Fenster-Bauteil. Unter „Bauteile“ anlegen (Uw, g-Wert), dann hier zuordnen.</div>';
   return h;
 }
+function turnSgn(fl){var tr=C.trace(fl,E.g.h0);return (tr.n>=3&&tr.signed>0)?-1:1}
+function innenW(fl,w){
+  if(!C.has(w.turn)&&w.turn!==0) return '';
+  var v=Math.round((180-turnSgn(fl)*N(w.turn))*10)/10;
+  return String(v).replace('.',',');
+}
 function wallCard(fl,w,i){
   var sel=(w.id===selWall),p='gesch/'+fl.id+'/walls/'+w.id+'/';
   var h='<div class="erf-wall'+(sel?' sel':'')+'" id="erf-w-'+w.id+'"><button type="button" class="erf-wh" data-a="wall-sel" data-x="'+w.id+'" data-out="w:'+w.id+'">'+outW(w.id)+'</button>';
@@ -421,7 +465,8 @@ function wallCard(fl,w,i){
     var kinds=WALLKIND[w.type]||[];
     h+='<div class="erf-wb"><div class="erf-g">'+
       F(p+'len','Länge in m (Außenmaß)')+
-      S(p+'turn','Ecke danach',TURNS,{noblank:1,fmt:function(v){return 'Winkel '+v+'°'}})+
+      '<label class="erf-f"><span>Innenwinkel der Ecke danach in Grad (innen gemessen)</span><input type="text" inputmode="decimal" autocomplete="off" data-iw="'+p+'turn" value="'+esc(innenW(fl,w))+'" placeholder="z. B. 90"></label>'+
+      S(p+'turn','oder Ecke wählen',TURNS,{noblank:1,fmt:function(v){return 'Drehung '+v+'°'}})+
       S(p+'type','Grenzt an',Object.keys(C.WTYPE).map(function(k){return {v:k,t:C.WTYPE[k]}}),{noblank:1,r:1})+
       (w.type==='nachbar'?'':S(p+'bt','Bauteil',katOpts(kinds,w.bt),{cls:'wide',blank:'Bauteil wählen'}))+
       F(p+'h','Höhe abweichend in m',{ph:'Geschosshöhe '+f2(N(fl.h))})+
@@ -445,9 +490,11 @@ function viewGeo(){
   var fp='gesch/'+fl.id+'/';
   var others=E.gesch.filter(function(f){return f.id!==fl.id&&f.walls.length});
   var props='<div class="erf-g">'+F(fp+'name','Name',{text:1})+S(fp+'art','Art',[{v:'keller',t:'Keller'},{v:'voll',t:'Vollgeschoss'},{v:'dach',t:'Dachgeschoss (Kniestock)'}],{noblank:1})+
-    S(fp+'heated','Beheizt',[{v:'ja',t:'ja, innerhalb der Hülle'},{v:'nein',t:'nein, außerhalb der Hülle'}],{noblank:1,r:1})+F(fp+'h','Geschosshöhe in m (Außenmaß, Geschossdecke zu Geschossdecke)')+'</div>';
+    S(fp+'heated','Beheizt',[{v:'ja',t:'ja, innerhalb der Hülle'},{v:'nein',t:'nein, außerhalb der Hülle'}],{noblank:1,r:1})+S(fp+'hm','Höhe erfassen als',[{v:'ok',t:'Geschosshöhe OKFF–OKFF'},{v:'licht',t:'Lichte Höhe plus Decke'}],{noblank:1,r:1})+
+    (fl.hm==='licht'?F(fp+'hl','Lichte Raumhöhe in m (Fußboden bis Decke, gemessen)')+F(fp+'dd','Deckenstärke in m (Geschossdecke mit Fußbodenaufbau)',{ph:'z. B. 0,30'}):F(fp+'h','Geschosshöhe in m (OKFF zu OKFF)'))+'</div>'+
+    (fl.hm==='licht'?'<div class="erf-hint" data-out="hcalc:'+fl.id+'">'+esc(outH(fl))+'</div>':'');
   if(fl.heated==='nein') props+='<div class="erf-hint">Dieses Geschoss liegt außerhalb der thermischen Hülle. Seine Wände zählen nicht zur Hülle, die Decke darüber schon.</div>';
-  var tools='<div class="erf-row"><label class="erf-f" style="width:7rem"><span>Breite m</span><input type="text" inputmode="decimal" id="erf-rw" autocomplete="off"></label><label class="erf-f" style="width:7rem"><span>Tiefe m</span><input type="text" inputmode="decimal" id="erf-rd" autocomplete="off"></label>'+btn('rect-make','Rechteck erzeugen')+
+  var tools=shapeBlock(fl)+'<div class="erf-row">'+
     (others.length?'<label class="erf-f" style="min-width:11rem"><span>Wände kopieren von</span><select id="erf-cp">'+others.map(function(f){return '<option value="'+f.id+'">'+esc(f.name)+'</option>'}).join('')+'</select></label><label class="erf-ck"><input type="checkbox" id="erf-cpo"><span>mit Fenstern</span></label>'+btn('floor-copy','Kopieren'):'')+
     btn('floor-del','Geschoss löschen')+'</div>';
   h+=sec('Geschoss '+(fl.name||''),props+tools+photoBox('f:'+fl.id,'Fotos zum Geschoss (Raum, Decke, Gesamteindruck)'));
@@ -603,7 +650,7 @@ function sheetHTML(){
   h+='<section><h4>2. Grundriss und Wände</h4>';
   E.gesch.forEach(function(fl){
     var tr=C.trace(fl,g.h0);
-    h+='<div><b>'+esc(fl.name)+'</b> · '+(fl.heated==='nein'?'unbeheizt':'beheizt')+' · Höhe '+f2(N(fl.h))+' m · Grundfläche '+f2(tr.area)+' m² · Umfang '+f2(tr.perim)+' m'+(tr.closed?'':' · <b>Wandzug nicht geschlossen</b>')+'</div>'+photosHTML('f:'+fl.id);
+    h+='<div><b>'+esc(fl.name)+'</b> · '+(fl.heated==='nein'?'unbeheizt':'beheizt')+' · Höhe '+f2(N(fl.h))+' m'+(fl.hm==='licht'?' (lichte Höhe '+f2(N(fl.hl))+' m plus Decke '+f2(N(fl.dd))+' m)':'')+' · Grundfläche '+f2(tr.area)+' m² · Umfang '+f2(tr.perim)+' m'+(tr.closed?'':' · <b>Wandzug nicht geschlossen</b>')+'</div>'+photosHTML('f:'+fl.id);
     h+='<div class="erf-wrapx"><table class="erf-tb"><thead><tr><th>Wand</th><th class="r">Länge m</th><th>Richtung</th><th>Grenzt an</th><th>Bauteil</th><th class="r">Höhe m</th><th class="r">Brutto m²</th><th class="r">Öffnungen m²</th><th class="r">Netto m²</th></tr></thead><tbody>';
     fl.walls.forEach(function(w,i){
       var gm=C.wallGeom(fl,w,E),k=C.findKat(E,w.bt);
@@ -786,13 +833,13 @@ function actions(a,t){
       if(!window.confirm('Geschoss „'+fl.name+'“ mit allen Wänden und Fenstern löschen?')) return;
       dropPhotos('f:'+fl.id);fl.walls.forEach(function(w0){dropPhotos('w:'+w0.id)});
       E.gesch=E.gesch.filter(function(f2_){return f2_.id!==fl.id});curFloor=E.gesch.length?E.gesch[0].id:null;selWall=null;touch();render();return;
-    case 'rect-make':{
+    case 'shape-make':{
       fl=floorObj();if(!fl) return;
-      var bw=N(document.getElementById('erf-rw').value),bd=N(document.getElementById('erf-rd').value);
-      if(!(bw>0&&bd>0)){window.alert('Breite und Tiefe in Metern eintragen.');return}
+      var res=C.shapeWalls(SH.key,SH.P);
+      if(res.err){window.alert(res.err);return}
       if(fl.walls.length&&!window.confirm('Vorhandene Wände dieses Geschosses ersetzen?')) return;
       fl.walls.forEach(function(w0){dropPhotos('w:'+w0.id)});
-      fl.walls=[C.newWall(bw,90),C.newWall(bd,90),C.newWall(bw,90),C.newWall(bd,90)];selWall=fl.walls[0].id;touch();render();return;
+      fl.walls=res.walls;selWall=fl.walls.length?fl.walls[0].id:null;touch();render();return;
     }
     case 'floor-copy':{
       fl=floorObj();if(!fl) return;
@@ -888,13 +935,26 @@ function bind(){
   nav.addEventListener('click',onClick);
   main.addEventListener('input',function(ev){
     var t=ev.target;if(!t||!t.getAttribute) return;
+    var sk=t.getAttribute('data-sh');
+    if(sk){if(sk!=='_key'){SH.P[sk]=t.value;var pv=main.querySelector('[data-out="shprev"]');if(pv) pv.innerHTML=shapeSvg()}return}
+    if(t.getAttribute('data-iw')) return;
     var kk=t.getAttribute('data-k');
     if(kk){if(kk!=='_sel'&&KD){KD.set(kk,t.value);kdName=KD.get().name||kdLine();var hd=root.querySelector('#erf-kd');if(hd) hd.textContent=kdName}return}
     var p=t.getAttribute('data-p');if(!p||t.tagName==='SELECT'||t.type==='checkbox') return;
-    if(pset(p,t.value)) touch();
+    if(pset(p,t.value)){syncH(p);touch()}
   });
   main.addEventListener('change',function(ev){
     var t=ev.target;if(!t||!t.getAttribute) return;
+    var shk=t.getAttribute('data-sh');
+    if(shk==='_key'){SH.key=t.value;render();return}
+    var iw=t.getAttribute('data-iw');
+    if(iw){
+      var rw=/^gesch\/([^\/]+)\/walls\/([^\/]+)\/turn$/.exec(iw),gf=rw&&E.gesch.filter(function(f){return f.id===rw[1]})[0];
+      var val=N(t.value);
+      if(gf&&val>0&&val<360){pset(iw,String(Math.round(turnSgn(gf)*(180-val)*10)/10).replace('.',','));touch();render()}
+      else if(t.value.trim()!==''){window.alert('Innenwinkel zwischen 0 und 360 Grad eintragen.');render()}
+      return;
+    }
     if(t.getAttribute('data-k')==='_sel'){if(KD) KD.select(t.value,function(){render()});return}
     if(t.type==='file'&&t.getAttribute('data-ph')){addPhotos(t);return}
     var a=t.getAttribute('data-a');
@@ -904,6 +964,7 @@ function bind(){
     var p=t.getAttribute('data-p');if(!p||t.tagName==='TEXTAREA') return;
     var v=(t.type==='checkbox')?(t.checked?'1':''):t.value;
     if(!pset(p,v)) return;
+    syncH(p);
     if(t.getAttribute('data-mat')) matChanged(p,v);
     touch();
     if(t.getAttribute('data-r')||t.getAttribute('data-mat')) render();

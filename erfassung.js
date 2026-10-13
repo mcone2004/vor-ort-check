@@ -373,7 +373,7 @@ function updateBadges(){
 }
 var touchT=null;
 function touch(){
-  onChange();
+  pdfBlob=null;onChange();
   updateOuts();
 }
 
@@ -639,8 +639,77 @@ function sheetHTML(){
   if(M.length) h+='<section><h4>Noch fehlende Angaben</h4><div>'+M.map(function(m){return '• '+esc(m.t)}).join('<br>')+'</div></section>';
   return h+'</div>';
 }
+/* PDF des Datenblatts: auf dem iPad druckt window.print() in der Home-Bildschirm-App nicht. Deshalb PDF erzeugen (html2canvas + jsPDF)
+   und über das Teilen-Menü ausgeben (Sichern, Drucken, Mail). Seitenumbruch an Blockgrenzen. */
+var pdfBlob=null,pdfName='',pdfBusy=false;
+function loadScript(src){return new Promise(function(res,rej){var el=document.createElement('script');el.src=src;el.onload=res;el.onerror=function(){rej(new Error('Skript '+src+' nicht geladen'))};document.head.appendChild(el)})}
+function ensureLibs(){
+  var p=Promise.resolve();
+  if(!window.html2canvas) p=p.then(function(){return loadScript('vendor/html2canvas.min.js')});
+  if(!(window.jspdf&&window.jspdf.jsPDF)) p=p.then(function(){return loadScript('vendor/jspdf.umd.min.js')});
+  return p;
+}
+function sheetPdfBlob(){
+  return ensureLibs().then(function(){
+    var el=document.getElementById('erf-sheet');if(!el) throw new Error('Kein Datenblatt');
+    var wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-10000px;top:0;width:794px;background:#fff;z-index:-1';
+    var c=el.cloneNode(true);c.removeAttribute('id');
+    c.style.cssText='width:794px;max-width:none;margin:0;border:0;border-radius:0;padding:14px 16px;box-sizing:border-box;position:relative';
+    wrap.appendChild(c);document.body.appendChild(wrap);
+    var base=c.getBoundingClientRect().top,cuts=[];
+    function add(e){var t=Math.round(e.getBoundingClientRect().top-base);if(t>0&&cuts.indexOf(t)<0) cuts.push(t)}
+    Array.prototype.forEach.call(c.children,function(ch){
+      if(ch.tagName==='SECTION'){
+        add(ch);
+        Array.prototype.forEach.call(ch.children,function(k,i){if(i>=2&&!k.classList.contains('erf-wrapx')) add(k)});
+        Array.prototype.forEach.call(ch.querySelectorAll('table'),function(tb){Array.prototype.forEach.call(tb.querySelectorAll('tbody tr'),function(tr,i){if(i>=2) add(tr)})});
+      }else add(ch);
+    });
+    return html2canvas(c,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:794}).then(function(cv){
+      wrap.remove();
+      var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true});
+      var W=cv.width,H=cv.height,mm=210/W,usable=281,sl=Math.floor(usable/mm),kk=W/794,y=0,n=0;
+      while(y<H){
+        var end=Math.min(H,y+sl);
+        if(end<H){var best=0;cuts.forEach(function(t){var tp=Math.round(t*kk);if(tp>y+sl*0.4&&tp<=y+sl&&tp>best) best=tp});if(best) end=best}
+        var hh=end-y,t=document.createElement('canvas');t.width=W;t.height=hh;
+        var g=t.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,hh);g.drawImage(cv,0,y,W,hh,0,0,W,hh);
+        if(n>0) doc.addPage();n++;
+        doc.addImage(t.toDataURL('image/jpeg',0.92),'JPEG',0,8,210,hh*mm,undefined,'FAST');
+        y=end;
+      }
+      return doc.output('blob');
+    },function(e){wrap.remove();throw e});
+  });
+}
+function pdfFileName(){
+  return ('Gebäudeerfassung'+(kdName?' '+kdName:'')+' '+new Date().toISOString().slice(0,10)).replace(/[^\wäöüÄÖÜß\- .]/g,'').replace(/\s+/g,' ').trim()+'.pdf';
+}
+function sharePdf(){
+  var file=null;try{file=new File([pdfBlob],pdfName,{type:'application/pdf'})}catch(e){}
+  function fallback(){
+    var u=URL.createObjectURL(pdfBlob),a=document.createElement('a');a.href=u;a.download=pdfName;document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(u);a.remove()},4000);
+  }
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:pdfName}).catch(function(e){if(!(e&&e.name==='AbortError')) fallback()});
+  }else fallback();
+}
+function sheetPdf(b){
+  if(pdfBlob){sharePdf();return}
+  if(pdfBusy) return;
+  pdfBusy=true;b.disabled=true;b.textContent='Erstelle PDF …';
+  sheetPdfBlob().then(function(bl){
+    pdfBusy=false;pdfBlob=bl;pdfName=pdfFileName();
+    var nb=document.querySelector('#erf-main [data-a="sheet-pdf"]');if(nb){nb.disabled=false;nb.textContent='PDF teilen, drucken oder sichern'}
+  },function(e){
+    pdfBusy=false;var nb=document.querySelector('#erf-main [data-a="sheet-pdf"]');if(nb){nb.disabled=false;nb.textContent='PDF fehlgeschlagen, erneut versuchen'}
+    if(window.console) console.error(e);
+  });
+}
 function viewBlatt(){
-  return '<div class="erf-row erf-noprint">'+btn('sheet-print','Drucken oder als PDF sichern',{cls:''})+btn('sheet-copy','Als Text kopieren')+'<span class="erf-hint" id="erf-cpmsg"></span></div>'+sheetHTML();
+  var standalone=(typeof navigator!=='undefined'&&navigator.standalone===true);
+  return '<div class="erf-row erf-noprint">'+btn('sheet-pdf',pdfBlob?'PDF teilen, drucken oder sichern':'PDF erstellen',{cls:''})+(standalone?'':btn('sheet-print','Drucken'))+btn('sheet-copy','Als Text kopieren')+'<span class="erf-hint" id="erf-cpmsg"></span></div>'+sheetHTML();
 }
 
 function render(){
@@ -767,6 +836,7 @@ function actions(a,t){
     case 'ph-del':{var arr=E.photos[x];if(arr){arr.splice(+y,1);if(!arr.length) delete E.photos[x]}touch();render();return}
     case 'jump':{locate(y);go(x,true);if(y) setTimeout(function(){scrollToId('erf-w-'+y);scrollToId('erf-k-'+y)},40);return}
     case 'sheet-print':window.print();return;
+    case 'sheet-pdf':sheetPdf(t);return;
     case 'sheet-copy':{
       var sh=document.getElementById('erf-sheet'),txt=sh?sh.innerText:'';
       var m=document.getElementById('erf-cpmsg');
@@ -873,6 +943,7 @@ window.ERF={
   open:open,close:close,
   getData:function(noPhotos){if(!hasData()) return null;var c=clone(E);if(noPhotos) c.photos={};return c},
   setData:function(d){E=C.normalize(d?clone(d):C.newErf());curFloor=null;selWall=null;selKat=null;selSurf=null;if(E.gesch.length) curFloor=E.gesch[0].id;if(isOpen) render()},
+  pdf:function(){return sheetPdfBlob()},
   reset:function(){E=C.newErf();curFloor=null;selWall=null;selKat=null;selSurf=null;step='stamm';if(isOpen) render()},
   openCount:function(){return hasData()?C.missing(E).length:null},
   hasData:hasData,

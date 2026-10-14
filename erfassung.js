@@ -162,6 +162,8 @@ var CSS='\
 .erf-svg text{fill:var(--ink);font-family:var(--f-data);font-size:11px;font-weight:600}\
     .erf-svg .lab{paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}.erf-svg .lab.sel{fill:#4C7A12}\
 .erf-svg .st{fill:var(--green)}\
+.erf-svg .cm{fill:#E0702A;stroke:var(--surface);stroke-width:2}.erf-svg .arc{fill:none;stroke:#E0702A;stroke-width:2.5}\
+.erf-svg .cl{fill:#B4501A;paint-order:stroke;stroke:var(--surface);stroke-width:4px;font-size:13px}.erf-svg .cap{fill:#B4501A;font-size:11px}.erf-svg .len{font-weight:400}\
 .erf-wall{border:1px solid var(--line);border-radius:6px;background:var(--bg);min-width:0}\
 .erf-wall.sel{border-color:var(--green);border-left-width:5px}\
 .erf-wh{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;background:transparent;color:var(--ink);border:0;border-radius:6px;padding:.55rem .7rem;font-weight:600;font-size:.88rem;justify-self:stretch;min-height:48px}\
@@ -220,7 +222,7 @@ function outW(id){
   var g=C.wallGeom(r.fl,r.w,E),k=C.findKat(E,r.w.bt);
   var nm=r.w.type==='nachbar'?'Trennwand zu Nachbar':(k&&k.name?k.name:'Bauteil fehlt');
   var pn=photoNum('w:'+id);
-  return '<span class="n">'+(r.i+1)+'</span><span>'+esc(C.dirName(bearing(r.fl,r.i))+' · '+f2(N(r.w.len))+' m · '+nm+' · '+f2(g.net)+' m² netto'+(pn?' · '+pn+(pn===1?' Foto':' Fotos'):''))+'</span>';
+  return '<span>Wand '+(r.i+1)+' · '+esc(C.dirName(bearing(r.fl,r.i))+' · '+f2(N(r.w.len))+' m · '+nm+' · '+f2(g.net)+' m² netto'+(pn?' · '+pn+(pn===1?' Foto':' Fotos'):''))+'</span>';
 }
 function outU(id){
   var k=C.findKat(E,id);if(!k) return '';
@@ -290,7 +292,7 @@ function svgFor(fl){
   var ox=(W-dx*sc)/2,oy=(H-dy*sc)/2;
   function X(p){return ox+(p.x-minx)*sc}
   function Y(p){return H-oy-(p.y-miny)*sc}
-  var h='';
+  var h='',boxes=[];
   var poly=tr.pts.slice(0,tr.n).map(function(p){return X(p).toFixed(1)+','+Y(p).toFixed(1)}).join(' ');
   if(tr.closed) h+='<polygon class="fill" points="'+poly+'"/>';
   fl.walls.forEach(function(w,i){
@@ -303,17 +305,50 @@ function svgFor(fl){
       h+='<line class="win" x1="'+(mx-hx).toFixed(1)+'" y1="'+(my-hy).toFixed(1)+'" x2="'+(mx+hx).toFixed(1)+'" y2="'+(my+hy).toFixed(1)+'"/>';
     }
     h+='<line class="hit" data-a="wall-sel" data-x="'+w.id+'" x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'"/>';
-    var nx=Math.sin(rad(b)),ny=-Math.cos(rad(b)),lx=(x1+x2)/2+nx*13,ly=(y1+y2)/2+ny*13+4;
+    var nx=Math.sin(rad(b)),ny=-Math.cos(rad(b)),lx=(x1+x2)/2+nx*14,ly=(y1+y2)/2+ny*14;
     var anc=nx>0.4?'start':(nx<-0.4?'end':'middle');
-    if(anc==='middle'&&ny>0) ly+=6;
-    h+='<text class="lab'+sel+'" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anc+'">'+(i+1)+(wl>0?' · '+f2(wl):'')+'</text>';
+    var yt,k0=0;
+    for(;;){
+      var ex=k0*12,qx=lx+nx*ex,qy=ly+ny*ex;
+      yt=qy-2+(ny>0.4?8:0)+(ny<-0.4?-8:0)+(Math.abs(ny)<=0.4?-4:0);
+      var bx0=anc==='start'?qx:(anc==='end'?qx-48:qx-24),bx1=bx0+48,by0=yt-11,by1=yt+17,hit=false;
+      for(var m=0;m<boxes.length;m++){var o=boxes[m];if(bx0<o[1]&&bx1>o[0]&&by0<o[3]&&by1>o[2]){hit=true;break}}
+      if(!hit||k0>=6){lx=qx;boxes.push([bx0,bx1,by0,by1]);break}
+      k0++;
+    }
+    h+='<text class="lab'+sel+'" x="'+lx.toFixed(1)+'" y="'+yt.toFixed(1)+'" text-anchor="'+anc+'">Wand '+(i+1)+'<tspan class="len" x="'+lx.toFixed(1)+'" dy="12">'+(wl>0?f2(wl)+' m':'')+'</tspan></text>';
   });
   if(tr.gap>0.02){var e=tr.pts[tr.n],s0=tr.pts[0];h+='<line class="gap" x1="'+X(e).toFixed(1)+'" y1="'+Y(e).toFixed(1)+'" x2="'+X(s0).toFixed(1)+'" y2="'+Y(s0).toFixed(1)+'"/>'}
+  var si=-1;fl.walls.forEach(function(w,i){if(w.id===selWall) si=i});
+  if(si>=0) h+=cornerMark(fl,tr,si,X(tr.pts[si+1]),Y(tr.pts[si+1]),sc);
   h+='<circle class="st" cx="'+X(tr.pts[0]).toFixed(1)+'" cy="'+Y(tr.pts[0]).toFixed(1)+'" r="4.5"/>';
   h+='<g transform="translate('+(W-24)+',22)"><path d="M0,10 L0,-8 M-5,-3 L0,-9 L5,-3" stroke="var(--ink)" stroke-width="1.6" fill="none"/><text x="0" y="22" text-anchor="middle">N</text></g>';
   return h;
 }
 function rad(d){return d*Math.PI/180}
+/* Markiert die Ecke am Ende der gewählten Wand: dort gilt der eingetragene Winkel. Bogen zeigt den Innenwinkel. */
+function cornerMark(fl,tr,i,cx,cy,sc){
+  var H_=340;
+  var w=fl.walls[i],hin=tr.hds[i],hout=hin+N(w.turn);
+  var ux=-Math.sin(rad(hin)),uy=Math.cos(rad(hin));          // Richtung zur vorigen Ecke (Bildschirm, y nach unten)
+  var vx=Math.sin(rad(hout)),vy=-Math.cos(rad(hout));        // Richtung zur nächsten Ecke
+  var sgn=turnSgn(fl),th=180-sgn*N(w.turn);
+  var len=Math.min(N(w.len),N((fl.walls[i+1]||fl.walls[0]||{}).len))*sc;
+  var r=Math.max(8,Math.min(22,(len||40)*0.4));
+  var h='<circle class="cm" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="7"/>';
+  if(Math.abs(th-180)>0.5&&th>0&&th<360){
+    var a=sgn>0?[vx,vy,ux,uy]:[ux,uy,vx,vy];
+    h+='<path class="arc" d="M'+(cx+a[0]*r).toFixed(1)+','+(cy+a[1]*r).toFixed(1)+' A'+r+','+r+' 0 '+(th>180?1:0)+' 1 '+(cx+a[2]*r).toFixed(1)+','+(cy+a[3]*r).toFixed(1)+'"/>';
+  }
+  var bx=ux+vx,by=uy+vy,bl=Math.sqrt(bx*bx+by*by);
+  if(bl<0.05){bx=sgn>0?-vy:vy;by=sgn>0?vx:-vx;bl=1;th=180}
+  bx/=bl;by/=bl;if(th>180){bx=-bx;by=-by}
+  var lx=cx+bx*(r+16),ly=cy+by*(r+16)+4;
+  h+='<text class="cl" x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="middle">'+(has(w.turn)?f1x(th)+'°':'?')+'</text>';
+  h+='<text class="cap" x="8" y="'+(H_-6)+'">Winkel: Ecke nach Wand '+(i+1)+'</text>';
+  return h;
+}
+function f1x(v){return String(Math.round(v*10)/10).replace('.',',')}
 
 function hullHTML(){
   var S=C.summary(E),rows=[],tot=0;
@@ -654,7 +689,7 @@ function sheetHTML(){
     h+='<div class="erf-wrapx"><table class="erf-tb"><thead><tr><th>Wand</th><th class="r">Länge m</th><th>Richtung</th><th>Grenzt an</th><th>Bauteil</th><th class="r">Höhe m</th><th class="r">Brutto m²</th><th class="r">Öffnungen m²</th><th class="r">Netto m²</th></tr></thead><tbody>';
     fl.walls.forEach(function(w,i){
       var gm=C.wallGeom(fl,w,E),k=C.findKat(E,w.bt);
-      h+='<tr><td>'+(i+1)+'</td><td class="r">'+f2(N(w.len))+'</td><td>'+esc(C.dirName(C.wallBearing(tr,i)))+'</td><td>'+esc(C.WTYPE[w.type])+'</td><td>'+esc(w.type==='nachbar'?'':(k?k.name:''))+'</td><td class="r">'+f2(gm.H)+'</td><td class="r">'+f2(gm.gross)+'</td><td class="r">'+f2(gm.open)+'</td><td class="r">'+f2(gm.net)+'</td></tr>';
+      h+='<tr><td>Wand '+(i+1)+'</td><td class="r">'+f2(N(w.len))+'</td><td>'+esc(C.dirName(C.wallBearing(tr,i)))+'</td><td>'+esc(C.WTYPE[w.type])+'</td><td>'+esc(w.type==='nachbar'?'':(k?k.name:''))+'</td><td class="r">'+f2(gm.H)+'</td><td class="r">'+f2(gm.gross)+'</td><td class="r">'+f2(gm.open)+'</td><td class="r">'+f2(gm.net)+'</td></tr>';
       if(photoNum('w:'+w.id)) h+='<tr><td></td><td colspan="8">'+photosHTML('w:'+w.id)+'</td></tr>';
       (w.ow||[]).forEach(function(o){
         var ko=C.findKat(E,o.bt);
@@ -937,7 +972,12 @@ function bind(){
     var t=ev.target;if(!t||!t.getAttribute) return;
     var sk=t.getAttribute('data-sh');
     if(sk){if(sk!=='_key'){SH.P[sk]=t.value;var pv=main.querySelector('[data-out="shprev"]');if(pv) pv.innerHTML=shapeSvg()}return}
-    if(t.getAttribute('data-iw')) return;
+    var iw0=t.getAttribute('data-iw');
+    if(iw0){
+      var r0=/^gesch\/([^\/]+)\/walls\/([^\/]+)\/turn$/.exec(iw0),g0=r0&&E.gesch.filter(function(f){return f.id===r0[1]})[0],v0=N(t.value);
+      if(g0&&v0>0&&v0<360){pset(iw0,String(Math.round(turnSgn(g0)*(180-v0)*10)/10).replace('.',','));touch()}
+      return;
+    }
     var kk=t.getAttribute('data-k');
     if(kk){if(kk!=='_sel'&&KD){KD.set(kk,t.value);kdName=KD.get().name||kdLine();var hd=root.querySelector('#erf-kd');if(hd) hd.textContent=kdName}return}
     var p=t.getAttribute('data-p');if(!p||t.tagName==='SELECT'||t.type==='checkbox') return;

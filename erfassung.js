@@ -168,6 +168,7 @@ var CSS='\
 .erf-wall.sel{border-color:var(--green);border-left-width:5px}\
 .erf-wh{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;background:transparent;color:var(--ink);border:0;border-radius:6px;padding:.55rem .7rem;font-weight:600;font-size:.88rem;justify-self:stretch;min-height:48px}\
 .erf-wh:hover{background:var(--tint)}\
+.erf-wh .chev{flex:none;margin-left:auto;transition:transform .15s}.erf-wh .chev.open{transform:rotate(180deg)}\
 .erf-wh .n{flex:none;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:.8rem}\
 .erf-wb{padding:.2rem .8rem .9rem;display:grid;gap:.75rem}\
 .erf-ow{border:1px dashed var(--line);border-radius:6px;padding:.6rem;display:grid;gap:.5rem;background:var(--surface)}\
@@ -222,7 +223,7 @@ function outW(id){
   var g=C.wallGeom(r.fl,r.w,E),k=C.findKat(E,r.w.bt);
   var nm=r.w.type==='nachbar'?'Trennwand zu Nachbar':(k&&k.name?k.name:'Bauteil fehlt');
   var pn=photoNum('w:'+id);
-  return '<span>Wand '+(r.i+1)+' · '+esc(C.dirName(bearing(r.fl,r.i))+' · '+f2(N(r.w.len))+' m · '+nm+' · '+f2(g.net)+' m² netto'+(pn?' · '+pn+(pn===1?' Foto':' Fotos'):''))+'</span>';
+  return '<span style="flex:1;min-width:0">Wand '+(r.i+1)+' · '+esc(C.dirName(bearing(r.fl,r.i))+' · '+f2(N(r.w.len))+' m · '+nm+' · '+f2(g.net)+' m² netto'+(pn?' · '+pn+(pn===1?' Foto':' Fotos'):''))+'</span><svg class="chev'+(r.w.id===selWall?' open':'')+'" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 }
 function outU(id){
   var k=C.findKat(E,id);if(!k) return '';
@@ -504,7 +505,7 @@ function innenW(fl,w){
 }
 function wallCard(fl,w,i){
   var sel=(w.id===selWall),p='gesch/'+fl.id+'/walls/'+w.id+'/';
-  var h='<div class="erf-wall'+(sel?' sel':'')+'" id="erf-w-'+w.id+'"><button type="button" class="erf-wh" data-a="wall-sel" data-x="'+w.id+'" data-out="w:'+w.id+'">'+outW(w.id)+'</button>';
+  var h='<div class="erf-wall'+(sel?' sel':'')+'" id="erf-w-'+w.id+'"><button type="button" class="erf-wh" data-a="wall-sel" data-x="'+w.id+'" aria-expanded="'+sel+'" data-out="w:'+w.id+'">'+outW(w.id)+'</button>';
   if(sel){
     var kinds=WALLKIND[w.type]||[];
     h+='<div class="erf-wb"><div class="erf-g">'+

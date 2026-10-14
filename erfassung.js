@@ -152,7 +152,6 @@ var CSS='\
 .erf-nav button{flex:none;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:.4rem .95rem;font-weight:600;font-size:.88rem;min-height:44px;white-space:nowrap}\
 .erf-nav button:hover{background:var(--tint)}\
 .erf-nav button[aria-current=true]{background:var(--green);color:#20252A;border-color:var(--green)}\
-.erf-awres{border:1px solid var(--line);border-radius:8px;padding:.7rem 1rem;margin:.2rem 0 .8rem;font-size:.9rem}.erf-awres b{font-size:1.05rem}.erf-awres p{margin:.35rem 0 0}.erf-awres.bed{border-color:#C98A12;background:#FFF6E3;color:#5A3D00}.erf-awres.wahl{border-color:#2E7D32;background:#EAF4EA;color:#1F5A23}.erf-awres.offen{background:var(--surface)}\
 .erf-missbox{border:1px solid var(--line);border-radius:6px;padding:.55rem .8rem;font-size:.85rem;margin-bottom:.8rem}.erf-missbox.bad{border-color:#B03A2E;background:#FBEDEB;color:#6E2118}.erf-missbox.ok{border-color:#2E7D32;background:#EAF4EA;color:#1F5A23}.erf-missbox ul{margin:.3rem 0 0;padding-left:1.1rem}.erf-missbox li{margin:.1rem 0}\
 .erf-f.miss>span{color:#B03A2E;font-weight:600}.erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{border-color:#B03A2E!important;box-shadow:0 0 0 2px rgba(176,58,46,.25);background:#FDF3F1}\
 .erf-wh.miss{box-shadow:inset 5px 0 0 #B03A2E;background:#FDF3F1;color:#6E2118}\
@@ -431,7 +430,6 @@ function updateOuts(){
     else if(p[0]==='sg') t=outSugg(p[1]);
     else if(p[0]==='pflicht'){t=outPflicht();el.hidden=!t}
     else if(p[0]==='hull') t=outHull();
-    else if(p[0]==='awres') t=outAw();
     else if(p[0]==='shprev') t=shapeSvg();
     else if(p[0]==='missbox'){t=missBox();var bad=C.missing(E).some(function(m){return m.step===step});if(el.classList.contains('bad')!==bad) el.classList.toggle('bad',bad);if(el.classList.contains('ok')===bad) el.classList.toggle('ok',!bad)}
     else if(p[0]==='hcalc'){var hf=E.gesch.filter(function(f){return f.id===p[1]})[0];t=hf?esc(outH(hf)):''}
@@ -451,7 +449,7 @@ function updateBadges(){
     var q=nav.querySelector('[data-num="'+s.k+'"]');if(!q) return;
     var st='';
     if(s.k==='kunde') st=(KD&&has(KD.get().name))?'ok':'bad';
-    else if(s.k!=='abs'&&s.k!=='blatt'&&s.k!=='aw') st=(cnt[s.k]||0)?'bad':'ok';
+    else if(s.k!=='abs'&&s.k!=='blatt') st=(cnt[s.k]||0)?'bad':'ok';
     q.className='erf-num'+(st?' '+st:'');
   });
   var t=root.querySelector('#erf-count');if(t) t.textContent=(M.length?('Fehlt noch: '+M.length):'Alle Pflichtangaben vorhanden')+' · Fotos '+photoCount()+' von '+PH_MAX+' ('+f2(photoMB())+' MB)';
@@ -516,29 +514,6 @@ function shapeBlock(fl){
   if(sh.pts) h+='<svg class="erf-shp" viewBox="0 0 300 170" role="img" aria-label="Vorschau der Grundrissform" data-out="shprev">'+shapeSvg()+'</svg>';
   if(sh.pts) h+='<div class="erf-hint">Die Vorschau zeigt Beispielmaße, bis alle Maße eingetragen sind.</div>';
   h+='<div class="erf-row">'+btn('shape-make',sh.n+' erzeugen',{cls:''})+'</div></div>';
-  return h;
-}
-
-function outAw(){
-  var r=C.ausweisart(E),cls=r.art==='wahl'?'wahl':(r.art==='offen'?'offen':'bed');
-  var h='<div class="erf-awres '+cls+'"><b>'+esc(r.head||'Ausweisart')+'</b>'+r.lines.map(function(t){return '<p>'+esc(t)+'</p>'}).join('')+'<p class="erf-hint">Orientierung nach § 80 GEG für Wohngebäude, keine Rechtsberatung. Nichtwohngebäude sind hier nicht abgedeckt. Maßgeblich ist der aktuelle Gesetzestext.</p></div>';
-  return h;
-}
-function sanCard(x,j){
-  var p='san/'+x.id+'/';
-  return '<div class="erf-ow"><div class="erf-row"><b>Sanierung '+(j+1)+'</b><span style="flex:1"></span>'+btn('san-del','Entfernen',{x:x.id})+'</div><div class="erf-g">'+
-    S(p+'bt','Bauteil oder Anlage',C.SAN_BT,{blank:'wählen'})+F(p+'was','Was wurde gemacht',{text:1,ph:'z. B. 14 cm WDVS, Fenster 2-fach'})+F(p+'jahr','Jahr',{text:1,ph:'z. B. 2005 oder unbekannt'})+S(p+'beleg','Wie belegt',C.SAN_BELEG,{blank:'wählen'})+'</div></div>';
-}
-function viewAw(){
-  var h='<div class="erf-hint">Hier siehst du, ob für dieses Gebäude ein Verbrauchsausweis möglich ist oder nur der Bedarfsausweis. Die Angaben zu Wohnungen, Baujahr und Bauantrag sind dieselben wie im Tab Gebäude.</div>';
-  h+='<div data-out="awres">'+outAw()+'</div>';
-  h+=sec('Angaben','<div class="erf-g">'+F('g/we','Wohnungen im Gebäude')+F('g/bj','Baujahr des Gebäudes (Jahr)',{ph:'z. B. 1950'})+F('g/antrag','Bauantrag, Datum oder Jahr',{text:1,ph:'z. B. 14.05.1967'})+
-    S('aw/neu','Neubau oder Änderung mit Berechnung des ganzen Gebäudes',[{v:'nein',t:'nein, Bestandsgebäude'},{v:'ja',t:'ja'}],{noblank:1})+
-    S('aw/vd','Verbrauchsdaten für mindestens 36 Monate vorhanden',[{v:'ja',t:'ja'},{v:'nein',t:'nein'}],{blank:'noch unbekannt'})+
-    S('aw/leer','Leerstand in den letzten drei Jahren',[{v:'nein',t:'nein'},{v:'teil',t:'teilweise oder zeitweise'},{v:'lang',t:'überwiegend leer, mehrere Jahre'}],{noblank:1})+
-    S('aw/nw','Niveau der Wärmeschutzverordnung 1977 nachgewiesen',[{v:'nein',t:'nein, kein Nachweis'},{v:'ja',t:'ja, Nachweis liegt vor'}],{noblank:1})+'</div>'+
-    '<div class="erf-hint">Der Nachweis zum Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Eine Sanierung ohne Unterlagen oder eigenen Befund ist kein Nachweis.</div>');
-  h+=sec('Bisherige Sanierungen','<div class="erf-hint">Jahr darf „unbekannt“ lauten. Wichtiger ist, wie du die Angabe belegen kannst.</div>'+(E.san||[]).map(sanCard).join('')+'<div class="erf-row">'+btn('san-add','Sanierung hinzufügen',{cls:''})+'</div>');
   return h;
 }
 
@@ -753,14 +728,6 @@ function sheetHTML(){
   h+='<div class="erf-hint" style="color:#555">'+esc(kdLine())+(kdLine()?' · ':'')+'Stand '+new Date().toLocaleDateString('de-DE')+'. Erfassung vor Ort zur Übertragung in den Energieberater, keine Berechnung nach GEG.</div>';
   h+='<section><h4>1. Gebäude</h4>'+kv([['Gebäudetyp',g.typ],['Baujahr',g.bj],['Bauantrag',g.antrag],['Wohneinheiten',g.we],['Vollgeschosse',g.vg],['Keller',g.keller],['Dachform',g.dachform],['Dachgeschoss',g.dg],['Wohnfläche',has(g.wf)?g.wf+' m²':''],['Denkmalschutz',g.denk],['Anbauten',g.anbau],['Besonderheiten',g.bem],['Laufrichtung 1. Wand',g.h0+'°']]);
   h+='<div style="margin-top:.5rem"><b>Unterlagen</b><br>'+C.UNTERL.map(function(u){return (E.unterl[u[0]]==='1'?'☑ ':'☐ ')+esc(u[1])}).join('<br>')+'</div>'+photosHTML('gebaeude')+'</section>';
-  var aw=C.ausweisart(E);
-  h+='<section><h4>Ausweisart und Sanierungen</h4><div><b>'+esc(aw.head||'Ausweisart')+'</b></div><div>'+aw.lines.map(esc).join('<br>')+'</div>';
-  if((E.san||[]).length){
-    h+='<div class="erf-wrapx"><table class="erf-tb"><thead><tr><th>Bauteil</th><th>Maßnahme</th><th>Jahr</th><th>Beleg</th></tr></thead><tbody>';
-    E.san.forEach(function(x){h+='<tr><td>'+esc(x.bt)+'</td><td>'+esc(x.was)+'</td><td>'+esc(x.jahr||'unbekannt')+'</td><td>'+esc(x.beleg)+'</td></tr>'});
-    h+='</tbody></table></div>';
-  }else h+='<div>Keine Sanierungen erfasst.</div>';
-  h+='<div class="erf-hint" style="color:#555">Orientierung nach § 80 GEG, keine Rechtsberatung.</div></section>';
   h+='<section><h4>2. Grundriss und Wände</h4>';
   E.gesch.forEach(function(fl){
     var tr=C.trace(fl,g.h0);
@@ -925,7 +892,6 @@ function render(){
   switch(step){
     case 'kunde':h=viewKunde();break;
     case 'stamm':h=viewStamm();break;
-    case 'aw':h=viewAw();break;
     case 'geo':h=viewGeo();break;
     case 'bt':h=viewBt();break;
     case 'fl':h=viewFl();break;
@@ -940,7 +906,7 @@ function render(){
   drawNav();updateOuts();
 }
 function drawNav(){
-  nav.innerHTML=C.STEPS.map(function(s,i){return '<button type="button" data-a="step" data-x="'+s.k+'" aria-current="'+(s.k===step)+'"><span class="erf-num" data-num="'+s.k+'">'+(i+1)+'</span>'+esc(s.n)+((s.k==='blatt'||s.k==='abs'||s.k==='kunde'||s.k==='aw')?'':'<span class="erf-bd" data-bd="'+s.k+'"></span>')+'</button>'}).join('');
+  nav.innerHTML=C.STEPS.map(function(s,i){return '<button type="button" data-a="step" data-x="'+s.k+'" aria-current="'+(s.k===step)+'"><span class="erf-num" data-num="'+s.k+'">'+(i+1)+'</span>'+esc(s.n)+((s.k==='blatt'||s.k==='abs'||s.k==='kunde')?'':'<span class="erf-bd" data-bd="'+s.k+'"></span>')+'</button>'}).join('');
   updateBadges();
 }
 function go(s,keep){
@@ -990,8 +956,6 @@ function actions(a,t){
       fl.walls.forEach(function(w){if(!withOw) w.ow=[];else w.ow=w.ow||[]});
       selWall=fl.walls.length?fl.walls[0].id:null;touch();render();return;
     }
-    case 'san-add':E.san.push(C.newSan());touch();render();return;
-    case 'san-del':E.san=E.san.filter(function(q){return q.id!==x});touch();render();return;
     case 'kat-walls-all':{
       var kk=C.findKat(E,x),okt=kk&&WALLKINDREV[kk.kind];if(!okt) return;
       E.gesch.forEach(function(f){f.walls.forEach(function(w){if(w.type===WALLPRIM[kk.kind]&&!w.bt) w.bt=kk.id})});
@@ -1187,7 +1151,6 @@ function hasData(){
   for(var u in E.unterl) if(E.unterl[u]==='1') return true;
   if(photoCount()) return true;
   for(var a in E.abs) if(has(E.abs[a])) return true;
-  if((E.san||[]).length||(E.aw&&(E.aw.neu==='ja'||E.aw.nw==='ja'||E.aw.vd||E.aw.leer&&E.aw.leer!=='nein'))) return true;
   return false;
 }
 window.ERF={

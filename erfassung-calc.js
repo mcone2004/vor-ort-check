@@ -237,15 +237,13 @@ function newErf(){
   return {v:1,
     g:{typ:'',bj:'',antrag:'',we:'1',vg:'',keller:'',dachform:'',dg:'',anbau:'',bem:'',h0:'90',denk:'nein',wf:''},
     unterl:{},
-    kat:[],gesch:[],surf:[],anl:{},photos:{},abs:{maengel:'',empf:'',offen:''},
-    aw:{neu:'nein',nw:'nein',vd:'',leer:'nein'},san:[]
+    kat:[],gesch:[],surf:[],anl:{},photos:{},abs:{maengel:'',empf:'',offen:''}
   };
 }
 function normalize(e){
   var n=newErf();if(!e||typeof e!=='object') return n;
   for(var k in n) if(e[k]==null) e[k]=n[k];
   for(var k2 in n.g) if(e.g[k2]==null) e.g[k2]=n.g[k2];
-  for(var k3 in n.aw) if(e.aw[k3]==null) e.aw[k3]=n.aw[k3];
   return e;
 }
 function newSan(){return {id:uid(),bt:'',was:'',jahr:'',beleg:''}}
@@ -419,7 +417,6 @@ function suggestArea(e,art,neig){
 var STEPS=[
   {k:'kunde',n:'Kundenerfassung'},
   {k:'stamm',n:'Gebäude'},
-  {k:'aw',n:'Ausweisart'},
   {k:'geo',n:'Grundriss und Wände'},
   {k:'bt',n:'Bauteile'},
   {k:'fl',n:'Dach, Decke, Boden'},

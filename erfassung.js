@@ -138,7 +138,7 @@ var CSS='\
 .erf-sec>h3,.erf-h{font-family:var(--f-data);font-size:.82rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);margin:0;padding-bottom:.4rem;border-bottom:1px solid var(--line)}\
 .erf-g{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr))}\
 .erf-g.w2{grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))}\
-.erf-f{display:grid;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}\
+.erf-f{display:grid;align-content:end;gap:.25rem;font-size:.85rem;color:var(--muted);min-width:0}\
 .erf-ck{display:flex;align-items:center;gap:.6rem;font-size:.92rem;color:var(--text);min-height:44px}\
 .erf-ck input{width:1.35rem;height:1.35rem;min-height:0;flex:none}\
 .erf-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}\
@@ -454,7 +454,7 @@ function shapeSvg(){
   if(!pts) return '<text x="150" y="80" text-anchor="middle" font-size="12">Wände werden einzeln eingegeben</text>';
   var minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
   pts.forEach(function(q){minx=Math.min(minx,q[0]);maxx=Math.max(maxx,q[0]);miny=Math.min(miny,q[1]);maxy=Math.max(maxy,q[1])});
-  var W=300,H=170,pad=14,sc=Math.min((W-2*pad)/Math.max(maxx-minx,0.1),(H-2*pad)/Math.max(maxy-miny,0.1));
+  var W=300,H=170,pad=24,sc=Math.min((W-2*pad)/Math.max(maxx-minx,0.1),(H-2*pad)/Math.max(maxy-miny,0.1));
   var ox=(W-(maxx-minx)*sc)/2,oy=(H-(maxy-miny)*sc)/2;
   var d=pts.map(function(q,i){return (i?'L':'M')+(ox+(q[0]-minx)*sc).toFixed(1)+','+(oy+(maxy-q[1])*sc).toFixed(1)}).join(' ')+' Z';
   var q0=pts[0],q1=pts[1];
@@ -468,6 +468,7 @@ function shapeBlock(fl){
   h+='<div class="erf-g">'+sh.params.map(function(q){return '<label class="erf-f"><span>'+esc(q.l)+'</span><input type="text" inputmode="decimal" autocomplete="off" data-sh="'+q.k+'" value="'+esc(SH.P[q.k]||'')+'"'+(q.ph?' placeholder="'+esc(q.ph)+'"':'')+'></label>'}).join('')+'</div>';
   h+='<div class="erf-hint">'+esc(sh.hint)+'</div>';
   if(sh.pts) h+='<svg class="erf-shp" viewBox="0 0 300 170" role="img" aria-label="Vorschau der Grundrissform" data-out="shprev">'+shapeSvg()+'</svg>';
+  if(sh.pts) h+='<div class="erf-hint">Die Vorschau zeigt Beispielmaße, bis alle Maße eingetragen sind.</div>';
   h+='<div class="erf-row">'+btn('shape-make',sh.n+' erzeugen',{cls:''})+'</div></div>';
   return h;
 }
@@ -525,7 +526,7 @@ function viewGeo(){
   var fp='gesch/'+fl.id+'/';
   var others=E.gesch.filter(function(f){return f.id!==fl.id&&f.walls.length});
   var props='<div class="erf-g">'+F(fp+'name','Name',{text:1})+S(fp+'art','Art',[{v:'keller',t:'Keller'},{v:'voll',t:'Vollgeschoss'},{v:'dach',t:'Dachgeschoss (Kniestock)'}],{noblank:1})+
-    S(fp+'heated','Beheizt',[{v:'ja',t:'ja, innerhalb der Hülle'},{v:'nein',t:'nein, außerhalb der Hülle'}],{noblank:1,r:1})+S(fp+'hm','Höhe erfassen als',[{v:'ok',t:'Geschosshöhe OKFF–OKFF'},{v:'licht',t:'Lichte Höhe plus Decke'}],{noblank:1,r:1})+
+    S(fp+'heated','Beheizt',[{v:'ja',t:'ja, innerhalb der Hülle'},{v:'nein',t:'nein, außerhalb der Hülle'}],{noblank:1,r:1})+S(fp+'hm','Höhe erfassen als',[{v:'ok',t:'OKFF zu OKFF'},{v:'licht',t:'lichte Höhe + Decke'}],{noblank:1,r:1})+
     (fl.hm==='licht'?F(fp+'hl','Lichte Raumhöhe in m (Fußboden bis Decke, gemessen)')+F(fp+'dd','Deckenstärke in m (Geschossdecke mit Fußbodenaufbau)',{ph:'z. B. 0,30'}):F(fp+'h','Geschosshöhe in m (OKFF zu OKFF)'))+'</div>'+
     (fl.hm==='licht'?'<div class="erf-hint" data-out="hcalc:'+fl.id+'">'+esc(outH(fl))+'</div>':'');
   if(fl.heated==='nein') props+='<div class="erf-hint">Dieses Geschoss liegt außerhalb der thermischen Hülle. Seine Wände zählen nicht zur Hülle, die Decke darüber schon.</div>';

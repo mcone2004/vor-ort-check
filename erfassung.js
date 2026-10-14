@@ -535,6 +535,7 @@ function viewAw(){
   h+=sec('Angaben','<div class="erf-g">'+F('g/we','Wohnungen im Gebäude')+F('g/bj','Baujahr des Gebäudes (Jahr)',{ph:'z. B. 1950'})+F('g/antrag','Bauantrag, Datum oder Jahr',{text:1,ph:'z. B. 14.05.1967'})+
     S('aw/neu','Neubau oder Änderung mit Berechnung des ganzen Gebäudes',[{v:'nein',t:'nein, Bestandsgebäude'},{v:'ja',t:'ja'}],{noblank:1})+
     S('aw/vd','Verbrauchsdaten für mindestens 36 Monate vorhanden',[{v:'ja',t:'ja'},{v:'nein',t:'nein'}],{blank:'noch unbekannt'})+
+    S('aw/leer','Leerstand in den letzten drei Jahren',[{v:'nein',t:'nein'},{v:'teil',t:'teilweise oder zeitweise'},{v:'lang',t:'überwiegend leer, mehrere Jahre'}],{noblank:1})+
     S('aw/nw','Niveau der Wärmeschutzverordnung 1977 nachgewiesen',[{v:'nein',t:'nein, kein Nachweis'},{v:'ja',t:'ja, Nachweis liegt vor'}],{noblank:1})+'</div>'+
     '<div class="erf-hint">Der Nachweis zum Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Eine Sanierung ohne Unterlagen oder eigenen Befund ist kein Nachweis.</div>');
   h+=sec('Bisherige Sanierungen','<div class="erf-hint">Jahr darf „unbekannt“ lauten. Wichtiger ist, wie du die Angabe belegen kannst.</div>'+(E.san||[]).map(sanCard).join('')+'<div class="erf-row">'+btn('san-add','Sanierung hinzufügen',{cls:''})+'</div>');
@@ -1186,7 +1187,7 @@ function hasData(){
   for(var u in E.unterl) if(E.unterl[u]==='1') return true;
   if(photoCount()) return true;
   for(var a in E.abs) if(has(E.abs[a])) return true;
-  if((E.san||[]).length||(E.aw&&(E.aw.neu==='ja'||E.aw.nw==='ja'||E.aw.vd))) return true;
+  if((E.san||[]).length||(E.aw&&(E.aw.neu==='ja'||E.aw.nw==='ja'||E.aw.vd||E.aw.leer&&E.aw.leer!=='nein'))) return true;
   return false;
 }
 window.ERF={

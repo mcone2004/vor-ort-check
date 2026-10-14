@@ -238,7 +238,7 @@ function newErf(){
     g:{typ:'',bj:'',antrag:'',we:'1',vg:'',keller:'',dachform:'',dg:'',anbau:'',bem:'',h0:'90',denk:'nein',wf:''},
     unterl:{},
     kat:[],gesch:[],surf:[],anl:{},photos:{},abs:{maengel:'',empf:'',offen:''},
-    aw:{neu:'nein',nw:'nein',vd:''},san:[]
+    aw:{neu:'nein',nw:'nein',vd:'',leer:'nein'},san:[]
   };
 }
 function normalize(e){
@@ -455,8 +455,10 @@ function ausweisart(e){
       if(san.length) L.push('Die erfassten Sanierungen ersetzen diesen Nachweis nicht. Der Nachweis gilt für das ganze Gebäude, nicht für einzelne Bauteile.')}
   }else{art='wahl';L.push('Bauantrag ab dem 01.11.1977 ('+q+'): Verbrauchs- oder Bedarfsausweis darf gewählt werden.')}
   if(art==='wahl'){
-    if(aw.vd==='nein'){art='bedarf_vd';o.head='Nur Bedarfsausweis möglich';L.push('Es liegen keine Verbrauchsdaten für mindestens 36 Monate vor. Ohne diese Daten bleibt nur der Bedarfsausweis.')}
+    if(aw.leer==='lang'){art='bedarf_vd';o.head='Praktisch nur Bedarfsausweis (Leerstand)';L.push('Das Gebäude stand in den letzten Jahren überwiegend leer. Die Verbrauchswerte zeigen dann nicht den Zustand des Gebäudes, aussagekräftige Verbrauchsdaten für 36 Monate fehlen in der Regel. Fachlich bleibt nur der Bedarfsausweis.')}
+    else if(aw.vd==='nein'){art='bedarf_vd';o.head='Nur Bedarfsausweis möglich';L.push('Es liegen keine Verbrauchsdaten für mindestens 36 Monate vor. Ohne diese Daten bleibt nur der Bedarfsausweis.')}
     else{
+      if(aw.leer==='teil') L.push('Leerstand in der Verbrauchsperiode verfälscht die Werte. Wie er bei der Verbrauchsermittlung zu berücksichtigen ist, regeln die Vorgaben zum Verbrauchsausweis (hier nicht geprüft).');
       o.head='Verbrauchs- oder Bedarfsausweis möglich';
       if(aw.vd==='ja') L.push('Verbrauchsdaten für mindestens 36 Monate liegen vor.');
       else L.push('Offen: Liegen Verbrauchsdaten für mindestens 36 Monate vor? Ohne sie bleibt nur der Bedarfsausweis.');

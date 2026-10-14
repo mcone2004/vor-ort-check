@@ -432,13 +432,13 @@ function bauantragVor1977(g){
 }
 function missing(e){
   var M=[],g=e.g;
-  function m(step,t,ref){M.push({step:step,t:t,ref:ref||null})}
-  if(!has(g.typ)) m('stamm','Gebäudetyp wählen');
-  if(!year(g.bj)) m('stamm','Baujahr des Gebäudes (vierstellig) eintragen');
-  if(!has(g.we)||N(g.we)<1) m('stamm','Anzahl Wohneinheiten eintragen');
-  if(!has(g.keller)) m('stamm','Keller angeben');
-  if(!has(g.dg)) m('stamm','Dachgeschoss angeben');
-  if(!has(g.antrag)) m('stamm','Datum des Bauantrags (oder Jahr) eintragen, falls bekannt');
+  function m(step,t,ref,paths){M.push({step:step,t:t,ref:ref||null,paths:paths||[]})}
+  if(!has(g.typ)) m('stamm','Gebäudetyp wählen',null,['g/typ']);
+  if(!year(g.bj)) m('stamm','Baujahr des Gebäudes (vierstellig) eintragen',null,['g/bj']);
+  if(!has(g.we)||N(g.we)<1) m('stamm','Anzahl Wohneinheiten eintragen',null,['g/we']);
+  if(!has(g.keller)) m('stamm','Keller angeben',null,['g/keller']);
+  if(!has(g.dg)) m('stamm','Dachgeschoss angeben',null,['g/dg']);
+  if(!has(g.antrag)) m('stamm','Datum des Bauantrags (oder Jahr) eintragen, falls bekannt',null,['g/antrag']);
   var heated=(e.gesch||[]).filter(function(f){return f.heated!=='nein'});
   if(!e.gesch.length) m('geo','Mindestens ein Geschoss anlegen');
   else if(!heated.length) m('geo','Mindestens ein Geschoss als beheizt markieren');
@@ -446,17 +446,19 @@ function missing(e){
     var tr=trace(f,g.h0);
     if(!f.walls.length){m('geo',f.name+': Wandzug fehlt',f.id);return}
     if(!tr.closed) m('geo',f.name+': Wandzug nicht geschlossen'+(tr.gap>0.02?' (Lücke '+f2(tr.gap)+' m)':' (Eckwinkel ergeben keine geschlossene Figur)'),f.id);
-    if(!(N(f.h)>0)) m('geo',f.name+': Geschosshöhe fehlt',f.id);
-    if(f.hm==='licht'){if(!(N(f.hl)>0)) m('geo',f.name+': lichte Raumhöhe fehlt',f.id);if(!(N(f.dd)>0)) m('geo',f.name+': Deckenstärke fehlt',f.id)}
+    if(!(N(f.h)>0)&&f.hm!=='licht') m('geo',f.name+': Geschosshöhe fehlt',f.id,['gesch/'+f.id+'/h']);
+    if(f.hm==='licht'){if(!(N(f.hl)>0)) m('geo',f.name+': lichte Raumhöhe fehlt',f.id,['gesch/'+f.id+'/hl']);if(!(N(f.dd)>0)) m('geo',f.name+': Deckenstärke fehlt',f.id,['gesch/'+f.id+'/dd'])}
     if(f.heated==='nein') return;
     f.walls.forEach(function(w,i){
       var tag=f.name+', Wand '+(i+1)+': ';
-      if(!(N(w.len)>0)) m('geo',tag+'Länge fehlt',w.id);
-      if(w.type!=='nachbar'&&!w.bt) m('geo',tag+'Bauteil zuordnen',w.id);
+      var wp='gesch/'+f.id+'/walls/'+w.id+'/';
+      if(!(N(w.len)>0)) m('geo',tag+'Länge fehlt',w.id,[wp+'len']);
+      if(w.type!=='nachbar'&&!w.bt) m('geo',tag+'Bauteil zuordnen',w.id,[wp+'bt']);
       (w.ow||[]).forEach(function(o,j){
         var t2=tag+(o.kind==='tuer'?'Tür ':'Fenster ')+(j+1)+': ';
-        if(!o.bt) m('geo',t2+'Bauteil zuordnen',w.id);
-        if(!(N(o.b)>0&&N(o.h)>0)) m('geo',t2+'Breite und Höhe fehlen',w.id);
+        var op=wp+'ow/'+o.id+'/';
+        if(!o.bt) m('geo',t2+'Bauteil zuordnen',w.id,[op+'bt']);
+        if(!(N(o.b)>0&&N(o.h)>0)) m('geo',t2+'Breite und Höhe fehlen',w.id,[op+'b',op+'h']);
       });
     });
   });
@@ -467,11 +469,12 @@ function missing(e){
   if(heated.length&&!hasBot) m('fl','Unteren Gebäudeabschluss anlegen (Bodenplatte oder Kellerdecke)');
   e.surf.forEach(function(s){
     var nm=SURF[s.art]?SURF[s.art].n:'Fläche';
-    if(!s.bt) m('fl',nm+': Bauteil zuordnen',s.id);
-    if(!(N(s.a)>0)) m('fl',nm+': Fläche fehlt',s.id);
+    if(!s.bt) m('fl',nm+': Bauteil zuordnen',s.id,['surf/'+s.id+'/bt']);
+    if(!(N(s.a)>0)) m('fl',nm+': Fläche fehlt',s.id,['surf/'+s.id+'/a']);
     (s.ow||[]).forEach(function(o,j){
-      if(!o.bt) m('fl',nm+', Fenster '+(j+1)+': Bauteil zuordnen',s.id);
-      if(!(N(o.b)>0&&N(o.h)>0)) m('fl',nm+', Fenster '+(j+1)+': Maße fehlen',s.id);
+      var sp='surf/'+s.id+'/ow/'+o.id+'/';
+      if(!o.bt) m('fl',nm+', Fenster '+(j+1)+': Bauteil zuordnen',s.id,[sp+'bt']);
+      if(!(N(o.b)>0&&N(o.h)>0)) m('fl',nm+', Fenster '+(j+1)+': Maße fehlen',s.id,[sp+'b',sp+'h']);
     });
   });
   // Bauteile, die verwendet werden, aber keinen U-Wert haben
@@ -480,15 +483,15 @@ function missing(e){
   e.surf.forEach(function(s){if(s.bt) used[s.bt]=1;(s.ow||[]).forEach(function(o){if(o.bt) used[o.bt]=1})});
   e.kat.forEach(function(k){
     if(!used[k.id]) return;
-    if(!has(k.name)) m('bt','Bauteil ohne Namen (verwendet)',k.id);
-    if(!uOf(k).ok) m('bt',(k.name||'Bauteil')+': U-Wert fehlt',k.id);
-    if((k.kind==='fenster')&&!has(k.g)) m('bt',(k.name||'Fenster')+': g-Wert fehlt',k.id);
+    if(!has(k.name)) m('bt','Bauteil ohne Namen (verwendet)',k.id,['kat/'+k.id+'/name']);
+    if(!uOf(k).ok) m('bt',(k.name||'Bauteil')+': U-Wert fehlt',k.id,['kat/'+k.id+'/u']);
+    if((k.kind==='fenster')&&!has(k.g)) m('bt',(k.name||'Fenster')+': g-Wert fehlt',k.id,['kat/'+k.id+'/g']);
   });
   ANL.forEach(function(sec){
     sec.f.forEach(function(f){
       if(!f.req) return;
       var v=(e.anl[sec.k]||{})[f.k];
-      if(!has(v)) m('anl',sec.t+': '+f.l+' angeben');
+      if(!has(v)) m('anl',sec.t+': '+f.l+' angeben',null,['anl/'+sec.k+'/'+f.k]);
     });
   });
   return M;

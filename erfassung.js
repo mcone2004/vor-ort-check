@@ -152,6 +152,9 @@ var CSS='\
 .erf-nav button{flex:none;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:.4rem .95rem;font-weight:600;font-size:.88rem;min-height:44px;white-space:nowrap}\
 .erf-nav button:hover{background:var(--tint)}\
 .erf-nav button[aria-current=true]{background:var(--green);color:#20252A;border-color:var(--green)}\
+.erf-missbox{border:1px solid var(--line);border-radius:6px;padding:.55rem .8rem;font-size:.85rem;margin-bottom:.8rem}.erf-missbox.bad{border-color:#B03A2E;background:#FBEDEB;color:#6E2118}.erf-missbox.ok{border-color:#2E7D32;background:#EAF4EA;color:#1F5A23}.erf-missbox ul{margin:.3rem 0 0;padding-left:1.1rem}.erf-missbox li{margin:.1rem 0}\
+.erf-f.miss>span{color:#B03A2E;font-weight:600}.erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{border-color:#B03A2E!important;box-shadow:0 0 0 2px rgba(176,58,46,.25);background:#FDF3F1}\
+.erf-wh.miss{box-shadow:inset 5px 0 0 #B03A2E;background:#FDF3F1;color:#6E2118}\
 .erf-num{display:inline-grid;place-items:center;width:1.55rem;height:1.55rem;margin-right:.45rem;border-radius:50%;border:2px solid currentColor;font-size:.8rem;line-height:1;opacity:.75}.erf-num.bad{background:#B03A2E;border-color:#B03A2E;color:#fff;opacity:1}.erf-num.ok{background:#2E7D32;border-color:#2E7D32;color:#fff;opacity:1}\
 .erf-bd{display:inline-block;min-width:1.35rem;margin-left:.35rem;padding:0 .35rem;border-radius:999px;background:#B03A2E;color:#fff;font-size:.74rem;line-height:1.35rem;text-align:center}\
 .erf-bd.z{background:var(--green);color:#20252A}\
@@ -428,10 +431,11 @@ function updateOuts(){
     else if(p[0]==='pflicht'){t=outPflicht();el.hidden=!t}
     else if(p[0]==='hull') t=outHull();
     else if(p[0]==='shprev') t=shapeSvg();
+    else if(p[0]==='missbox'){t=missBox();var bad=C.missing(E).some(function(m){return m.step===step});if(el.classList.contains('bad')!==bad) el.classList.toggle('bad',bad);if(el.classList.contains('ok')===bad) el.classList.toggle('ok',!bad)}
     else if(p[0]==='hcalc'){var hf=E.gesch.filter(function(f){return f.id===p[1]})[0];t=hf?esc(outH(hf)):''}
     if(el.innerHTML!==t) el.innerHTML=t;
   }
-  updateBadges();
+  updateBadges();applyMiss();
 }
 function updateBadges(){
   if(!nav) return;
@@ -643,7 +647,7 @@ function viewBt(){
 function surfCard(s){
   var sel=(s.id===selSurf),sd=C.SURF[s.art]||{n:'Fläche',kind:'decke_o'},p='surf/'+s.id+'/',roof=(s.art==='dach_s'||s.art==='dach_f');
   var kinds=(s.art==='decke_u'||s.art==='decke_a')?['decke_u','boden']:(s.art==='boden'?['boden','decke_u']:(roof?['dach','decke_o']:['decke_o','dach','decke_u']));
-  var h='<div class="erf-kat'+(sel?' sel':'')+'"><button type="button" class="erf-wh" data-a="surf-sel" data-x="'+s.id+'"><span style="flex:1;min-width:0">'+esc(sd.n)+'<br><small style="font-weight:400;color:var(--muted)" data-out="s:'+s.id+'">'+outSurf(s.id)+'</small></span></button>';
+  var h='<div class="erf-kat'+(sel?' sel':'')+'" id="erf-s-'+s.id+'"><button type="button" class="erf-wh" data-a="surf-sel" data-x="'+s.id+'"><span style="flex:1;min-width:0">'+esc(sd.n)+'<br><small style="font-weight:400;color:var(--muted)" data-out="s:'+s.id+'">'+outSurf(s.id)+'</small></span></button>';
   if(sel){
     h+='<div class="erf-wb"><div class="erf-g">'+S(p+'bt','Bauteil',katOpts(kinds,s.bt),{blank:'Bauteil wählen'})+F(p+'a','Fläche in m²')+
       (s.art==='dach_s'?F(p+'neig','Neigung in Grad')+S(p+'dir','Ausrichtung der Fläche',C.DIR8):'')+'</div>';
@@ -859,6 +863,28 @@ function viewBlatt(){
   return '<div class="erf-row erf-noprint">'+btn('sheet-pdf',pdfBlob?'PDF teilen, drucken oder sichern':'PDF erstellen',{cls:''})+(standalone?'':btn('sheet-print','Drucken'))+btn('sheet-copy','Als Text kopieren')+'<span class="erf-hint" id="erf-cpmsg"></span></div>'+sheetHTML();
 }
 
+var MISSSTEPS=['stamm','geo','bt','fl','anl'];
+function missBox(){
+  var M=C.missing(E).filter(function(m){return m.step===step});
+  if(!M.length) return '<span class="erf-okt">✓ In diesem Bereich ist alles Wichtige eingetragen.</span>';
+  var h='<b>Noch offen in diesem Bereich ('+M.length+')</b><ul>'+M.slice(0,8).map(function(m){return '<li>'+esc(m.t)+'</li>'}).join('')+'</ul>';
+  if(M.length>8) h+='<div>… und '+(M.length-8)+' weitere. Die vollständige Liste steht im Datenblatt.</div>';
+  return h;
+}
+function applyMiss(){
+  if(!main) return;
+  Array.prototype.forEach.call(main.querySelectorAll('.miss'),function(el){el.classList.remove('miss')});
+  var M=C.missing(E).filter(function(m){return m.step===step});
+  M.forEach(function(m){
+    (m.paths||[]).forEach(function(pt){
+      var inp=main.querySelector('[data-p="'+pt+'"]'),lb=inp&&inp.closest('label');if(lb) lb.classList.add('miss');
+    });
+    if(m.ref){
+      var hd=main.querySelector('#erf-w-'+m.ref+' > .erf-wh, #erf-k-'+m.ref+' > .erf-wh, #erf-s-'+m.ref+' > .erf-wh');if(hd) hd.classList.add('miss');
+    }
+  });
+  if(step==='kunde'){var nm=main.querySelector('[data-k=name]');if(nm){var lb2=nm.closest('label');if(lb2) lb2.classList.toggle('miss',!has(nm.value))}}
+}
 function render(){
   if(!main) return;
   var st=main.scrollTop;
@@ -874,6 +900,7 @@ function render(){
     case 'blatt':h=viewBlatt();break;
     default:h='';
   }
+  if(MISSSTEPS.indexOf(step)>=0) h='<div class="erf-missbox" data-out="missbox"></div>'+h;
   main.innerHTML='<div class="erf-in">'+h+'</div>';
   main.scrollTop=st;
   drawNav();updateOuts();
@@ -1031,7 +1058,7 @@ function bind(){
       return;
     }
     var kk=t.getAttribute('data-k');
-    if(kk){if(kk!=='_sel'&&KD){KD.set(kk,t.value);kdName=KD.get().name||kdLine();var hd=root.querySelector('#erf-kd');if(hd) hd.textContent=kdName;updateBadges()}return}
+    if(kk){if(kk!=='_sel'&&KD){KD.set(kk,t.value);kdName=KD.get().name||kdLine();var hd=root.querySelector('#erf-kd');if(hd) hd.textContent=kdName;updateBadges();applyMiss()}return}
     var p=t.getAttribute('data-p');if(!p||t.tagName==='SELECT'||t.type==='checkbox') return;
     if(pset(p,t.value)){syncH(p);touch()}
   });

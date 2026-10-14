@@ -319,13 +319,13 @@ body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,bo
       <label for="aw_bj">Baujahr des Gebäudes (Jahr)<input id="aw_bj" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1950"></label>
       <label for="aw_ba">Bauantrag, Datum oder Jahr<input id="aw_ba" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 14.05.1967"></label>
       <label for="aw_neu">Neubau oder Änderung mit Berechnung des ganzen Gebäudes<select id="aw_neu"><option value="nein">nein, Bestandsgebäude</option><option value="ja">ja</option></select></label>
-      <label for="aw_nw">Niveau der Wärmeschutzverordnung 1977 nachgewiesen<select id="aw_nw"><option value="nein">nein, kein Nachweis</option><option value="ja">ja, Nachweis liegt vor</option></select></label>
+      <label for="aw_nw">Niveau der Wärmeschutzverordnung 1977 nachgewiesen<select id="aw_nw"><option value="nein">nein / nicht angegeben</option><option value="ja">ja, Nachweis liegt vor</option></select></label>
       <label for="aw_leer">Leerstand in den letzten drei Jahren<select id="aw_leer"><option value="nein">nein</option><option value="teil">teilweise oder zeitweise</option><option value="lang">überwiegend leer, mehrere Jahre</option></select></label>
       <label for="aw_vd">Verbrauchsdaten für mindestens 36 Monate vorhanden<select id="aw_vd"><option value="">noch unbekannt</option><option value="ja">ja</option><option value="nein">nein</option></select></label>
     </div>
-    <p class="hint">Der Nachweis zum Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Eine Sanierung ohne Unterlagen oder eigenen Befund ist kein Nachweis.</p>
+    <p class="hint">Das Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Bei Bauantrag vor 1977 wird aus der Sanierungsliste abgeleitet: Gesamtsanierung der Hülle oder alle vier Bauteile (Außenwand, Dach, Kellerdecke, Fenster) ab 1978, nach damals gültiger Vorschrift, mit Beleg. Waren Bauteile schon ursprünglich ausreichend, hier „Nachweis liegt vor“ wählen.</p>
     <section class="kd-sec"><h4>Bisherige Sanierungen</h4>
-      <p class="hint">Das Jahr darf „unbekannt“ lauten. Wichtiger ist, wie du die Angabe belegen kannst.</p>
+      <p class="hint">Das Jahr darf „unbekannt“ lauten, wird dann aber nicht angerechnet. Ohne Beleg (Befund oder Unterlage) zählt eine Sanierung ebenfalls nicht.</p>
       <div id="aw_sanlist"></div>
       <div class="btns"><button type="button" id="aw_sanadd" class="ghost">Sanierung hinzufügen</button></div>
     </section>
@@ -2372,6 +2372,7 @@ function awDrawSan(){
       '<label>Bauteil oder Anlage<select data-awi="'+i+'" data-awk="bt">'+awOpts(ERFCALC.SAN_BT,x.bt)+'</select></label>'+
       '<label>Was wurde gemacht<input type="text" autocomplete="off" data-awi="'+i+'" data-awk="was" value="'+esc(x.was||'')+'" placeholder="z. B. 14 cm WDVS, Fenster 2-fach"></label>'+
       '<label>Jahr<input type="text" autocomplete="off" data-awi="'+i+'" data-awk="jahr" value="'+esc(x.jahr||'')+'" placeholder="z. B. 2005 oder unbekannt"></label>'+
+      '<label>Nach damals gültiger Vorschrift (WSchV, EnEV, GEG)<select data-awi="'+i+'" data-awk="std">'+awOpts(ERFCALC.SAN_STD,x.std)+'</select></label>'+
       '<label>Wie belegt<select data-awi="'+i+'" data-awk="beleg">'+awOpts(ERFCALC.SAN_BELEG,x.beleg)+'</select></label></div></div>';
   }).join('');
 }
@@ -2382,7 +2383,7 @@ function initAw(){
     if(t&&t.getAttribute&&t.getAttribute('data-awi')!=null){var a=awSan(),i=+t.getAttribute('data-awi');if(a[i]){a[i][t.getAttribute('data-awk')]=t.value;awSetSan(a)}return}
     awRender();
   })});
-  $('aw_sanadd').addEventListener('click',function(){var a=awSan();a.push({bt:'',was:'',jahr:'',beleg:''});awSetSan(a);awDrawSan();awRender()});
+  $('aw_sanadd').addEventListener('click',function(){var a=awSan();a.push({bt:'',was:'',jahr:'',std:'',beleg:''});awSetSan(a);awDrawSan();awRender()});
   $('aw_sanlist').addEventListener('click',function(e){var b=e.target.closest?e.target.closest('[data-awdel]'):null;if(!b) return;var a=awSan();a.splice(+b.getAttribute('data-awdel'),1);awSetSan(a);awDrawSan();awRender()});
   awDrawSan();awRender();
 }
@@ -2448,7 +2449,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-14 08:22',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-14 08:34',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

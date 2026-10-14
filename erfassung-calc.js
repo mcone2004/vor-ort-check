@@ -246,7 +246,7 @@ function normalize(e){
   for(var k2 in n.g) if(e.g[k2]==null) e.g[k2]=n.g[k2];
   return e;
 }
-function newSan(){return {id:uid(),bt:'',was:'',jahr:'',beleg:''}}
+function newSan(){return {id:uid(),bt:'',was:'',jahr:'',std:'',beleg:''}}
 function newFloor(name,art,heated,h){return {id:uid(),name:name,art:art||'voll',heated:heated===false?'nein':'ja',h:String(h||'2,50'),hm:'ok',hl:'',dd:'',walls:[]}}
 function newWall(len,turn){return {id:uid(),len:len==null?'':String(len),turn:String(turn==null?90:turn),type:'aussen',bt:'',h:'',giebel:'',ow:[]}}
 function newOpening(kind){return {id:uid(),kind:kind||'fenster',bt:'',b:'',h:'',n:'1',roll:'nein'}}
@@ -431,8 +431,24 @@ function bauantragVor1977(g){
   if(m) return (+m[3])*10000+(+m[2])*100+(+m[1])<19771101;
   var y=year(s);return y?(y===1977?null:y<1977):null;
 }
-var SAN_BT=['Außenwand','Dach oder oberste Geschossdecke','Kellerdecke oder Bodenplatte','Fenster und Außentüren','Heizung, Wärmeerzeuger','Lüftung','Sonstiges'];
+var SAN_GES='Gesamte Gebäudehülle (alle Bauteile)';
+var SAN_HUELLE=['Außenwand','Dach oder oberste Geschossdecke','Kellerdecke oder Bodenplatte','Fenster und Außentüren'];
+var SAN_STD=['ja','nein / unbekannt'];
+var SAN_BT=[SAN_GES,'Außenwand','Dach oder oberste Geschossdecke','Kellerdecke oder Bodenplatte','Fenster und Außentüren','Heizung, Wärmeerzeuger','Lüftung','Sonstiges'];
 var SAN_BELEG=['Befund vor Ort (gemessen, gesehen)','Unterlage (Rechnung, Datenblatt, Nachweis)','Angabe des Eigentümers','kein Beleg'];
+/* Welche Hüllbauteile gelten als nach 1977 auf damals gültigem Standard saniert? Zählt nur: Jahr ab 1978, "nach Vorschrift" = ja, Beleg Befund oder Unterlage. */
+function sanHuelle(san){
+  var ok={},schwach=[],ges=null;
+  (san||[]).forEach(function(x){
+    var y=year(x.jahr),good=y&&y>=1978&&x.std==='ja'&&(x.beleg===SAN_BELEG[0]||x.beleg===SAN_BELEG[1]);
+    var huelle=x.bt===SAN_GES||SAN_HUELLE.indexOf(x.bt)>=0;
+    if(!huelle) return;
+    if(good){if(x.bt===SAN_GES){SAN_HUELLE.forEach(function(b){ok[b]=y});ges=y}else if(!ok[x.bt]||y>ok[x.bt]) ok[x.bt]=y}
+    else schwach.push(x);
+  });
+  var fehlt=SAN_HUELLE.filter(function(b){return !ok[b]});
+  return {ok:ok,fehlt:fehlt,voll:fehlt.length===0,ges:ges,schwach:schwach};
+}
 /* Ausweisart für Wohngebäude im Bestand. Orientierung nach § 80 GEG, nicht verbindlich; bitte am aktuellen Gesetzestext prüfen. */
 function ausweisart(e){
   var g=e.g,aw=e.aw||{},san=e.san||[],we=N(g.we),by=year(g.bj),L=[],o={art:'offen',head:'',lines:L,quelle:''};
@@ -447,10 +463,20 @@ function ausweisart(e){
   if(we>=5){art='wahl';L.push('Fünf oder mehr Wohnungen: Verbrauchs- oder Bedarfsausweis darf frei gewählt werden, unabhängig vom Baujahr.')}
   else if(vor===null){o.head=by?'Bauantragsdatum fehlt':'Baujahr oder Bauantragsdatum fehlt';L.push('Das Baujahr liegt um 1977 oder fehlt. Ob der Bauantrag vor dem 01.11.1977 gestellt wurde, bestimmt die Ausweisart. Das Datum steht in den Bauunterlagen oder der Baugenehmigung.');return o}
   else if(vor){
+    var sh=sanHuelle(san);
     if(aw.nw==='ja'){art='wahl';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen (§ 80 Abs. 3 Satz 2 GEG). Ein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 bei Fertigstellung erfüllte oder später erreichte, wurde angegeben (Satz 3). Dann ist die Wahl möglich.')}
+    else if(sh.voll){art='wahl';o.abgeleitet=true;
+      var teile=sh.ges?'Gesamtsanierung der Hülle '+sh.ges:SAN_HUELLE.map(function(b){return b+' '+sh.ok[b]}).join(', ');
+      L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen (§ 80 Abs. 3 Satz 2 GEG). Aus der Sanierungsliste abgeleitet: Die gesamte Hülle wurde nach 1977 nach der damals gültigen Vorschrift saniert und ist belegt ('+teile+'). Das spricht dafür, dass das Niveau der Wärmeschutzverordnung 1977 erreicht ist (Satz 3). Ob das im Einzelfall stimmt und ausreichend nachweisbar ist, beurteilst du; hier wird nichts berechnet.')}
     else{art='bedarf';o.head='Bedarfsausweis ist Pflicht';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen und kein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 erfüllt (§ 80 Abs. 3 Satz 2 und 3 GEG).');
-      if(san.length) L.push('Die erfassten Sanierungen ersetzen diesen Nachweis nicht. Der Nachweis gilt für das ganze Gebäude, nicht für einzelne Bauteile.')}
+      if(san.length){
+        var got=SAN_HUELLE.filter(function(b){return sh.ok[b]});
+        if(got.length) L.push('Teilsanierung: belegt nach 1977 nach damaliger Vorschrift sind nur '+got.join(', ')+'. Es fehlen: '+sh.fehlt.join(', ')+'. Das Niveau gilt für das ganze Gebäude, nicht für einzelne Bauteile. Waren die fehlenden Bauteile schon ursprünglich ausreichend oder rechnest du das Gebäude insgesamt nach, setze oben „Nachweis liegt vor“.');
+        else L.push('In der Sanierungsliste ist keine Hüllsanierung erfasst, die zählt. Angerechnet wird nur: Jahr ab 1978, „nach damals gültiger Vorschrift“ = ja, Beleg als Befund oder Unterlage. Eine Gesamtsanierung der Hülle oder alle vier Bauteile (Außenwand, Dach, Kellerdecke, Fenster) zusammen genügen.');
+        if(sh.schwach.length) L.push(sh.schwach.length+' Sanierung(en) der Hülle zählen nicht mit: Jahr unbekannt oder vor 1978, nicht nach Vorschrift, oder nur Angabe des Eigentümers.');
+      }}
   }else{art='wahl';L.push('Bauantrag ab dem 01.11.1977 ('+q+'): Verbrauchs- oder Bedarfsausweis darf gewählt werden.')}
+  if(art==='wahl'&&!o.abgeleitet&&san.length) L.push('Sanierungen ändern an der Wahlfreiheit nichts. Sie sind nur für die Aussagekraft der Verbrauchswerte wichtig.');
   if(art==='wahl'){
     if(aw.leer==='lang'){art='bedarf_vd';o.head='Praktisch nur Bedarfsausweis (Leerstand)';L.push('Das Gebäude stand in den letzten Jahren überwiegend leer. Die Verbrauchswerte zeigen dann nicht den Zustand des Gebäudes, aussagekräftige Verbrauchsdaten für 36 Monate fehlen in der Regel. Fachlich bleibt nur der Bedarfsausweis.')}
     else if(aw.vd==='nein'){art='bedarf_vd';o.head='Nur Bedarfsausweis möglich';L.push('Es liegen keine Verbrauchsdaten für mindestens 36 Monate vor. Ohne diese Daten bleibt nur der Bedarfsausweis.')}
@@ -585,7 +611,7 @@ function warnings(e){
 }
 function openCount(e){return missing(e).length}
 
-var api={ausweisart:ausweisart,newSan:newSan,SAN_BT:SAN_BT,SAN_BELEG:SAN_BELEG,SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
+var api={ausweisart:ausweisart,sanHuelle:sanHuelle,newSan:newSan,SAN_BT:SAN_BT,SAN_STD:SAN_STD,SAN_GES:SAN_GES,SAN_HUELLE:SAN_HUELLE,SAN_BELEG:SAN_BELEG,SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
   newErf:newErf,normalize:normalize,newFloor:newFloor,newWall:newWall,newOpening:newOpening,newSurface:newSurface,newKat:newKat,findKat:findKat,
   trace:trace,wallBearing:wallBearing,sector:sector,dirName:dirName,closeFix:closeFix,oArea:oArea,wallGeom:wallGeom,summary:summary,suggestArea:suggestArea,
   missing:missing,warnings:warnings,openCount:openCount,bauantragVor1977:bauantragVor1977,year:year};

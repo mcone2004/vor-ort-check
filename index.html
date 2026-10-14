@@ -107,6 +107,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .kd-set>.kd-sec{display:grid;gap:.6rem;padding-top:.8rem;border-top:1px solid var(--line)}
 .kd-sec h4{margin:0;font-family:var(--f-data);font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
 .kd-sec[hidden]{display:none}
+.wzbox{display:grid;gap:.6rem;padding:.6rem;border:1px dashed var(--line);border-radius:6px}.wzbox[hidden]{display:none}
 .kd-cap{display:block;margin-top:.3rem;font-family:var(--f-data);font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
 .kd-rg{display:grid;gap:.6rem}.kd-rgbox{display:grid;gap:.6rem;padding:.6rem;border:1px dashed var(--line);border-radius:6px}.kd-rgbox[hidden]{display:none}
 #kd_auto{font-weight:600}#kd_auto[data-kind="warn"]{color:#B35C00}#kd_auto[data-kind="ok"]{color:#4F7A12}
@@ -422,8 +423,16 @@ body[data-mode="ausweis"] #kd .kd-rg,body[data-mode="ausweis"] #kd .geo-line,bod
     <label for="vlm">Höchster Vorlauf an kalten Tagen im letzten Winter<select id="vlm"><option value="" selected>unbekannt</option><option value="35">bis 35 °C</option><option value="45">36 bis 45 °C</option><option value="55">46 bis 55 °C</option><option value="65">56 bis 65 °C</option><option value="70">über 65 °C</option></select></label>
     <span class="hint">Der gemessene Vorlauf ist die beste Prüfung vor Ort und ersetzt die Schätzung.</span>
     <div class="row">
-      <label for="wwart">Warmwasser<select id="wwart"><option value="zh" selected>zentral über die Heizung</option><option value="zz">zentral mit Zirkulationsleitung</option><option value="el">elektrisch dezentral (Boiler, Durchlauferhitzer)</option></select></label>
+      <label for="wwart">Warmwasser<select id="wwart"><option value="zh" selected>zentral über die Heizung</option><option value="el">elektrisch dezentral (Boiler, Durchlauferhitzer)</option></select></label>
       <label for="wwp">Personen im Haushalt, optional<input id="wwp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="2" placeholder="z. B. 3"></label>
+    </div>
+    <label for="wzirk" id="wzirkl">Zirkulationsleitung<select id="wzirk"><option value="nein" selected>nein</option><option value="ja">ja</option></select></label>
+    <div id="wzbox" class="wzbox" hidden>
+      <div class="row">
+        <label for="wzart">Art der Zirkulation<select id="wzart"><option value="" selected>unbekannt</option><option value="dauer">Dauerbetrieb, ungeregelt</option><option value="zeit">mit Zeitschaltuhr</option><option value="temp">temperatur- oder bedarfsgesteuert</option></select></label>
+        <label for="wzltg">Leitungen gedämmt<select id="wzltg"><option value="" selected>unbekannt</option><option value="ja">ja, vollständig</option><option value="teil">teilweise</option><option value="nein">nein</option></select></label>
+      </div>
+      <label for="wzpu">Zirkulationspumpe<select id="wzpu"><option value="" selected>unbekannt</option><option value="alt">ältere, ungeregelte Pumpe</option><option value="hoch">Hocheffizienzpumpe</option></select></label>
     </div>
     <span class="hint" id="wwhint"></span>
   </fieldset>
@@ -643,7 +652,7 @@ var QV=[34,34,32,28,24,18];          // Lüftungsverluste kWh/(m²WF·a)
 // Warmwasser-Nutzwärme je m² Wohnfläche: Vorgabe 12,5 kWh/m²a; mit Personenzahl 500 kWh je Person und Jahr; Zirkulation +40 %
 function wwq(o){
   var p=+o.wwP>0?+o.wwP:0,b=(p>0&&o.wf>0)?Math.min(35,Math.max(4,p*500/o.wf)):12.5;
-  return b*(o.wwArt==='zz'?1.4:1);
+  return b*((o.wwZirk||o.wwArt==='zz')?1.4:1);
 }
 var GEW=22, GT=72, WW=12.5, VBH=1700; // Gewinne, Gradtag-Faktor (kKh), Warmwasser-Nutzwärme, Volllaststunden
 var DTN=[47.5,47.5,47.5,42.5,35,30];  // Heizkörper-Übertemperatur bei Auslegung je Baujahrband
@@ -1037,7 +1046,7 @@ function read(){
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4'),inv5:numG('inv5'),inv6:numG('inv6'),inv7:numG('inv7'),inv8:numG('inv8'),
-    wwArt:$('wwart').value,wwP:numG('wwp'),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,
+    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,
     rbOrt:$('rb_ort').value,rbNachb:$('rb_nachb').value,rbPlatz:$('rb_platz').value,rbStrom:$('rb_strom').value,rbTank:$('rb_tank').value,rbNetz:$('rb_netz').value,rbDenk:$('rb_denk').value,rbNote:$('rb_note').value.trim(),
     cvDach:$('cv_dach').checked,cvKeller:$('cv_keller').checked,cvWand:$('cv_wand').checked,cvFen:$('cv_fen').checked,cvHk:$('cv_hk').checked,
     kPa:(function(){var v=parseFloat(String($('k_pa').value).replace(',','.'));return isNaN(v)?4:v})(),kPs:(function(){var v=parseFloat(String($('k_ps').value).replace(',','.'));return isNaN(v)?2:v})(),kWb:numG('k_wb'),kWw:numG('k_ww')
@@ -1374,6 +1383,12 @@ function render(){
   if(o.kShare===0) f.push('Bodenplatte: Die Dämmung ist nur bei ohnehin anstehender Fußbodenerneuerung realistisch und steckt deshalb nicht in Variante 2 und 3.');
   if(o.kShare>0&&o.kArt==='bh') f.push('Beheizter Keller: Verluste über Boden und erdberührte Wände sind angesetzt. Perimeterdämmung ist aufwendig und steckt nicht in Variante 2 und 3.');
   rbLines(o).forEach(function(x){f.push(x)});
+  if(o.wwZirk){
+    var zi=$('wzart').value,zl=$('wzltg').value,zp=$('wzpu').value;
+    if(zi==='dauer') f.push('Zirkulation im Dauerbetrieb: Zeitschaltuhr oder Bedarfssteuerung verringert die Verluste und lässt sich meist einfach nachrüsten.');
+    if(zl==='nein'||zl==='teil') f.push('Warmwasser- und Zirkulationsleitungen sind nicht vollständig gedämmt: Dämmung nachholen, vor allem in unbeheizten Bereichen.');
+    if(zp==='alt') f.push('Ungeregelte Zirkulationspumpe: Austausch gegen eine Hocheffizienzpumpe prüfen.');
+  }
   if(o.wwArt==='el') f.push('Warmwasser elektrisch: Der Brennstoffverbrauch enthält kein Warmwasser. Der Strom dafür steckt im Haushaltsstrom, bei der Wärmepumpe übernimmt diese das Warmwasser.');
   if(um.length) f.push('Nicht abgefragt, Standardwert angesetzt: '+um.join(', ')+'.');
   f.push('Vor Auslegung und Angebot: Raumweise Heizlast nach DIN EN 12831 und hydraulischer Abgleich. Dieses Tool ersetzt beides nicht.');
@@ -1396,7 +1411,7 @@ function render(){
   })();
   (function(){
     var h=$('wwhint');if(!h) return;
-    h.textContent=(o.wwArt==='el'?'Das Warmwasser steckt dann nicht im Brennstoffverbrauch. Der Strom dafür liegt im Haushaltsstrom und geht bei der Wärmepumpe auf diese über. ':'')+'Angesetzt: ca. '+fmt(R.ww,1)+' kWh/m²a Nutzwärme'+(o.wwP>0?' bei '+fmt(o.wwP)+' Personen':' (Pauschale, ohne Personenzahl)')+(o.wwArt==='zz'?', mit 40 % Zuschlag für die Zirkulation':'')+'.';
+    h.textContent=(o.wwArt==='el'?'Das Warmwasser steckt dann nicht im Brennstoffverbrauch. Der Strom dafür liegt im Haushaltsstrom und geht bei der Wärmepumpe auf diese über. ':'')+'Angesetzt: ca. '+fmt(R.ww,1)+' kWh/m²a Nutzwärme'+(o.wwP>0?' bei '+fmt(o.wwP)+' Personen':' (Pauschale, ohne Personenzahl)')+((o.wwZirk||o.wwArt==='zz')?', mit 40 % Zuschlag für die Zirkulation (Annahme, unabhängig von Art und Dämmung)':'')+'.';
   })();
   geoShow();
   var outHtml=top+unc+rec+foep+hkp+solp+sc+srcp+hb+bf;
@@ -1577,6 +1592,7 @@ function solarLines(R){
   }
   return out;
 }
+function syncWw(){var el=$('wwart').value==='el',z=$('wzirk').value==='ja';$('wzirkl').hidden=el;$('wzbox').hidden=el||!z}
 function syncHk(){var f=$('hk').value==='fbh';$('hktypl').hidden=f;$('hktyph').hidden=f}
 
 // ---- Kundenverwaltung ----
@@ -1803,6 +1819,7 @@ function initKunden(backendP){
   var DEF0=collect(); // Ausgangswerte des Formulars: fehlende Felder in älteren Datensätzen und „Kunde schließen“ fallen darauf zurück
   function apply(f){
     if(f.touched==null) f=Object.assign({},f,{touched:'*'}); // ältere Datensätze: Angaben gelten als bestätigt
+    if(f.wwart==='zz') f=Object.assign({},f,{wwart:'zh',wzirk:'ja'}); // ältere Datensätze: Zirkulation war Teil der Warmwasser-Auswahl
     f=Object.assign({},DEF0,f);
     ['wtyp','kshare','kart','hk','traeger'].forEach(function(id){if(f[id]!=null&&$(id)) $(id).value=f[id]});
     syncKeller();syncWand();syncHk();
@@ -1813,7 +1830,7 @@ function initKunden(backendP){
       if(e.tagName==='SELECT'&&e.value!==f[e.id]) e.value=old;
     });
     syncDm();syncSolar();
-    render();awDrawSan();awRender();
+    syncWw();render();awDrawSan();awRender();
   }
   function fmtDate(iso){try{return new Date(iso).toLocaleDateString('de-DE')}catch(e){return ''}}
   function fillList(){
@@ -2475,7 +2492,7 @@ function initHome(){
 }
 function init(){
   ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -2496,9 +2513,10 @@ function init(){
   $('wd').addEventListener('change',render);
   $('wlgg').addEventListener('change',render);
   $('hk').addEventListener('change',syncHk);
+  ['wwart','wzirk'].forEach(function(id){$(id).addEventListener('change',syncWw)});
   $('bar').addEventListener('click',function(){if(!wideNow()&&cTab!=='all'){setTab('ergebnis');return}try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
   var fm0=document.querySelector('form');if(fm0){fm0.addEventListener('input',onTouch,true);fm0.addEventListener('change',onTouch,true)}
-  syncKeller();syncWand();syncHk();syncSolar();initGeo();initPhotos();
+  syncKeller();syncWand();syncHk();syncWw();syncSolar();initGeo();initPhotos();
   render();
   initTabs();
   initHome();
@@ -2527,7 +2545,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-14 21:20',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-14 21:43',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

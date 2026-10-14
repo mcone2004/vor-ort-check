@@ -115,7 +115,29 @@ function katOpts(kinds,cur){
   if(cur){var k2=C.findKat(E,cur);if(k2&&kinds.indexOf(k2.kind)<0) o.unshift({v:cur,t:(k2.name||'ohne Namen')+' (Art passt nicht)'})}
   return o;
 }
+function wallRefs(id){
+  var multi=E.gesch.filter(function(f){return f.walls.length}).length>1,o=[];
+  E.gesch.forEach(function(f){f.walls.forEach(function(w,i){if(w.bt===id) o.push('Wand '+(i+1)+(multi?' ('+(f.name||'Geschoss')+')':''))})});
+  return o;
+}
+function wallPick(k){
+  var ok=WALLKINDREV[k.kind];if(!ok) return '';
+  var multi=E.gesch.filter(function(f){return f.walls.length}).length>1,h='',cnt=0;
+  E.gesch.forEach(function(f){
+    var items='';
+    f.walls.forEach(function(w,i){
+      if(ok.indexOf(w.type)<0) return;cnt++;
+      var other=(w.bt&&w.bt!==k.id)?C.findKat(E,w.bt):null;
+      items+='<label class="erf-ck"><input type="checkbox" data-wb="'+w.id+'" data-wbk="'+k.id+'"'+(w.bt===k.id?' checked':'')+'><span>Wand '+(i+1)+' · '+esc(dirText(bearing(f,i)))+' · '+f2(N(w.len))+' m'+(w.type!=='aussen'?' · '+esc(C.WTYPE[w.type]):'')+(other?' <small style="color:var(--muted)">(derzeit: '+esc(other.name||'anderes Bauteil')+')</small>':'')+'</span></label>';
+    });
+    if(items) h+=(multi?'<div class="erf-hint" style="margin-top:.3rem"><b>'+esc(f.name||'Geschoss')+'</b></div>':'')+'<div class="erf-g w2">'+items+'</div>';
+  });
+  if(!cnt) return '<div class="erf-hint">Noch keine passenden Wände. Unter „Grundriss und Wände“ eine Grundrissform erzeugen oder Wände anlegen.</div>';
+  return '<div class="erf-hint" style="margin-top:.4rem"><b>Gilt für folgende Wände</b></div>'+h+'<div class="erf-row">'+btn('kat-walls-all',(k.kind==='wand'?'Alle Außenwände ohne Bauteil zuordnen':'Alle passenden Wände ohne Bauteil zuordnen'),{x:k.id})+btn('kat-walls-none','Zuordnung aufheben',{x:k.id})+'</div>';
+}
 var WALLKIND={aussen:['wand'],unbeh:['wand_u','wand'],erd:['wand_e','wand']};
+var WALLPRIM={wand:'aussen',wand_u:'unbeh',wand_e:'erd'};
+var WALLKINDREV={wand:['aussen','unbeh','erd'],wand_u:['unbeh'],wand_e:['erd']};
 
 /* ---------- Stil ---------- */
 var CSS='\
@@ -553,7 +575,7 @@ function viewGeo(){
 
 function katCard(k){
   var sel=(k.id===selKat),kd=C.KINDS[k.kind],n=usage(k.id);
-  var h='<div class="erf-kat'+(sel?' sel':'')+'" id="erf-k-'+k.id+'"><button type="button" class="erf-wh" data-a="kat-sel" data-x="'+k.id+'"><span style="flex:1;min-width:0">'+esc(k.name||'Neues Bauteil')+'<br><small style="font-weight:400;color:var(--muted)">'+esc(kd.n)+' · '+(n?('verwendet '+n+'×'):'noch nicht verwendet')+'</small></span><span class="erf-u" data-out="u:'+k.id+'">'+outU(k.id)+'</span></button>';
+  var h='<div class="erf-kat'+(sel?' sel':'')+'" id="erf-k-'+k.id+'"><button type="button" class="erf-wh" data-a="kat-sel" data-x="'+k.id+'"><span style="flex:1;min-width:0">'+esc(k.name||'Neues Bauteil')+'<br><small style="font-weight:400;color:var(--muted)">'+esc(kd.n)+' · '+(n?('verwendet '+n+'×'):'noch nicht verwendet')+(WALLKINDREV[k.kind]&&wallRefs(k.id).length?' · '+esc(wallRefs(k.id).join(', ')):'')+'</small></span><span class="erf-u" data-out="u:'+k.id+'">'+outU(k.id)+'</span></button>';
   if(sel){
     var p='kat/'+k.id+'/',win=(k.kind==='fenster'||k.kind==='tuer');
     h+='<div class="erf-wb"><div class="erf-g">'+F(p+'name','Bezeichnung',{text:1,ph:win?'z. B. Kunststoff 2-fach WSV, 2004':'z. B. Außenwand Vollziegel 36,5 cm'})+
@@ -573,6 +595,7 @@ function katCard(k){
       if(k.src==='schaetz') h+='<div class="erf-note">Geschätzte Werte vor der Abgabe belegen oder durch einen Aufbau ersetzen. Das Bauteil wird im Datenblatt als geschätzt markiert.</div>';
       if(k.src==='pausch') h+='<div class="erf-hint">Pauschalwert aus der amtlichen Tabelle für das Baualter eintragen. Die App liefert diese Tabellenwerte nicht selbst.</div>';
     }
+    h+=wallPick(k);
     h+=TA(p+'note','Notiz (Quelle, Besonderheiten)',2)+photoBox('kat:'+k.id,'Foto vom Aufbau oder Bauteil');
     h+='<div class="erf-row">'+btn('kat-dup','Duplizieren',{x:k.id})+btn('kat-del','Löschen',{x:k.id})+'</div></div>';
   }
@@ -713,7 +736,7 @@ function sheetHTML(){
   var ord=Object.keys(C.KINDS);
   E.kat.slice().sort(function(a,b){return ord.indexOf(a.kind)-ord.indexOf(b.kind)}).forEach(function(k){
     var u=C.uOf(k),win=(k.kind==='fenster'||k.kind==='tuer');
-    h+='<div style="margin:.4rem 0"><b>'+esc(k.name||'ohne Namen')+'</b> · '+esc(C.KINDS[k.kind].n)+' · '+(u.ok?'<b>U '+(win?f2(u.u):f3(u.u))+' W/(m²K)</b>':'U fehlt')+' · '+esc(C.SRC[k.src||'calc']||'')+(usage(k.id)?'':' · nicht verwendet')+'</div>';
+    h+='<div style="margin:.4rem 0"><b>'+esc(k.name||'ohne Namen')+'</b> · '+esc(C.KINDS[k.kind].n)+' · '+(u.ok?'<b>U '+(win?f2(u.u):f3(u.u))+' W/(m²K)</b>':'U fehlt')+' · '+esc(C.SRC[k.src||'calc']||'')+(usage(k.id)?'':' · nicht verwendet')+(WALLKINDREV[k.kind]&&wallRefs(k.id).length?' · '+esc(wallRefs(k.id).join(', ')):'')+'</div>';
     if(win) h+='<div>'+esc([k.verg,k.rahmen,has(k.g)?'g '+k.g:'',has(k.fr)?'Rahmenanteil '+k.fr+' %':'',has(k.bj)?'Einbau '+k.bj:''].filter(Boolean).join(' · '))+'</div>';
     else if(u.calc&&u.calc.ok){
       h+='<div class="erf-wrapx"><table class="erf-tb"><thead><tr><th>Schicht, innen nach außen</th><th class="r">Dicke cm</th><th class="r">λ</th><th>Anteil</th></tr></thead><tbody>';
@@ -896,6 +919,15 @@ function actions(a,t){
       fl.walls.forEach(function(w){if(!withOw) w.ow=[];else w.ow=w.ow||[]});
       selWall=fl.walls.length?fl.walls[0].id:null;touch();render();return;
     }
+    case 'kat-walls-all':{
+      var kk=C.findKat(E,x),okt=kk&&WALLKINDREV[kk.kind];if(!okt) return;
+      E.gesch.forEach(function(f){f.walls.forEach(function(w){if(w.type===WALLPRIM[kk.kind]&&!w.bt) w.bt=kk.id})});
+      touch();render();return;
+    }
+    case 'kat-walls-none':{
+      E.gesch.forEach(function(f){f.walls.forEach(function(w){if(w.bt===x) w.bt=''})});
+      touch();render();return;
+    }
     case 'wall-add':{
       fl=floorObj();if(!fl) return;
       var w=C.newWall('',90);fl.walls.push(w);selWall=w.id;touch();render();setTimeout(function(){scrollToId('erf-w-'+w.id)},30);return;
@@ -995,6 +1027,12 @@ function bind(){
   });
   main.addEventListener('change',function(ev){
     var t=ev.target;if(!t||!t.getAttribute) return;
+    var wbid=t.getAttribute('data-wb');
+    if(wbid){
+      var wr=findWall(wbid),wk=t.getAttribute('data-wbk');
+      if(wr){if(t.checked) wr.w.bt=wk;else if(wr.w.bt===wk) wr.w.bt='';touch();render()}
+      return;
+    }
     var shk=t.getAttribute('data-sh');
     if(shk==='_key'){SH.key=t.value;render();return}
     var iw=t.getAttribute('data-iw');

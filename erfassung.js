@@ -521,7 +521,7 @@ function shapeBlock(fl){
 
 function outAw(){
   var r=C.ausweisart(E),cls=r.art==='wahl'?'wahl':(r.art==='offen'?'offen':'bed');
-  var h='<div class="erf-awres '+cls+'"><b>'+esc(r.head||'Ausweisart')+'</b>'+r.lines.map(function(t){return '<p>'+esc(t)+'</p>'}).join('')+'<p class="erf-hint">Orientierung nach § 80 GEG für Wohngebäude im Bestand, keine Rechtsberatung. Maßgeblich ist der aktuelle Gesetzestext.</p></div>';
+  var h='<div class="erf-awres '+cls+'"><b>'+esc(r.head||'Ausweisart')+'</b>'+r.lines.map(function(t){return '<p>'+esc(t)+'</p>'}).join('')+'<p class="erf-hint">Orientierung nach § 80 GEG für Wohngebäude, keine Rechtsberatung. Nichtwohngebäude sind hier nicht abgedeckt. Maßgeblich ist der aktuelle Gesetzestext.</p></div>';
   return h;
 }
 function sanCard(x,j){
@@ -533,7 +533,7 @@ function viewAw(){
   var h='<div class="erf-hint">Hier siehst du, ob für dieses Gebäude ein Verbrauchsausweis möglich ist oder nur der Bedarfsausweis. Die Angaben zu Wohnungen, Baujahr und Bauantrag sind dieselben wie im Tab Gebäude.</div>';
   h+='<div data-out="awres">'+outAw()+'</div>';
   h+=sec('Angaben','<div class="erf-g">'+F('g/we','Wohnungen im Gebäude')+F('g/bj','Baujahr des Gebäudes (Jahr)',{ph:'z. B. 1950'})+F('g/antrag','Bauantrag, Datum oder Jahr',{text:1,ph:'z. B. 14.05.1967'})+
-    S('aw/neu','Neubau oder wesentliche Änderung bzw. Erweiterung',[{v:'nein',t:'nein, Bestandsgebäude'},{v:'ja',t:'ja'}],{noblank:1})+
+    S('aw/neu','Neubau oder Änderung mit Berechnung des ganzen Gebäudes',[{v:'nein',t:'nein, Bestandsgebäude'},{v:'ja',t:'ja'}],{noblank:1})+
     S('aw/vd','Verbrauchsdaten für mindestens 36 Monate vorhanden',[{v:'ja',t:'ja'},{v:'nein',t:'nein'}],{blank:'noch unbekannt'})+
     S('aw/nw','Niveau der Wärmeschutzverordnung 1977 nachgewiesen',[{v:'nein',t:'nein, kein Nachweis'},{v:'ja',t:'ja, Nachweis liegt vor'}],{noblank:1})+'</div>'+
     '<div class="erf-hint">Der Nachweis zum Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Eine Sanierung ohne Unterlagen oder eigenen Befund ist kein Nachweis.</div>');

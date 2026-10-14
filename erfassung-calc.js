@@ -440,7 +440,7 @@ var SAN_BELEG=['Befund vor Ort (gemessen, gesehen)','Unterlage (Rechnung, Datenb
 function ausweisart(e){
   var g=e.g,aw=e.aw||{},san=e.san||[],we=N(g.we),by=year(g.bj),L=[],o={art:'offen',head:'',lines:L,quelle:''};
   var jetzt=new Date().getFullYear();
-  if(aw.neu==='ja'){o.art='bedarf';o.head='Bedarfsausweis ist Pflicht';L.push('Neubau oder wesentliche Änderung bzw. Erweiterung des Gebäudes: Hier ist ein Bedarfsausweis vorgeschrieben.');return o}
+  if(aw.neu==='ja'){o.art='bedarf';o.head='Bedarfsausweis ist Pflicht';L.push('Neubau, oder Änderung am Bestand mit Berechnung für das gesamte Gebäude (§ 80 Abs. 1 und 2 GEG): Hier ist ein Bedarfsausweis vorgeschrieben.');return o}
   if(!(we>0)){o.head='Anzahl der Wohnungen fehlt';L.push('Ohne die Anzahl der Wohnungen lässt sich die Ausweisart nicht bestimmen. Gezählt wird jede Wohnung im Gebäude.');return o}
   var vor=bauantragVor1977(g),q='';
   if(vor!=null) q='nach dem eingetragenen Bauantrag';
@@ -450,8 +450,8 @@ function ausweisart(e){
   if(we>=5){art='wahl';L.push('Fünf oder mehr Wohnungen: Verbrauchs- oder Bedarfsausweis darf frei gewählt werden, unabhängig vom Baujahr.')}
   else if(vor===null){o.head=by?'Bauantragsdatum fehlt':'Baujahr oder Bauantragsdatum fehlt';L.push('Das Baujahr liegt um 1977 oder fehlt. Ob der Bauantrag vor dem 01.11.1977 gestellt wurde, bestimmt die Ausweisart. Das Datum steht in den Bauunterlagen oder der Baugenehmigung.');return o}
   else if(vor){
-    if(aw.nw==='ja'){art='wahl';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen. Ein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 erreicht, wurde angegeben. Dann ist die Wahl möglich.')}
-    else{art='bedarf';o.head='Bedarfsausweis ist Pflicht';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen und kein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 erreicht.');
+    if(aw.nw==='ja'){art='wahl';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen (§ 80 Abs. 3 Satz 2 GEG). Ein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 bei Fertigstellung erfüllte oder später erreichte, wurde angegeben (Satz 3). Dann ist die Wahl möglich.')}
+    else{art='bedarf';o.head='Bedarfsausweis ist Pflicht';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen und kein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 erfüllt (§ 80 Abs. 3 Satz 2 und 3 GEG).');
       if(san.length) L.push('Die erfassten Sanierungen ersetzen diesen Nachweis nicht. Der Nachweis gilt für das ganze Gebäude, nicht für einzelne Bauteile.')}
   }else{art='wahl';L.push('Bauantrag ab dem 01.11.1977 ('+q+'): Verbrauchs- oder Bedarfsausweis darf gewählt werden.')}
   if(art==='wahl'){
@@ -464,6 +464,7 @@ function ausweisart(e){
       if(jung) L.push('Sanierung in den letzten drei Jahren: Die Verbrauchswerte sind dann womöglich nicht repräsentativ. Ein Bedarfsausweis ist dann aussagekräftiger.');
     }
   }
+  L.push('Ein Energieausweis ist nur bei Verkauf, Vermietung, Verpachtung, Leasing oder Erbbaurecht vorgeschrieben, wenn kein gültiger vorliegt (§ 80 Abs. 3 Satz 1 GEG).');
   o.art=art;
   if(art!=='wahl'&&!o.head) o.head='Bedarfsausweis';
   if(art!=='wahl'&&san.length) L.push('Beim Bedarfsausweis zählt der Aufbau der Bauteile, den du vor Ort feststellst, nicht das Sanierungsjahr. Angaben des Eigentümers sind nur Hinweise.');

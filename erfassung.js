@@ -707,9 +707,13 @@ function viewKunde(){
   var h=sec('Kunde wählen oder neu anlegen','<div class="erf-g"><label class="erf-f wide"><span>Gespeicherte Kunden</span><select data-k="_sel">'+opts+'</select></label></div>'+
     '<div class="erf-row">'+btn('kd-new','Neuer Kunde')+btn('kd-save','Speichern',{cls:''})+'<span class="erf-hint" id="erf-kdmsg" role="status"></span></div>'+
     '<div class="erf-hint">'+(K.id?'Geöffnet: '+esc(K.name||'Ohne Name')+'. Änderungen werden automatisch gespeichert.':'Neuer Kunde. Name oder Adresse eintragen, dann wird automatisch gespeichert.')+'</div>');
-  h+=sec('Kundendaten','<div class="erf-g">'+kF('name','Name',K.name,{cls:'wide'})+'</div>'+
+  h+=sec('Kunde und Objektadresse','<div class="erf-g">'+kF('name','Name',K.name,{cls:'wide'})+'</div>'+
     '<div class="erf-g">'+kF('str','Straße',K.str)+kF('nr','Nr.',K.nr,{max:10})+kF('plz','PLZ',K.plz,{num:1,max:5})+kF('ort','Ort',K.ort)+'</div>'+
     '<label class="erf-f"><span>Notiz</span><textarea rows="3" data-k="note">'+esc(K.note)+'</textarea></label>');
+  var rgA=K.rg==='abw';
+  h+=sec('Rechnungsadresse','<label class="erf-f wide"><span>Rechnung an</span><select data-k="rg"><option value=""'+(rgA?'':' selected')+'>wie Objektadresse</option><option value="abw"'+(rgA?' selected':'')+'>abweichend (anderer Empfänger oder andere Anschrift)</option></select></label>'+
+    (rgA?'<div class="erf-g">'+kF('rgname','Name oder Firma, falls abweichend',K.rgname,{cls:'wide'})+'</div><div class="erf-g">'+kF('rgstr','Straße',K.rgstr)+kF('rgnr','Nr.',K.rgnr,{max:10})+kF('rgplz','PLZ',K.rgplz,{num:1,max:5})+kF('rgort','Ort',K.rgort)+'</div>':'')+
+    '<div class="erf-hint">Nur ausfüllen, wenn die Rechnung nicht an die Objektadresse geht, zum Beispiel bei Vermietung oder Verkauf.</div>');
   return h;
 }
 function viewAbs(){
@@ -726,6 +730,7 @@ function photosHTML(key){return (E.photos[key]||[]).map(function(p){return '<img
 function sheetHTML(){
   var g=E.g,h='<div class="erf-sheet" id="erf-sheet"><h2>Datenerfassung Energieausweis (Bedarf)</h2>';
   h+='<div class="erf-hint" style="color:#555">'+esc(kdLine())+(kdLine()?' · ':'')+'Stand '+new Date().toLocaleDateString('de-DE')+'. Erfassung vor Ort zur Übertragung in den Energieberater, keine Berechnung nach GEG.</div>';
+  var K0=KD?KD.get():null;if(K0&&K0.rg==='abw'&&has(K0.rgadr)) h+='<div class="erf-hint" style="color:#555">Rechnungsadresse: '+esc(K0.rgadr)+'</div>';
   h+='<section><h4>1. Gebäude</h4>'+kv([['Gebäudetyp',g.typ],['Baujahr',g.bj],['Bauantrag',g.antrag],['Wohneinheiten',g.we],['Vollgeschosse',g.vg],['Keller',g.keller],['Dachform',g.dachform],['Dachgeschoss',g.dg],['Wohnfläche',has(g.wf)?g.wf+' m²':''],['Denkmalschutz',g.denk],['Anbauten',g.anbau],['Besonderheiten',g.bem],['Laufrichtung 1. Wand',g.h0+'°']]);
   h+='<div style="margin-top:.5rem"><b>Unterlagen</b><br>'+C.UNTERL.map(function(u){return (E.unterl[u[0]]==='1'?'☑ ':'☐ ')+esc(u[1])}).join('<br>')+'</div>'+photosHTML('gebaeude')+'</section>';
   h+='<section><h4>2. Grundriss und Wände</h4>';
@@ -1058,7 +1063,7 @@ function bind(){
       return;
     }
     var kk=t.getAttribute('data-k');
-    if(kk){if(kk!=='_sel'&&KD){KD.set(kk,t.value);kdName=KD.get().name||kdLine();var hd=root.querySelector('#erf-kd');if(hd) hd.textContent=kdName;updateBadges();applyMiss()}return}
+    if(kk){if(kk!=='_sel'&&KD){KD.set(kk,t.value);kdName=KD.get().name||kdLine();var hd=root.querySelector('#erf-kd');if(hd) hd.textContent=kdName;if(kk==='rg'){render();return}updateBadges();applyMiss()}return}
     var p=t.getAttribute('data-p');if(!p||t.tagName==='SELECT'||t.type==='checkbox') return;
     if(pset(p,t.value)){syncH(p);touch()}
   });

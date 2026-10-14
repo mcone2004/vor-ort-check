@@ -107,6 +107,8 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .kd-set>.kd-sec{display:grid;gap:.6rem;padding-top:.8rem;border-top:1px solid var(--line)}
 .kd-sec h4{margin:0;font-family:var(--f-data);font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
 .kd-sec[hidden]{display:none}
+.kd-cap{display:block;margin-top:.3rem;font-family:var(--f-data);font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+.kd-rg{display:grid;gap:.6rem}.kd-rgbox{display:grid;gap:.6rem;padding:.6rem;border:1px dashed var(--line);border-radius:6px}.kd-rgbox[hidden]{display:none}
 #kd_auto{font-weight:600}#kd_auto[data-kind="warn"]{color:#B35C00}#kd_auto[data-kind="ok"]{color:#4F7A12}
 :root[data-theme="dark"] #kd_auto[data-kind="warn"]{color:#F0B35A}
 details{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:.7rem 1rem}
@@ -230,7 +232,7 @@ body[data-mode="erfassung"] .wrap{grid-template-columns:minmax(0,44rem)!importan
 body:not([data-mode="ausweis"]) #awbox{display:none}
 body[data-mode="ausweis"] form>*:not(#kd):not(#awbox),body[data-mode="ausweis"] #res,body[data-mode="ausweis"] #bar,body[data-mode="ausweis"] #kd_snap,body[data-mode="ausweis"] #kd_erf{display:none!important}
 body[data-mode="ausweis"] .wrap{grid-template-columns:minmax(0,44rem)!important;justify-content:center}
-body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,body[data-mode="ausweis"] #kd label[for="kd_note"]{display:none}
+body[data-mode="ausweis"] #kd .kd-rg,body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,body[data-mode="ausweis"] #kd label[for="kd_note"]{display:none}
 .awgrid label{align-content:end}
 .awgrid{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
 .awres{border:1px solid var(--line);border-radius:8px;padding:.7rem 1rem;font-size:.9rem}.awres b{font-size:1.05rem}.awres p{margin:.35rem 0 0}.awres.bed{border-color:#C98A12;background:#FFF6E3;color:#5A3D00}.awres.wahl{border-color:#2E7D32;background:#EAF4EA;color:#1F5A23}.awres.offen{background:var(--surface)}
@@ -258,6 +260,7 @@ body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,bo
   <fieldset id="kd" hidden class="kdbox"><legend>Kunde</legend>
     <label for="kd_list">Kunde wählen oder neu anlegen<select id="kd_list"><option value="">Neuer Eintrag</option></select></label>
     <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
+    <span class="kd-cap">Objektadresse (Gebäude)</span>
     <div class="row kd-a1">
       <label for="kd_str">Straße<input id="kd_str" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße" autocomplete="off"></label>
       <label for="kd_nr">Nr.<input id="kd_nr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Nr." maxlength="10"></label>
@@ -268,6 +271,21 @@ body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,bo
     </div>
     <input type="hidden" id="kd_adr"><input type="hidden" id="geo"><input type="hidden" id="touched">
     <div class="geo-line"><button type="button" id="geo_btn" class="ghost">Standort ermitteln</button><span class="hint" id="geo_state" role="status"></span></div>
+    <div class="kd-rg">
+      <label for="kd_rg">Rechnungsadresse<select id="kd_rg"><option value="">wie Objektadresse</option><option value="abw">abweichend (anderer Empfänger oder andere Anschrift)</option></select></label>
+      <div id="kd_rgbox" class="kd-rgbox" hidden>
+        <label for="kd_rgname">Name oder Firma, falls abweichend vom Kunden<input id="kd_rgname" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. Eigentümer, Hausverwaltung, Firma"></label>
+        <div class="row kd-a1">
+          <label for="kd_rgstr">Straße<input id="kd_rgstr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Straße"></label>
+          <label for="kd_rgnr">Nr.<input id="kd_rgnr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Nr." maxlength="10"></label>
+        </div>
+        <div class="row kd-a2">
+          <label for="kd_rgplz">PLZ<input id="kd_rgplz" type="text" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="numeric" maxlength="5" placeholder="PLZ"></label>
+          <label for="kd_rgort">Ort<input id="kd_rgort" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Ort"></label>
+        </div>
+      </div>
+      <input type="hidden" id="kd_rgadr">
+    </div>
     <div class="ph-box"><label for="ph_in">Fotos (Typenschild, Heizraum, Zähler, Fassade)<input id="ph_in" type="file" accept="image/*" multiple></label>
     <div id="ph_list" class="ph-list"></div><span class="hint" id="ph_hint">Bis zu 8 Fotos je Kunde, verkleinert gespeichert. Sie stehen nur auf der internen Seite.</span></div>
     <label for="kd_note">Notiz<textarea id="kd_note" rows="2" placeholder="Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
@@ -1814,7 +1832,19 @@ function initKunden(backendP){
     $('kd_str').value=p.str||'';$('kd_nr').value=p.nr||'';$('kd_plz').value=p.plz||'';$('kd_ort').value=p.ort||'';syncAdr();
   }
   ['kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){$(id).addEventListener('input',syncAdr)});
-  function clearKd(){$('kd_name').value='';setAdr({});$('kd_note').value='';PHOTOS=[];drawPhotos();$('kd_del').hidden=true;resetDel();updSnap()}
+  // Rechnungsadresse: entweder wie die Objektadresse oder abweichend (eigener Empfänger, eigene Anschrift)
+  var RGI=['kd_rg','kd_rgname','kd_rgstr','kd_rgnr','kd_rgplz','kd_rgort'];
+  function rgParts(){
+    var abw=$('kd_rg').value==='abw',r={rg:abw?'abw':'',rgname:$('kd_rgname').value.trim(),rgstr:$('kd_rgstr').value.trim(),rgnr:$('kd_rgnr').value.trim(),rgplz:$('kd_rgplz').value.trim(),rgort:$('kd_rgort').value.trim()};
+    var a=(r.rgstr+' '+r.rgnr).trim(),b=(r.rgplz+' '+r.rgort).trim();
+    r.rgadr=abw?[r.rgname,a,b].filter(Boolean).join(', '):'';
+    return r;
+  }
+  function rgAssign(o){var p=rgParts();Object.keys(p).forEach(function(k){o[k]=p[k]});return o}
+  function syncRg(){var abw=$('kd_rg').value==='abw';$('kd_rgbox').hidden=!abw;$('kd_rgadr').value=rgParts().rgadr}
+  function setRg(d){d=d||{};$('kd_rg').value=d.rg==='abw'?'abw':'';$('kd_rgname').value=d.rgname||'';$('kd_rgstr').value=d.rgstr||'';$('kd_rgnr').value=d.rgnr||'';$('kd_rgplz').value=d.rgplz||'';$('kd_rgort').value=d.rgort||'';syncRg()}
+  RGI.forEach(function(id){$(id).addEventListener('input',syncRg);$(id).addEventListener('change',syncRg)});
+  function clearKd(){$('kd_name').value='';setAdr({});setRg({});$('kd_note').value='';PHOTOS=[];drawPhotos();$('kd_del').hidden=true;resetDel();updSnap()}
   function updSnap(){
     var b=$('kd_snap');if(b) b.hidden=!(curId&&docs[curId]&&docs[curId].snap);
     // Kopfbereich: ohne Kunde „Neuer Kunde“, mit geöffnetem Kunden „Kunde schließen“ und dessen Name
@@ -1826,7 +1856,7 @@ function initKunden(backendP){
   function resetDel(){var d=$('kd_delbox');if(d) d.hidden=true;var p=$('kd_delpw');if(p) p.value=''}
   function load(id){
     var d=docs[id];if(!d) return;
-    dirty=false;clearDraft();setAuto('','');curId=id;$('kd_name').value=d.name||'';setAdr(d);$('kd_note').value=d.note||'';PHOTOS=(d.photos||[]).slice();drawPhotos();
+    dirty=false;clearDraft();setAuto('','');curId=id;$('kd_name').value=d.name||'';setAdr(d);setRg(d);$('kd_note').value=d.note||'';PHOTOS=(d.photos||[]).slice();drawPhotos();
     $('kd_del').hidden=false;resetDel();updSnap();
     if(d.form) apply(d.form);
     erfSet(d.erf);
@@ -1840,7 +1870,7 @@ function initKunden(backendP){
   function writeDraft(){
     try{
       if(!dirty){localStorage.removeItem(DRK);return}
-      var dr={cur:curId,name:$('kd_name').value,adr:$('kd_adr').value,str:$('kd_str').value,nr:$('kd_nr').value,plz:$('kd_plz').value,ort:$('kd_ort').value,note:$('kd_note').value,form:collect(),photos:PHOTOS,erf:(window.ERF?ERF.getData(true):null),at:Date.now()};
+      var dr={cur:curId,name:$('kd_name').value,adr:$('kd_adr').value,str:$('kd_str').value,nr:$('kd_nr').value,plz:$('kd_plz').value,ort:$('kd_ort').value,note:$('kd_note').value,form:collect(),photos:PHOTOS,erf:(window.ERF?ERF.getData(true):null),at:Date.now()};rgAssign(dr);
       try{localStorage.setItem(DRK,JSON.stringify(dr))}catch(q){dr.photos=[];localStorage.setItem(DRK,JSON.stringify(dr))}
     }catch(e){}
   }
@@ -1866,7 +1896,7 @@ function initKunden(backendP){
     if(!d) return;
     if(d.cur&&docs[d.cur]&&docs[d.cur].updated&&new Date(docs[d.cur].updated).getTime()>d.at){clearDraft();return}
     curId=(d.cur&&docs[d.cur])?d.cur:null;
-    $('kd_name').value=d.name||'';setAdr(d);$('kd_note').value=d.note||'';PHOTOS=(d.photos||[]).slice();drawPhotos();
+    $('kd_name').value=d.name||'';setAdr(d);setRg(d);$('kd_note').value=d.note||'';PHOTOS=(d.photos||[]).slice();drawPhotos();
     if(d.form) apply(d.form);
     if(d.erf){var e0=d.erf;if(!e0.photos||!Object.keys(e0.photos).length){var pe=d.cur&&docs[d.cur]&&docs[d.cur].erf;if(pe&&pe.photos) e0.photos=pe.photos}erfSet(e0)}
     $('kd_list').value=curId||'';$('kd_del').hidden=!curId;updSnap();
@@ -1882,7 +1912,7 @@ function initKunden(backendP){
     }
     if(saving){clearTimeout(autoT);autoT=setTimeout(autoSave,1000);return Promise.resolve(false)}
     var id=curId||('k'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),now=new Date().toISOString(),prev=docs[id]||{};
-    var ap=adrParts(),data={name:name,adr:adr,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value.trim(),form:collect(),photos:PHOTOS.slice(),erf:erfGet(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};
+    var ap=adrParts(),data={name:name,adr:adr,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value.trim(),form:collect(),photos:PHOTOS.slice(),erf:erfGet(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};rgAssign(data);
     var b=$('kd_save'),mine=chg;b.disabled=true;saving=true;
     if(!silent) setAuto('', 'Speichere …');
     return be.save(id,data).then(function(){
@@ -2055,10 +2085,10 @@ function initKunden(backendP){
       var KDAPI={
         get:function(){
           var ap=adrParts(),list=Object.keys(docs).sort(function(a,b){return String(docs[a].name||'').localeCompare(String(docs[b].name||''),'de')}).map(function(id){return {id:id,label:(docs[id].name||'Ohne Name')+(docs[id].adr?', '+docs[id].adr:'')}});
-          return {id:curId,name:$('kd_name').value,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value,list:list};
+          return rgAssign({id:curId,name:$('kd_name').value,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value,list:list});
         },
         set:function(k,v){
-          var m={name:'kd_name',str:'kd_str',nr:'kd_nr',plz:'kd_plz',ort:'kd_ort',note:'kd_note'}[k];if(!m) return;
+          var m={name:'kd_name',str:'kd_str',nr:'kd_nr',plz:'kd_plz',ort:'kd_ort',note:'kd_note',rg:'kd_rg',rgname:'kd_rgname',rgstr:'kd_rgstr',rgnr:'kd_rgnr',rgplz:'kd_rgplz',rgort:'kd_rgort'}[k];if(!m) return;
           var e=$(m);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));
         },
         select:function(id,after){
@@ -2449,7 +2479,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-14 08:34',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-14 09:00',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

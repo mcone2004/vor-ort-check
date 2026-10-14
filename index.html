@@ -233,7 +233,7 @@ body[data-mode="check"] form>[data-tab]:not(.ctab-on){display:none!important}
 
 .home{max-width:1180px;margin:0 auto;padding-block:1.6rem 2.4rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));display:grid;gap:1rem;grid-template-columns:minmax(0,1fr)}
 @media (min-width:700px){.home{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:1000px){.home{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1000px){.home{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .hbtn{display:grid;gap:.5rem;align-content:start;text-align:left;min-height:11rem;padding:1.6rem;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:1rem;cursor:pointer;font:inherit}
 .hbtn strong{font-size:1.45rem;font-weight:800;color:var(--ink)}.hbtn span{font-size:.95rem;font-weight:400;color:var(--muted)}
 .hbtn:hover{border-color:var(--ink);background:var(--surface)}
@@ -246,6 +246,10 @@ body[data-mode="erfassung"] .wrap{grid-template-columns:minmax(0,44rem)!importan
 body:not([data-mode="ausweis"]) #awbox{display:none}
 body[data-mode="ausweis"] form>*:not(#kd):not(#awbox),body[data-mode="ausweis"] #res,body[data-mode="ausweis"] #bar,body[data-mode="ausweis"] #kd_snap,body[data-mode="ausweis"] #kd_erf{display:none!important}
 body[data-mode="ausweis"] .wrap{grid-template-columns:minmax(0,44rem)!important;justify-content:center}
+body[data-mode="kunden"] form>*:not(#kd),body[data-mode="kunden"] #res,body[data-mode="kunden"] #bar,body[data-mode="kunden"] #kd_snap,body[data-mode="kunden"] #kd_erf{display:none!important}
+body[data-mode="kunden"] .wrap{grid-template-columns:minmax(0,44rem)!important;justify-content:center}
+body[data-mode="kunden"] #kd .geo-line,body[data-mode="kunden"] #kd .ph-box{display:none}
+body:not([data-mode="kunden"]):not([data-all]) #kd_ov,body:not([data-mode="kunden"]):not([data-all]) #kd_del,body:not([data-mode="kunden"]):not([data-all]) #kd_delbox{display:none!important}
 body[data-mode="ausweis"] #kd .kd-rg,body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,body[data-mode="ausweis"] #kd label[for="kd_note"]{display:none}
 .awgrid label{align-content:end}
 .awgrid{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
@@ -266,6 +270,7 @@ body[data-mode="ausweis"] #kd .kd-rg,body[data-mode="ausweis"] #kd .geo-line,bod
   <button type="button" class="hbtn" id="go_check"><strong>Vor-Ort-Check</strong><span>Erstberatung beim Kunden: Wärmepumpe oder erst die Hülle. Mit Ergebnis, Varianten, Förderung und Kundenbericht.</span></button>
   <button type="button" class="hbtn" id="go_erf"><strong>Gebäudeerfassung</strong><span>Kunde erfassen, dann das Gebäude für den Bedarfsausweis aufnehmen: Wände, Bauteile, Anlagentechnik, Fotos und Datenblatt als PDF.</span></button>
   <button type="button" class="hbtn" id="go_aw"><strong>Ausweisart</strong><span>Verbrauchs- oder Bedarfsausweis? Prüfung nach Wohnungen, Bauantrag, Sanierungen und Verbrauchsdaten, mit Begründung.</span></button>
+  <button type="button" class="hbtn" id="go_kd"><strong>Kundenverwaltung</strong><span>Kunden anlegen, ändern und löschen, mit Suche, Löschschutz und Abgleich.</span></button>
   <p class="hint home-note">Die Kunden sind in allen Bereichen dieselben. Jeder Kunde hat seine Eingaben für den Vor-Ort-Check und seine Gebäudeerfassung.</p>
 </section>
 
@@ -2433,15 +2438,17 @@ function initTabs(){
   $('ctab_prev').addEventListener('click',function(){var L=tabList();var i=L.map(function(t){return t[0]}).indexOf(cTab);if(i>0) setTab(L[i-1][0])});
   $('ctab_next').addEventListener('click',function(){var L=tabList();var i=L.map(function(t){return t[0]}).indexOf(cTab);if(i>=0&&i<L.length-1) setTab(L[i+1][0])});
   window.addEventListener('resize',function(){if(cTab!=='all') setTab(cTab,true)});
+  if(/[?&]alltabs/.test(location.search)) document.body.setAttribute('data-all','1'); // Prüfschalter: alle Bereiche und Kundenfunktionen sichtbar
   setTab(/[?&]alltabs/.test(location.search)?'all':'kunde',true);
 }
 window.setTab=setTab;
 // Startseite: zwei Bereiche auf denselben Kundendaten. Der Bereich steht im Hash, damit ein Neuladen (iPad räumt Hintergrund-Apps ab) im Bereich bleibt.
 var erfLauncher=null;
-var MODES={ausweis:['Ausweisart','Verbrauchs- oder Bedarfsausweis? Prüfung für Wohngebäude im Bestand, mit Begründung.'],home:['Energieberatung Lange','Bereich wählen.'],check:['Vor-Ort-Check Sanierung','Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.'],erfassung:['Gebäudeerfassung','Kunde wählen oder anlegen, dann das Gebäude aufnehmen.']};
+var MODES={kunden:['Kundenverwaltung','Kunden anlegen, ändern und löschen. In den anderen Bereichen stehen dieselben Kunden zur Auswahl.'],ausweis:['Ausweisart','Verbrauchs- oder Bedarfsausweis? Prüfung für Wohngebäude im Bestand, mit Begründung.'],home:['Energieberatung Lange','Bereich wählen.'],check:['Vor-Ort-Check Sanierung','Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.'],erfassung:['Gebäudeerfassung','Kunde wählen oder anlegen, dann das Gebäude aufnehmen.']};
 function setMode(m,noScroll){
   if(!MODES[m]) m='home';
   document.body.setAttribute('data-mode',m);
+  if(m==='kunden'){var ov0=$('kd_ov');if(ov0) ov0.open=true}
   $('hdr_t').textContent=MODES[m][0];$('hdr_p').textContent=MODES[m][1];
   try{history.replaceState(null,'',m==='home'?location.pathname+location.search:'#'+m)}catch(e){}
   if(!noScroll){try{window.scrollTo(0,0)}catch(e){}}
@@ -2483,10 +2490,11 @@ function initAw(){
 }
 function initHome(){
   var h=(location.hash||'').replace('#','');
-  setMode(h==='check'||h==='erfassung'||h==='ausweis'?h:'home',true);
+  setMode(h==='check'||h==='erfassung'||h==='ausweis'||h==='kunden'?h:'home',true);
   $('go_check').addEventListener('click',function(){setMode('check')});
   $('go_erf').addEventListener('click',function(){setMode('erfassung');if(erfLauncher) erfLauncher()});
   $('go_aw').addEventListener('click',function(){setMode('ausweis')});
+  $('go_kd').addEventListener('click',function(){setMode('kunden')});
   initAw();
   $('hdr_home').addEventListener('click',function(){setMode('home')});
 }
@@ -2545,7 +2553,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-14 21:43',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-14 22:01',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

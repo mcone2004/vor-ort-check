@@ -351,11 +351,19 @@ function cornerMark(fl,tr,i,cx,cy,sc){
 function f1x(v){return String(Math.round(v*10)/10).replace('.',',')}
 
 function hullHTML(){
-  var S=C.summary(E),rows=[],tot=0;
-  var byKey={};
-  Object.keys(S.byBt).forEach(function(k){
-    var p=k.split('|'),kat=C.findKat(E,p[0]);
-    rows.push({s:'Wand',n:(kat&&kat.name)||'ohne Bauteil',z:C.WTYPE[p[1]]||p[1],d:C.DIR8[+p[2]],a:S.byBt[k],u:kat?C.uOf(kat).u:null});
+  var S=C.summary(E),rows=[];
+  var multi=E.gesch.filter(function(f){return f.walls.length}).length>1;
+  S.walls.forEach(function(ws){
+    if(!ws.heated||ws.type==='nachbar') return;
+    var r=findWall(ws.id);if(!r) return;
+    var kat=C.findKat(E,r.w.bt),fn=multi?' · '+(r.fl.name||'Geschoss'):'';
+    rows.push({s:'Wand '+(r.i+1)+fn,n:(kat&&kat.name)||'ohne Bauteil',z:C.WTYPE[ws.type]||ws.type,d:C.DIR8[ws.ori]||'',a:ws.g.net,u:kat?C.uOf(kat).u:null});
+    var om={},od={};
+    (r.w.ow||[]).forEach(function(o){var m=o.kind==='tuer'?od:om;m[o.bt]=(m[o.bt]||0)+C.oArea(o)});
+    [[om,'Fenster'],[od,'Tür']].forEach(function(q){Object.keys(q[0]).forEach(function(bt){
+      var ko=C.findKat(E,bt);if(!(q[0][bt]>0)) return;
+      rows.push({s:q[1]+' in Wand '+(r.i+1)+fn,n:(ko&&ko.name)||'ohne Bauteil',z:'',d:C.DIR8[ws.ori]||'',a:q[0][bt],u:ko?C.uOf(ko).u:null});
+    })});
   });
   S.surf.forEach(function(s){
     var sf=E.surf.filter(function(x){return x.id===s.id})[0],kat=C.findKat(E,sf&&sf.bt);
@@ -363,10 +371,10 @@ function hullHTML(){
   });
   function winRows(map,label){
     Object.keys(map).forEach(function(k){
-      var p=k.split('|'),kat=C.findKat(E,p[0]),d='';
-      if(/^\d$/.test(p[1])) d=C.DIR8[+p[1]];
-      else{var sf=findSurf(p[1]);d=(sf&&sf.art==='dach_s'&&sf.dir)?sf.dir:'Dachfläche'}
-      rows.push({s:label,n:(kat&&kat.name)||'ohne Bauteil',z:'',d:d,a:map[k],u:kat?C.uOf(kat).u:null});
+      var p=k.split('|');if(/^\d$/.test(p[1])) return;
+      var kat=C.findKat(E,p[0]),sf=findSurf(p[1]);
+      var d=(sf&&sf.art==='dach_s'&&sf.dir)?sf.dir:'Dachfläche';
+      rows.push({s:label+' in Fläche',n:(kat&&kat.name)||'ohne Bauteil',z:'',d:d,a:map[k],u:kat?C.uOf(kat).u:null});
     });
   }
   winRows(S.win,'Fenster');winRows(S.doors,'Tür');

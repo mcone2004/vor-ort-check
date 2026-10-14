@@ -217,6 +217,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 .wrap{padding-bottom:5rem}
 .home{max-width:1180px;margin:0 auto;padding-block:1.6rem 2.4rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));display:grid;gap:1rem;grid-template-columns:minmax(0,1fr)}
 @media (min-width:700px){.home{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1000px){.home{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .hbtn{display:grid;gap:.5rem;align-content:start;text-align:left;min-height:11rem;padding:1.6rem;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:1rem;cursor:pointer;font:inherit}
 .hbtn strong{font-size:1.45rem;font-weight:800;color:var(--ink)}.hbtn span{font-size:.95rem;font-weight:400;color:var(--muted)}
 .hbtn:hover{border-color:var(--ink);background:var(--surface)}
@@ -240,7 +241,8 @@ body[data-mode="erfassung"] .wrap{grid-template-columns:minmax(0,44rem)!importan
 <section id="home" class="home" aria-label="Start">
   <button type="button" class="hbtn" id="go_check"><strong>Vor-Ort-Check</strong><span>Erstberatung beim Kunden: Wärmepumpe oder erst die Hülle. Mit Ergebnis, Varianten, Förderung und Kundenbericht.</span></button>
   <button type="button" class="hbtn" id="go_erf"><strong>Gebäudeerfassung</strong><span>Kunde erfassen, dann das Gebäude für den Bedarfsausweis aufnehmen: Wände, Bauteile, Anlagentechnik, Fotos und Datenblatt als PDF.</span></button>
-  <p class="hint home-note">Die Kunden sind in beiden Bereichen dieselben. Jeder Kunde hat seine Eingaben für den Vor-Ort-Check und seine Gebäudeerfassung.</p>
+  <button type="button" class="hbtn" id="go_aw"><strong>Ausweisart</strong><span>Verbrauchs- oder Bedarfsausweis? Prüfung nach Wohnungen, Bauantrag, Sanierungen und Verbrauchsdaten, mit Begründung.</span></button>
+  <p class="hint home-note">Die Kunden sind in allen Bereichen dieselben. Jeder Kunde hat seine Eingaben für den Vor-Ort-Check und seine Gebäudeerfassung.</p>
 </section>
 
 <main class="wrap">
@@ -2046,7 +2048,7 @@ function initKunden(backendP){
       ERF.init({onChange:function(){onEdit({target:{id:'erf'}})},onClose:function(){erfInfo();if(document.body.getAttribute('data-mode')==='erfassung') setMode('home')},kunden:KDAPI});
       var openErf=function(step){ERF.open($('kd_name').value.trim()||$('kd_adr').value.trim(),step)};
       $('kd_erf').addEventListener('click',function(){openErf()});
-      erfLauncher=function(){openErf('kunde')};
+      erfLauncher=function(st){openErf(st||'kunde')};
       if(document.body.getAttribute('data-mode')==='erfassung') erfLauncher();
     }else{$('kd_erf').hidden=true}
     $('kd_list').addEventListener('change',function(){
@@ -2326,6 +2328,7 @@ function initHome(){
   setMode(h==='check'||h==='erfassung'?h:'home',true);
   $('go_check').addEventListener('click',function(){setMode('check')});
   $('go_erf').addEventListener('click',function(){setMode('erfassung');if(erfLauncher) erfLauncher()});
+  $('go_aw').addEventListener('click',function(){setMode('erfassung');if(erfLauncher) erfLauncher('aw')});
   $('hdr_home').addEventListener('click',function(){setMode('home')});
 }
 function init(){
@@ -2381,7 +2384,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-14 06:05',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-14 08:03',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

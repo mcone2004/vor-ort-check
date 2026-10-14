@@ -237,15 +237,18 @@ function newErf(){
   return {v:1,
     g:{typ:'',bj:'',antrag:'',we:'1',vg:'',keller:'',dachform:'',dg:'',anbau:'',bem:'',h0:'90',denk:'nein',wf:''},
     unterl:{},
-    kat:[],gesch:[],surf:[],anl:{},photos:{},abs:{maengel:'',empf:'',offen:''}
+    kat:[],gesch:[],surf:[],anl:{},photos:{},abs:{maengel:'',empf:'',offen:''},
+    aw:{neu:'nein',nw:'nein',vd:''},san:[]
   };
 }
 function normalize(e){
   var n=newErf();if(!e||typeof e!=='object') return n;
   for(var k in n) if(e[k]==null) e[k]=n[k];
   for(var k2 in n.g) if(e.g[k2]==null) e.g[k2]=n.g[k2];
+  for(var k3 in n.aw) if(e.aw[k3]==null) e.aw[k3]=n.aw[k3];
   return e;
 }
+function newSan(){return {id:uid(),bt:'',was:'',jahr:'',beleg:''}}
 function newFloor(name,art,heated,h){return {id:uid(),name:name,art:art||'voll',heated:heated===false?'nein':'ja',h:String(h||'2,50'),hm:'ok',hl:'',dd:'',walls:[]}}
 function newWall(len,turn){return {id:uid(),len:len==null?'':String(len),turn:String(turn==null?90:turn),type:'aussen',bt:'',h:'',giebel:'',ow:[]}}
 function newOpening(kind){return {id:uid(),kind:kind||'fenster',bt:'',b:'',h:'',n:'1',roll:'nein'}}
@@ -416,6 +419,7 @@ function suggestArea(e,art,neig){
 var STEPS=[
   {k:'kunde',n:'Kundenerfassung'},
   {k:'stamm',n:'Gebäude'},
+  {k:'aw',n:'Ausweisart'},
   {k:'geo',n:'Grundriss und Wände'},
   {k:'bt',n:'Bauteile'},
   {k:'fl',n:'Dach, Decke, Boden'},
@@ -428,7 +432,42 @@ function bauantragVor1977(g){
   var s=String(g.antrag||'').trim();if(!s) return null;
   var m=/(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(s);
   if(m) return (+m[3])*10000+(+m[2])*100+(+m[1])<19771101;
-  var y=year(s);return y?y<1977:null;
+  var y=year(s);return y?(y===1977?null:y<1977):null;
+}
+var SAN_BT=['Außenwand','Dach oder oberste Geschossdecke','Kellerdecke oder Bodenplatte','Fenster und Außentüren','Heizung, Wärmeerzeuger','Lüftung','Sonstiges'];
+var SAN_BELEG=['Befund vor Ort (gemessen, gesehen)','Unterlage (Rechnung, Datenblatt, Nachweis)','Angabe des Eigentümers','kein Beleg'];
+/* Ausweisart für Wohngebäude im Bestand. Orientierung nach § 80 GEG, nicht verbindlich; bitte am aktuellen Gesetzestext prüfen. */
+function ausweisart(e){
+  var g=e.g,aw=e.aw||{},san=e.san||[],we=N(g.we),by=year(g.bj),L=[],o={art:'offen',head:'',lines:L,quelle:''};
+  var jetzt=new Date().getFullYear();
+  if(aw.neu==='ja'){o.art='bedarf';o.head='Bedarfsausweis ist Pflicht';L.push('Neubau oder wesentliche Änderung bzw. Erweiterung des Gebäudes: Hier ist ein Bedarfsausweis vorgeschrieben.');return o}
+  if(!(we>0)){o.head='Anzahl der Wohnungen fehlt';L.push('Ohne die Anzahl der Wohnungen lässt sich die Ausweisart nicht bestimmen. Gezählt wird jede Wohnung im Gebäude.');return o}
+  var vor=bauantragVor1977(g),q='';
+  if(vor!=null) q='nach dem eingetragenen Bauantrag';
+  else if(by){if(by<=1975){vor=true;q='abgeleitet aus dem Baujahr '+by}else if(by>=1980){vor=false;q='abgeleitet aus dem Baujahr '+by}}
+  o.quelle=q;
+  var art;
+  if(we>=5){art='wahl';L.push('Fünf oder mehr Wohnungen: Verbrauchs- oder Bedarfsausweis darf frei gewählt werden, unabhängig vom Baujahr.')}
+  else if(vor===null){o.head=by?'Bauantragsdatum fehlt':'Baujahr oder Bauantragsdatum fehlt';L.push('Das Baujahr liegt um 1977 oder fehlt. Ob der Bauantrag vor dem 01.11.1977 gestellt wurde, bestimmt die Ausweisart. Das Datum steht in den Bauunterlagen oder der Baugenehmigung.');return o}
+  else if(vor){
+    if(aw.nw==='ja'){art='wahl';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen. Ein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 erreicht, wurde angegeben. Dann ist die Wahl möglich.')}
+    else{art='bedarf';o.head='Bedarfsausweis ist Pflicht';L.push('Bauantrag vor dem 01.11.1977 ('+q+'), weniger als fünf Wohnungen und kein Nachweis, dass das Gebäude das Niveau der Wärmeschutzverordnung 1977 erreicht.');
+      if(san.length) L.push('Die erfassten Sanierungen ersetzen diesen Nachweis nicht. Der Nachweis gilt für das ganze Gebäude, nicht für einzelne Bauteile.')}
+  }else{art='wahl';L.push('Bauantrag ab dem 01.11.1977 ('+q+'): Verbrauchs- oder Bedarfsausweis darf gewählt werden.')}
+  if(art==='wahl'){
+    if(aw.vd==='nein'){art='bedarf_vd';o.head='Nur Bedarfsausweis möglich';L.push('Es liegen keine Verbrauchsdaten für mindestens 36 Monate vor. Ohne diese Daten bleibt nur der Bedarfsausweis.')}
+    else{
+      o.head='Verbrauchs- oder Bedarfsausweis möglich';
+      if(aw.vd==='ja') L.push('Verbrauchsdaten für mindestens 36 Monate liegen vor.');
+      else L.push('Offen: Liegen Verbrauchsdaten für mindestens 36 Monate vor? Ohne sie bleibt nur der Bedarfsausweis.');
+      var jung=san.some(function(x){var y=year(x.jahr);return y&&y>=jetzt-3});
+      if(jung) L.push('Sanierung in den letzten drei Jahren: Die Verbrauchswerte sind dann womöglich nicht repräsentativ. Ein Bedarfsausweis ist dann aussagekräftiger.');
+    }
+  }
+  o.art=art;
+  if(art!=='wahl'&&!o.head) o.head='Bedarfsausweis';
+  if(art!=='wahl'&&san.length) L.push('Beim Bedarfsausweis zählt der Aufbau der Bauteile, den du vor Ort feststellst, nicht das Sanierungsjahr. Angaben des Eigentümers sind nur Hinweise.');
+  return o;
 }
 function missing(e){
   var M=[],g=e.g;
@@ -438,7 +477,8 @@ function missing(e){
   if(!has(g.we)||N(g.we)<1) m('stamm','Anzahl Wohneinheiten eintragen',null,['g/we']);
   if(!has(g.keller)) m('stamm','Keller angeben',null,['g/keller']);
   if(!has(g.dg)) m('stamm','Dachgeschoss angeben',null,['g/dg']);
-  if(!has(g.antrag)) m('stamm','Datum des Bauantrags (oder Jahr) eintragen, falls bekannt',null,['g/antrag']);
+  var by0=year(g.bj);
+  if(!has(g.antrag)&&by0>=1976&&by0<=1979&&!(N(g.we)>=5)) m('stamm','Datum des Bauantrags eintragen (Baujahr liegt um 1977, davon hängt die Ausweisart ab)',null,['g/antrag']);
   var heated=(e.gesch||[]).filter(function(f){return f.heated!=='nein'});
   if(!e.gesch.length) m('geo','Mindestens ein Geschoss anlegen');
   else if(!heated.length) m('geo','Mindestens ein Geschoss als beheizt markieren');
@@ -545,7 +585,7 @@ function warnings(e){
 }
 function openCount(e){return missing(e).length}
 
-var api={SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
+var api={ausweisart:ausweisart,newSan:newSan,SAN_BT:SAN_BT,SAN_BELEG:SAN_BELEG,SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
   newErf:newErf,normalize:normalize,newFloor:newFloor,newWall:newWall,newOpening:newOpening,newSurface:newSurface,newKat:newKat,findKat:findKat,
   trace:trace,wallBearing:wallBearing,sector:sector,dirName:dirName,closeFix:closeFix,oArea:oArea,wallGeom:wallGeom,summary:summary,suggestArea:suggestArea,
   missing:missing,warnings:warnings,openCount:openCount,bauantragVor1977:bauantragVor1977,year:year};

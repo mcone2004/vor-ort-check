@@ -691,6 +691,7 @@ function jumpList(items){
   }).join('')+'</ul>';
 }
 /* Kundenerfassung: Kundenstamm der App (Auswahl, neu anlegen, Daten). Die Felder liegen in der App, hier nur Ein- und Ausgabe. */
+function isoDe(i){var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(i||'');return m?m[3]+'.'+m[2]+'.'+m[1]:''}
 function kdLine(){
   var K=KD?KD.get():null;if(!K) return kdName;
   var a=[K.str+(K.nr?' '+K.nr:''),(K.plz+' '+K.ort).trim()].filter(function(x){return String(x).trim()}).join(', ');
@@ -707,7 +708,7 @@ function viewKunde(){
   var h=sec('Kunde wählen oder neu anlegen','<div class="erf-g"><label class="erf-f wide"><span>Gespeicherte Kunden</span><select data-k="_sel">'+opts+'</select></label></div>'+
     '<div class="erf-row">'+btn('kd-new','Neuer Kunde')+btn('kd-save','Speichern',{cls:''})+'<span class="erf-hint" id="erf-kdmsg" role="status"></span></div>'+
     '<div class="erf-hint">'+(K.id?'Geöffnet: '+esc(K.name||'Ohne Name')+'. Änderungen werden automatisch gespeichert.':'Neuer Kunde. Name oder Adresse eintragen, dann wird automatisch gespeichert.')+'</div>');
-  h+=sec('Kunde und Objektadresse','<div class="erf-g">'+kF('name','Name',K.name,{cls:'wide'})+'</div>'+
+  h+=sec('Kunde und Objektadresse','<div class="erf-g">'+kF('name','Name',K.name,{cls:'wide'})+'<label class="erf-f"><span>Datum der Beratung</span><input type="date" data-k="datum" value="'+esc(K.datum||'')+'"></label></div>'+
     '<div class="erf-g">'+kF('str','Straße',K.str)+kF('nr','Nr.',K.nr,{max:10})+kF('plz','PLZ',K.plz,{num:1,max:5})+kF('ort','Ort',K.ort)+'</div>'+
     '<label class="erf-f"><span>Notiz</span><textarea rows="3" data-k="note">'+esc(K.note)+'</textarea></label>');
   var rgA=K.rg==='abw';
@@ -729,7 +730,7 @@ function kv(pairs){return '<div class="kv">'+pairs.filter(function(p){return has
 function photosHTML(key){return (E.photos[key]||[]).map(function(p){return '<img src="'+p.d+'" alt="">'}).join('')}
 function sheetHTML(){
   var g=E.g,h='<div class="erf-sheet" id="erf-sheet"><h2>Datenerfassung Energieausweis (Bedarf)</h2>';
-  h+='<div class="erf-hint" style="color:#555">'+esc(kdLine())+(kdLine()?' · ':'')+'Stand '+new Date().toLocaleDateString('de-DE')+'. Erfassung vor Ort zur Übertragung in den Energieberater, keine Berechnung nach GEG.</div>';
+  h+='<div class="erf-hint" style="color:#555">'+esc(kdLine())+(kdLine()?' · ':'')+(isoDe((KD&&KD.get().datum)||'')?'Datum '+isoDe(KD.get().datum):'Stand '+new Date().toLocaleDateString('de-DE'))+'. Erfassung vor Ort zur Übertragung in den Energieberater, keine Berechnung nach GEG.</div>';
   var K0=KD?KD.get():null;if(K0&&K0.rg==='abw'&&has(K0.rgadr)) h+='<div class="erf-hint" style="color:#555">Rechnungsadresse: '+esc(K0.rgadr)+'</div>';
   h+='<section><h4>1. Gebäude</h4>'+kv([['Gebäudetyp',g.typ],['Baujahr',g.bj],['Bauantrag',g.antrag],['Wohneinheiten',g.we],['Vollgeschosse',g.vg],['Keller',g.keller],['Dachform',g.dachform],['Dachgeschoss',g.dg],['Wohnfläche',has(g.wf)?g.wf+' m²':''],['Denkmalschutz',g.denk],['Anbauten',g.anbau],['Besonderheiten',g.bem],['Laufrichtung 1. Wand',g.h0+'°']]);
   h+='<div style="margin-top:.5rem"><b>Unterlagen</b><br>'+C.UNTERL.map(function(u){return (E.unterl[u[0]]==='1'?'☑ ':'☐ ')+esc(u[1])}).join('<br>')+'</div>'+photosHTML('gebaeude')+'</section>';
@@ -839,7 +840,7 @@ function sheetPdfBlob(){
   });
 }
 function pdfFileName(){
-  return ('Gebäudeerfassung'+(kdName?' '+kdName:'')+' '+new Date().toISOString().slice(0,10)).replace(/[^\wäöüÄÖÜß\- .]/g,'').replace(/\s+/g,' ').trim()+'.pdf';
+  return ('Gebäudeerfassung'+(kdName?' '+kdName:'')+' '+((KD&&/^\d{4}-\d\d-\d\d$/.test(KD.get().datum||''))?KD.get().datum:new Date().toISOString().slice(0,10))).replace(/[^\wäöüÄÖÜß\- .]/g,'').replace(/\s+/g,' ').trim()+'.pdf';
 }
 function sharePdf(){
   var file=null;try{file=new File([pdfBlob],pdfName,{type:'application/pdf'})}catch(e){}

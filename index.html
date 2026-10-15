@@ -328,6 +328,25 @@ body[data-mode="ausweis"] #kd_addobj,body[data-mode="erfassung"] #kd_addobj{disp
 .kg-h{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;padding:0 .2rem}.kg-h strong{font-size:1.1rem;font-weight:800;color:var(--ink);overflow-wrap:anywhere}.kg-h span{font-size:.8rem;color:var(--muted);white-space:nowrap}
 .kg .ov-row.kc{border-left-width:1.5px;border-radius:.6rem}.kg-add{justify-self:start;min-height:3rem;padding:.4rem 1rem;font-size:.9rem}
 .kc-ol{font-weight:700;color:var(--c-kd)}
+body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:none!important}
+.cmp{position:fixed;inset:0;z-index:60;background:var(--page,var(--bg));overflow:auto;-webkit-overflow-scrolling:touch}
+.cmp[hidden]{display:none}
+.cmp-in{max-width:80rem;margin:0 auto;padding:1rem 16px 3rem;display:grid;gap:.8rem}
+.cmp-hd{display:flex;justify-content:space-between;align-items:center;gap:.6rem;border-bottom:4px solid var(--c-kd);padding-bottom:.5rem}
+.cmp-objs{display:flex;flex-wrap:wrap;gap:.5rem}
+.cmp-chip{display:flex;align-items:center;gap:.5rem;min-height:2.75rem;padding:.3rem .8rem;border:1.5px solid var(--line);border-radius:.6rem;background:var(--surface);color:var(--ink);font-size:.9rem;cursor:pointer}
+.cmp-chip input{width:1.3rem;height:1.3rem;flex:none}
+.cmp-sel{display:grid;gap:.25rem;max-width:34rem;font-weight:600}
+.cmp-sc{overflow-x:auto;border:1.5px solid var(--line);border-radius:.6rem;background:var(--surface)}
+.cmp-t{border-collapse:collapse;width:100%;min-width:30rem;font-size:.92rem;color:var(--ink)}
+.cmp-t th,.cmp-t td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.cmp-t thead th{font-weight:800;background:var(--bg);white-space:normal}
+.cmp-t thead th small{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+.cmp-t tbody th{font-weight:600;position:sticky;left:0;background:var(--surface);min-width:11rem;max-width:15rem}
+.cmp-t td small{display:block;color:var(--muted);font-size:.78rem}
+.cmp-t td.cmp-best{background:rgba(124,176,40,.16);font-weight:700}
+.cmp-t td.cmp-best b{color:var(--green)}
+
 .kg .delbox{margin:0}
 </style>
 </head><body>
@@ -385,7 +404,7 @@ body[data-mode="ausweis"] #kd_addobj,body[data-mode="erfassung"] #kd_addobj{disp
     <div class="ph-box"><label for="ph_in">Fotos (Typenschild, Heizraum, Zähler, Fassade)<input id="ph_in" type="file" accept="image/*" multiple></label>
     <div id="ph_list" class="ph-list"></div><span class="hint" id="ph_hint">Bis zu 8 Fotos je Kunde, verkleinert gespeichert. Sie stehen nur auf der internen Seite.</span></div>
     <label for="kd_note">Notiz<textarea id="kd_note" rows="2" placeholder="Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
-    <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_erf" class="ghost">Gebäudeerfassung</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_addobj" class="ghost" hidden>Weiteres Objekt für diesen Kunden</button><button type="button" id="kd_copy" class="ghost" hidden>Objekt als Alternative kopieren</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
+    <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_erf" class="ghost">Gebäudeerfassung</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_addobj" class="ghost" hidden>Weiteres Objekt für diesen Kunden</button><button type="button" id="kd_copy" class="ghost" hidden>Objekt als Alternative kopieren</button><button type="button" id="kd_cmp" class="ghost" hidden>Objekte vergleichen</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
     <div class="delbox" id="kd_delbox" hidden>
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
@@ -695,6 +714,18 @@ body[data-mode="ausweis"] #kd_addobj,body[data-mode="erfassung"] #kd_addobj{disp
   </details>
 </div>
 </main>
+
+<div id="cmp" class="cmp" hidden role="dialog" aria-modal="true" aria-labelledby="cmp_t">
+  <div class="cmp-in">
+    <div class="cmp-hd"><h2 id="cmp_t">Objekte vergleichen</h2><button type="button" id="cmp_x" class="ghost">Schließen</button></div>
+    <div id="cmp_objs" class="cmp-objs"></div>
+    <label class="cmp-sel" for="cmp_v">Vergleich anhand<select id="cmp_v"></select></label>
+    <p id="cmp_note" class="hint"></p>
+    <div class="cmp-sc"><table id="cmp_res" class="cmp-t"></table></div>
+    <h3 id="cmp_dh">Was ist anders?</h3>
+    <div class="cmp-sc"><table id="cmp_diff" class="cmp-t"></table></div>
+  </div>
+</div>
 
 <div id="rep" hidden>
   <div class="rep-tools">
@@ -2110,6 +2141,7 @@ function initKunden(backendP){
     var n=$('kd_new'),k=$('hdrkd');
     if(n) n.textContent=curId?'Kunde schließen':'Neuer Kunde';
     var cp=$('kd_copy'),ao=$('kd_addobj');if(cp) cp.hidden=!curId;if(ao) ao.hidden=!curId;
+    var cc=$('kd_cmp');if(cc) cc.hidden=!(curId&&objsOf(curKid||kidOf(curId)).length>=2);
     if(k) k.textContent=curId?((docs[curId]&&docs[curId].name)||'Kunde geöffnet'):'';
     renderOv();
   }
@@ -2220,6 +2252,122 @@ function initKunden(backendP){
       if(after) after();
       try{$('kd_str').focus()}catch(e){}
     });
+  }
+  // Objekte eines Kunden nebeneinander vergleichen (Stand der jeweils zuletzt gespeicherten Auswertung)
+  var cmpKid=null,cmpSel=null;
+  function cmpVars(d){var R=d&&d.snap&&d.snap.ctx&&d.snap.ctx.R;if(!R) return [];return (R.S||[]).concat(R.cv?[R.cv]:[])}
+  function cmpLabel(id){var d=docs[id];return (d.olabel||'Objekt')}
+  function cmpOpen(kid){
+    cmpKid=kid;cmpSel=null;
+    var go=function(){cmpDraw(true);$('cmp').hidden=false;$('cmp').scrollTop=0;document.body.style.overflow='hidden';try{$('cmp_x').focus()}catch(e){}};
+    if(dirty&&canAuto()&&be) save(true).then(go,go);else go();
+  }
+  function cmpClose(){$('cmp').hidden=true;document.body.style.overflow=''}
+  function ctl(id){var e=$(id);return e}
+  function cmpLab(id){
+    var e=$(id);if(!e) return id;
+    var l=e.closest('label')||document.querySelector('label[for="'+id+'"]');if(!l) return id;
+    var c=l.cloneNode(true);Array.prototype.forEach.call(c.querySelectorAll('select,input,.hint,small,textarea'),function(x){x.parentNode.removeChild(x)});
+    return c.textContent.replace(/\s+/g,' ').trim()||id;
+  }
+  function cmpVal(id,v){
+    var e=$(id);if(v==null||v==='') return '–';
+    if(id==='dform'){var b=document.querySelector('#dtiles button[data-v="'+v+'"] span');return b?b.textContent:String(v)}
+    if(e&&e.type==='checkbox') return (v==='1'||v===true)?'ja':'nein';
+    if(e&&e.tagName==='SELECT'){for(var i=0;i<e.options.length;i++) if(e.options[i].value===String(v)) return e.options[i].text}
+    return String(v);
+  }
+  function cmpDraw(init){
+    var ids=objsOf(cmpKid);if(!ids.length){cmpClose();return}
+    var nm=docs[ids[0]].name||'Kunde';$('cmp_t').textContent='Objekte vergleichen: '+nm;
+    var ok=ids.filter(function(id){return cmpVars(docs[id]).length});
+    if(!cmpSel) cmpSel=ok.slice();
+    cmpSel=cmpSel.filter(function(id){return docs[id]&&ok.indexOf(id)>=0});
+    var ch=$('cmp_objs');ch.innerHTML='';
+    ids.forEach(function(id){
+      var d=docs[id],has=ok.indexOf(id)>=0,l=document.createElement('label');l.className='cmp-chip';
+      var cb=document.createElement('input');cb.type='checkbox';cb.value=id;cb.checked=has&&cmpSel.indexOf(id)>=0;cb.disabled=!has;
+      cb.addEventListener('change',function(){cmpSel=Array.prototype.filter.call(ch.querySelectorAll('input'),function(x){return x.checked}).map(function(x){return x.value});cmpDraw()});
+      var s=document.createElement('span');s.textContent=cmpLabel(id)+(d.adr?', '+d.adr:'')+(has?'':' (keine Auswertung gespeichert)');
+      l.appendChild(cb);l.appendChild(s);ch.appendChild(l);
+    });
+    // Varianten: Vereinigung der Namen aller gewählten Objekte
+    var names=[];cmpSel.forEach(function(id){cmpVars(docs[id]).forEach(function(v){if(names.indexOf(v.name)<0) names.push(v.name)})});
+    var sv=$('cmp_v'),old=sv.value;sv.innerHTML='';
+    var o0=document.createElement('option');o0.value='__ist';o0.textContent='Bestandsheizung weiter';sv.appendChild(o0);
+    names.forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;sv.appendChild(o)});
+    var want=(!init&&old&&(old==='__ist'||names.indexOf(old)>=0))?old:(names.indexOf('Wärmepumpe ohne Sanierung')>=0?'Wärmepumpe ohne Sanierung':(names[0]||'__ist'));
+    sv.value=want;
+    cmpTable(want);cmpDiff();
+  }
+  function cmpTable(v){
+    var T=$('cmp_res'),N=$('cmp_note'),ist=(v==='__ist');
+    var cols=cmpSel.map(function(id){
+      var R=docs[id].snap.ctx.R,x=ist?R.ist:cmpVars(docs[id]).filter(function(s){return s.name===v})[0]||null;
+      return {id:id,x:x,I:R.ist};
+    });
+    if(cols.length<2){T.innerHTML='';N.textContent=cols.length?'Zum Vergleichen mindestens zwei Objekte mit gespeicherter Auswertung wählen.':'Kein Objekt mit gespeicherter Auswertung. Objekt öffnen und speichern.';if(cols.length<1) return}
+    else N.textContent='Stand der jeweils zuletzt gespeicherten Auswertung. ✓ = bester Wert der Zeile. Die Differenz bezieht sich auf die erste Spalte.';
+    var n1=function(x){return fmt(x,1)},n0=function(x){return fmt(x,0)},n2=function(x){return fmt(x,2)};
+    var rows=ist?[
+      {l:'Heizlast (kW)',g:function(c){return c.x.kw},f:n1,b:'min'},
+      {l:'Heizwärme (kWh/m²a)',g:function(c){return c.x.qh},f:n0,b:'min'},
+      {l:'Energieeinsatz Heizung (kWh/a)',g:function(c){return c.x.end},f:n0,b:'min'},
+      {l:'Heizkosten (€/a)',g:function(c){return c.x.cost},f:n0,b:'min'},
+      {l:'Energieklasse',t:function(c){return c.x.klasse?c.x.klasse+' ('+fmt(c.x.eA)+' kWh/m²a)':'–'}}
+    ]:[
+      {l:'Heizlast (kW)',g:function(c){return c.x.kw},f:n1,b:'min'},
+      {l:'Heizwärme (kWh/m²a)',g:function(c){return c.x.qh},f:n0,b:'min'},
+      {l:'Vorlauftemperatur (°C)',g:function(c){return c.x.vl},f:n0,b:'min'},
+      {l:'Jahresarbeitszahl',g:function(c){return c.x.jaz},f:n2,b:'max'},
+      {l:'Bewertung',t:function(c){return c.x.rate?c.x.rate.t:'–'}},
+      {l:'Strombedarf (kWh/a)',g:function(c){return c.x.strom},f:n0,b:'min'},
+      {l:'Heizkosten (€/a)',g:function(c){return c.x.cost},f:n0,b:'min'},
+      {l:'Ersparnis gegenüber Bestand (€/a)',g:function(c){return c.x.cost!=null&&c.I.cost!=null?c.I.cost-c.x.cost:null},f:n0,b:'max'},
+      {l:'Energieklasse',t:function(c){return c.x.klasse?c.x.klasse+' ('+fmt(c.x.eA)+' kWh/m²a)':'–'}}
+    ];
+    var h='<thead><tr><th scope="col">'+(ist?'Bestandsheizung':'Variante: '+esc2(v))+'</th>';
+    cols.forEach(function(c){var d=docs[c.id];h+='<th scope="col">'+esc2(cmpLabel(c.id))+'<small>'+esc2(d.adr||'')+'</small></th>'});
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(r){
+      h+='<tr><th scope="row">'+r.l+'</th>';
+      if(r.t){cols.forEach(function(c){h+='<td>'+(c.x?esc2(r.t(c)):'–')+'</td>'});h+='</tr>';return}
+      var vals=cols.map(function(c){var a=c.x?r.g(c):null;return (a==null||isNaN(a))?null:+a});
+      var shown=vals.map(function(a){return a==null?null:r.f(a)});
+      var okv=vals.filter(function(a){return a!=null}),best=null;
+      if(okv.length>1){var m=r.b==='min'?Math.min.apply(null,okv):Math.max.apply(null,okv);if(shown.filter(function(s,i){return vals[i]!=null&&s!==r.f(m)}).length) best=r.f(m)}
+      var base=vals[0];
+      cols.forEach(function(c,i){
+        if(vals[i]==null){h+='<td>–</td>';return}
+        var isb=(best!=null&&shown[i]===best);
+        h+='<td'+(isb?' class="cmp-best"':'')+'><span class="cmp-v">'+shown[i]+'</span>'+(isb?' <b aria-label="bester Wert">✓</b>':'');
+        if(i>0&&base!=null){var dd=vals[i]-base,ds=r.f(Math.abs(dd));if(ds!==r.f(0)) h+='<small>'+(dd>0?'+':'−')+ds+'</small>'}
+        h+='</td>';
+      });
+      h+='</tr>';
+    });
+    T.innerHTML=h+'</tbody>';
+  }
+  function esc2(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function cmpDiff(){
+    var T=$('cmp_diff'),sel=cmpSel.filter(function(id){return docs[id]&&docs[id].form});
+    if(sel.length<2){T.innerHTML='';return}
+    var forms=sel.map(function(id){return Object.assign({},DEF0,docs[id].form)});
+    var keys=Object.keys(DEF0).filter(function(k){return !/^(touched|geo|dform_h)$|^(kd_|aw_|ph_)/.test(k)&&$(k)});
+    var lab={},cnt={};keys.forEach(function(k){lab[k]=cmpLab(k);cnt[lab[k]]=(cnt[lab[k]]||0)+1});
+    var rows=keys.filter(function(k){var a=forms[0][k];return forms.some(function(f){return String(f[k]==null?'':f[k])!==String(a==null?'':a)})});
+    var h='<thead><tr><th scope="col">Eingabe</th>';
+    sel.forEach(function(id){h+='<th scope="col">'+esc2(cmpLabel(id))+'</th>'});
+    h+='</tr></thead><tbody>';
+    if(!rows.length) h+='<tr><td colspan="'+(sel.length+1)+'">Keine Unterschiede in den Eingaben.</td></tr>';
+    rows.slice(0,60).forEach(function(k){
+      h+='<tr><th scope="row">'+esc2(lab[k]+(cnt[lab[k]]>1?' ['+k+']':''))+'</th>';
+      forms.forEach(function(f){h+='<td>'+esc2(cmpVal(k,f[k]))+'</td>'});
+      h+='</tr>';
+    });
+    if(rows.length>60) h+='<tr><td colspan="'+(sel.length+1)+'">… und '+(rows.length-60)+' weitere Unterschiede.</td></tr>';
+    T.innerHTML=h+'</tbody>';
+    $('cmp_dh').textContent='Was ist anders? ('+rows.length+(rows.length===1?' Eingabe':' Eingaben')+')';
   }
   // Vor dem Laden eines anderen Kunden: offene Änderungen sichern oder nachfragen
   function guard(next,onCancel){
@@ -2344,6 +2492,7 @@ function initKunden(backendP){
         r.appendChild(m);r.appendChild(b);gd.appendChild(r);
         if(id===ovDel){gd.appendChild(box);box.hidden=false;box.querySelector('#kd_ovname').textContent='Löschen: '+nm+', '+ad+(d.olabel?' ('+d.olabel+')':'')}
       });
+      if(g.all.length>=2){var cm=document.createElement('button');cm.type='button';cm.className='ghost kg-add kg-cmp';cm.setAttribute('data-act','cmp');cm.setAttribute('data-kid',g.k);cm.textContent='Objekte vergleichen';gd.appendChild(cm)}
       var add=document.createElement('button');add.type='button';add.className='ghost kg-add';add.setAttribute('data-act','addobj');add.setAttribute('data-id',g.all[0]);add.setAttribute('data-kid',g.k);add.textContent='Objekt hinzufügen';
       gd.appendChild(add);
       list.appendChild(gd);
@@ -2356,6 +2505,7 @@ function initKunden(backendP){
     list.addEventListener('click',function(e){
       var b=e.target.closest?e.target.closest('button[data-act]'):null;if(!b) return;
       var id=b.getAttribute('data-id'),act=b.getAttribute('data-act');
+      if(act==='cmp'){guard(function(){cmpOpen(b.getAttribute('data-kid'))});return}
       if(act==='addobj'){
         addObjekt(b.getAttribute('data-kid'),id,function(){ovSay('');if(window.setKview) window.setKview(true)});
         return;
@@ -2451,6 +2601,10 @@ function initKunden(backendP){
     $('kd_save').addEventListener('click',function(){save(false)});
     $('kd_del').addEventListener('click',del);
     $('kd_addobj').addEventListener('click',function(){addObjekt(curKid||curId,curId,function(){if(document.body.getAttribute('data-mode')==='kunden'&&window.setKview) window.setKview(true)})});
+    $('kd_cmp').addEventListener('click',function(){cmpOpen(curKid||kidOf(curId))});
+    $('cmp_x').addEventListener('click',cmpClose);
+    $('cmp_v').addEventListener('change',function(){cmpTable($('cmp_v').value)});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('cmp').hidden) cmpClose()});
     $('kd_copy').addEventListener('click',function(){copyKd().then(function(ok){if(ok&&document.body.getAttribute('data-mode')==='kunden'&&window.setKview) window.setKview(true)})});
     $('kd_snap').addEventListener('click',function(){var d=curId&&docs[curId];if(d&&d.snap&&repApi) repApi.open(Object.assign({},d.snap,{photos:d.photos||[]}))});
     $('kd_delgo').addEventListener('click',delGo);$('kd_delno').addEventListener('click',resetDel);
@@ -2870,7 +3024,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 11:42',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 11:53',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

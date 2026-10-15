@@ -312,10 +312,10 @@ body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
 .schnitt figcaption{flex:1 1 14rem;display:grid;gap:.4rem;min-width:0}
 .sn-leg{list-style:none;margin:0;padding:0;display:grid;gap:.25rem;font-size:.9rem}
 .sn-leg li{display:flex;align-items:center;gap:.5rem}.sn-leg i{flex:none;width:.9rem;height:.9rem;border-radius:50%;border:1px solid rgba(0,0,0,.25)}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:.5rem}
-.tiles button{display:grid;gap:.3rem;justify-items:center;align-content:start;padding:.5rem .4rem;min-height:0;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:.6rem;font:inherit;font-size:.8rem;font-weight:600;line-height:1.25;text-align:center;cursor:pointer}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:.5rem}
+.tiles button{justify-self:stretch;width:100%;display:grid;gap:.3rem;justify-items:center;align-content:start;padding:.5rem .4rem;min-height:0;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:.6rem;font:inherit;font-size:.8rem;font-weight:600;line-height:1.25;text-align:center;cursor:pointer}
 .tiles button[aria-checked="true"]{border-color:var(--green);box-shadow:0 0 0 2px var(--green)}
-.tiles svg{width:100%;max-width:4.6rem;height:auto;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.tiles svg{width:4.6rem;height:3.2rem;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
 .tiles .t-l{fill:rgba(124,176,40,.10)}.tiles .t-w{fill:rgba(224,160,48,.30)}.tiles .t-k{fill:rgba(120,130,140,.25);stroke:none}.tiles .t-r{stroke-width:2.6;stroke:currentColor}
 .rep-sn{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:.3rem 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rep-sn svg{width:11rem;height:auto;color:#20252A}.rep-sn .sn-leg{font-size:.85em;color:#20252A}
 
@@ -505,7 +505,16 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     </div>
     <input type="hidden" id="dform" value="">
     <span class="hint" id="dform_h"></span>
-    <label for="dach"><span id="dachl">Dämmzustand Dach oder Geschossdecke</span><select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option></select></label>
+    <label for="dach"><span id="dachl">Dämmzustand Dach oder Geschossdecke</span><select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option><option value="3">Dämmung bekannt (Dämmstoff, WLG, Stärke, Baujahr)</option></select></label>
+    <div class="row" id="dmrowD1" hidden>
+    <label for="dstoffD">Dämmstoff<select id="dstoffD"><option value="mw" selected>Mineralwolle (Stein- oder Glaswolle)</option><option value="eps">EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="holz">Holzfaserdämmung (Platte oder Matte)</option><option value="zell">Zellulose (Einblas oder Platte)</option><option value="schaf">Schafwolle</option><option value="hanf">Hanf, Flachs, Jute</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="perl">Perlite oder Schüttung</option></select></label>
+    <label for="wlgD">Wärmeleitgruppe (WLG)<select id="wlgD"><option value="0" selected>unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
+    </div>
+    <div class="row" id="dmrowD2" hidden>
+    <label for="dstarkD">Dämmstärke<select id="dstarkD"><option value="4">4 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16" selected>16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="22">22 cm</option><option value="24">24 cm</option><option value="26">26 cm</option><option value="30">30 cm</option><option value="35">35 cm</option><option value="40">40 cm</option></select></label>
+    <label for="dbjD">Baujahr der Dämmung<select id="dbjD"><option value="0" selected>unbekannt</option><option value="1">bis 1979</option><option value="2">1980 bis 1994</option><option value="3">1995 bis 2009</option><option value="4">ab 2010</option></select></label>
+    </div>
+    <span class="hint" id="dshintD" hidden></span>
     <label for="ad"><span id="adl">Dachfläche bzw. Fläche der obersten Geschossdecke in m² (optional)</span><input id="ad" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     </div><div class="hcol">
@@ -839,9 +848,9 @@ var WDREF={voll:36.5,hlz:30,ks:24,bruch:50,mono:36.5,block:16,hrb:12,schlacke:30
 var WDFIX={hrb:0.25};
 // Bekannte Dämmung (Zustand 3): Dämmstoff, Wärmeleitgruppe (WLG) und Stärke. R = d / lambda.
 // Typische Rechenwerte lambda in W/mK, wenn die WLG unbekannt ist.
-var LAMT={eps:0.035,epsg:0.032,mw:0.035,holz:0.040,pur:0.024,resol:0.022,kern:0.040,cs:0.060};
-function rKnown(o){
-  var m=o.dm||{},d=+m.d||0;if(d<=0) return 0;
+var LAMT={eps:0.035,epsg:0.032,mw:0.035,holz:0.040,pur:0.024,resol:0.022,kern:0.040,cs:0.060,zell:0.040,schaf:0.040,hanf:0.040,perl:0.050};
+function rKnown(o,key){
+  var m=o[key||'dm']||{},d=+m.d||0;if(d<=0) return 0;
   return (d/100)/lamKnown(m);
 }
 // λ der vorhandenen Dämmung: angegebene WLG, sonst typischer Wert des Dämmstoffs.
@@ -863,9 +872,17 @@ function uWall(o,st){
   if(st===3) return Math.max(0.10,1/(1/u0+rKnown(o)));
   return Math.max(0.14,1/(1/u0+RW[t][st-1]));
 }
+// Dach/oberste Geschossdecke mit bekannter Dämmung (Zustand 3): U des ungedämmten Aufbaus (Annahme je Dachform) plus Dämmschicht d/lambda.
+// Kein Sparren- oder Balkenanteil gerechnet, der Wert ist bei Zwischensparrendämmung eher etwas zu gut.
+var DBASE={sd_aus:2.0,sd_teil:2.0,sd_kalt:1.0,fd:1.8};
+function uDachKnown(o){var u0=DBASE[o.dform]||1.5;return Math.max(0.10,1/(1/u0+rKnown(o,'dd')))}
+// Stand der Dämmung für die Variante „Dach nach aktuellem Stand“: bekannte, schon gute Dämmung bleibt erhalten
+function dachTo2(o){var s=o.st.dach;return s===3?(uDachKnown(o)<=UST.dach[2]*1.15?3:2):Math.max(s,2)}
 function uOf(o,s,fen){
   var b=o.band,r={};
-  var v=UST.dach[s.dach]; r.dach=(v==null)?U0.dach[b]:Math.min(U0.dach[b],v);
+  if(s.dach===3) r.dach=uDachKnown(o);
+  else{var v=UST.dach[s.dach]; r.dach=(v==null)?U0.dach[b]:Math.min(U0.dach[b],v);
+    if(o.st&&o.st.dach===3&&(s.dach===1||s.dach===2)) r.dach=Math.min(r.dach,uDachKnown(o))}
   r.wand=uWall(o,s.wand);
   // Ist die vorhandene, bekannte Dämmung besser als der Zielstand, bleibt sie erhalten
   if(o.st&&o.st.wand===3&&(s.wand===1||s.wand===2)) r.wand=Math.min(r.wand,uWall(o,3));
@@ -1070,7 +1087,7 @@ function compute(o){
     return r;
   }
   var cu=canUp(o);
-  var s2={wand:o.st.wand,dach:Math.max(o.st.dach,2),keller:cu?Math.max(o.st.keller,2):o.st.keller};
+  var s2={wand:o.st.wand,dach:dachTo2(o),keller:cu?Math.max(o.st.keller,2):o.st.keller};
   var s3={wand:2,dach:2,keller:cu?2:o.st.keller};
   var S=[
     scen('Wärmepumpe ohne Sanierung',o.st,o.fen),
@@ -1087,7 +1104,7 @@ function compute(o){
   var stI=(o.stSt===1)?stNutz(o,mode==='verbrauch'?qBT:qIst):0;
   // Eigene Variante: angekreuzte Maßnahmen zusammen mit der Wärmepumpe
   var cvS={wand:o.st.wand,dach:o.st.dach,keller:o.st.keller},cvF=o.fen,cvFm,cvN=[];
-  if(o.cvDach&&cvS.dach<2){cvS.dach=2;cvN.push('Dach')}
+  if(o.cvDach&&dachTo2(o)!==o.st.dach){cvS.dach=dachTo2(o);cvN.push('Dach')}
   if(o.cvKeller&&cu&&cvS.keller<2){cvS.keller=2;cvN.push('Kellerdecke')}
   if(o.cvWand&&cvS.wand<2){cvS.wand=2;cvN.push('Außenwand')}
   if(o.cvFen){var ft=fenTarget(o);if(ft!==cvF){cvF=ft;cvN.push('Fenster')}}
@@ -1111,7 +1128,7 @@ function compute(o){
   var hebel=[];
   ['wand','dach','keller','fenster'].forEach(function(k){
     var s={wand:o.st.wand,dach:o.st.dach,keller:o.st.keller},f=o.fen;
-    if(k==='fenster'){var ft=fenTarget(o);if(ft===f)return;f=ft}else if(k==='wand'&&s.wand===3){if(uWall(o,3)<=uWall(o,2)*1.15) return;s.wand=2}else{if(s[k]>=2)return;s[k]=2}
+    if(k==='fenster'){var ft=fenTarget(o);if(ft===f)return;f=ft}else if(k==='wand'&&s.wand===3){if(uWall(o,3)<=uWall(o,2)*1.15) return;s.wand=2}else if(k==='dach'&&s.dach===3){if(dachTo2(o)===3) return;s.dach=2}else{if(s[k]>=2)return;s[k]=2}
     var q=sc*qh(o,uOf(o,s,f)), d=(qIst-q)*o.wf;
     if(d<100) return;
     var vl=clamp(vlModel(o,q,qOrigW,q*1000/VBH)+shift,30,80);
@@ -1122,7 +1139,7 @@ function compute(o){
   Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
   return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -1206,7 +1223,7 @@ function read(){
   var g=geoGet();
   return {geo:g,gt:g?g.gt:0,pvy:g?g.pvy:0,kfAuto:verbMean().auto,
     obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
-    wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
+    wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
@@ -1742,6 +1759,14 @@ function syncWand(){
 
 // Bekannte Dämmung: Dämmstoff, WLG, Stärke nur anzeigen, wenn der Dämmzustand „Dämmung bekannt“ gewählt ist
 var DSLAM={eps:35,epsg:32,mw:35,holz:40,pur:24,resol:22,kern:40,cs:60};
+function syncDmD(){
+  var on=$('dach').value==='3';
+  ['dmrowD1','dmrowD2','dshintD'].forEach(function(id){$(id).hidden=!on});
+  if(on){
+    var w=+$('wlgD').value,bj=+$('dbjD').value||0,lam=CALC.lamKnown({ds:$('dstoffD').value,wlg:w,bj:bj}),o=read();
+    $('dshintD').textContent='Gerechnet mit λ = '+lam.toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(bj===1||bj===2?', Einbau vor 1995':'')+')')+', U des Dachs mit Dämmung ca. '+fmt(CALC.uDachKnown(o),2)+' W/m²K. Ungedämmter Aufbau und Sparren- oder Balkenanteil sind Annahmen: bei Zwischensparrendämmung liegt der echte Wert etwas höher.';
+  }
+}
 function syncDm(){
   var on=$('wand').value==='3';
   ['dsl','wlgl','dstl','dbjl','dshint','dmrow1','dmrow2'].forEach(function(id){$(id).hidden=!on});
@@ -2084,7 +2109,7 @@ function initKunden(backendP){
       var old=e.value;e.value=f[e.id];
       if(e.tagName==='SELECT'&&e.value!==f[e.id]) e.value=old;
     });
-    syncDm();syncSolar();
+    syncDm();syncDmD();syncSolar();
     syncWw();render();awDrawSan();awRender();
   }
   function fmtDate(iso){try{return new Date(iso).toLocaleDateString('de-DE')}catch(e){return ''}}
@@ -2965,7 +2990,7 @@ function initHome(){
 }
 function init(){
   ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -2984,6 +3009,11 @@ function init(){
   $('copy').addEventListener('click',copy);
   $('wtyp').addEventListener('change',function(){if($('wtyp').value==='ks') $('wand').value='3';syncWand();render()});
   $('wand').addEventListener('change',function(){syncDm();render()});
+  $('dach').addEventListener('change',function(){syncDmD();render()});
+  $('dstoffD').addEventListener('change',function(){$('wlgD').value='0';syncDmD();render()});
+  $('dbjD').addEventListener('change',function(){syncDmD();render()});
+  $('wlgD').addEventListener('change',function(){syncDmD();render()});
+  $('dstarkD').addEventListener('change',function(){syncDmD();render()});
   $('dstoff').addEventListener('change',function(){$('wlg').value='0';syncDm();render()});
   $('dbj').addEventListener('change',function(){syncDm();render()});
   $('wlg').addEventListener('change',function(){syncDm();render()});
@@ -3024,7 +3054,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 11:53',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 12:21',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

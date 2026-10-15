@@ -141,7 +141,7 @@ var WALLKINDREV={wand:['aussen','unbeh','erd'],wand_u:['unbeh'],wand_e:['erd']};
 
 /* ---------- Stil ---------- */
 var CSS='\
-#erf-root{position:fixed;inset:0;z-index:9000;background:var(--bg);display:flex;flex-direction:column;color:var(--text);font-family:var(--f-body)}\
+#erf-root{position:fixed;inset:0;z-index:9000;background:var(--bg-erf,var(--bg));border-top:8px solid var(--c-erf,var(--line));display:flex;flex-direction:column;color:var(--text);font-family:var(--f-body)}\
 #erf-root[hidden]{display:none}\
 .erf-top{background:var(--dark);color:#fff;display:flex;align-items:center;gap:.8rem;padding:calc(.6rem + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) .6rem max(14px,env(safe-area-inset-left,0px))}\
 .erf-top .erf-t{flex:1;min-width:0;font-weight:800;font-size:1rem;line-height:1.25}\

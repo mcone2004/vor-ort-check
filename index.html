@@ -302,8 +302,14 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
 /* Gebäudehülle: zwei Spalten ab Tablet quer und am PC, Tabs mittig über dem Formular */
 .ctabs>button:first-child{margin-left:auto}.ctabs>button:last-child{margin-right:auto}
 .hcols{display:grid;gap:.9rem;grid-template-columns:minmax(0,1fr)}.hcol{display:grid;gap:.9rem;align-content:start;min-width:0}
-@media (min-width:900px){.hcols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
+.hcols .bt-h .bt-tg{display:flex;align-items:center;gap:.5rem;width:100%;min-height:3rem;margin:0;padding:.3rem 0;background:none;border:0;border-radius:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}
+.hcols .bt-h{padding-bottom:.2rem}
+.bt-tg .bt-sum{margin-left:auto;min-width:0;font-weight:500;text-transform:none;letter-spacing:0;font-size:.82rem;color:var(--muted);text-align:right}
+.bt-tg::after{content:"";flex:none;width:.6rem;height:.6rem;margin:0 .3rem 0 .5rem;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .15s}
+.bt-tg[aria-expanded="true"]::after{transform:rotate(-135deg) translateY(-2px)}
+.hcols .bt-closed>*:not(.bt-h){display:none!important}
+.hcols .bt-closed .bt-h{border-bottom:0;margin:0;padding-bottom:0}
+#wuw,#fuw{font-size:.88rem;font-weight:700;color:var(--ink)}
 .row[hidden]{display:none}
 
 /* Gebäudeschnitt und Dachform-Kacheln */
@@ -1546,6 +1552,7 @@ function render(){
   var cu=CALC.canUp(o), dk=cu?'Dach und Kellerdecke':'Dach';
   $('wuw').textContent='Angesetzt für die Außenwand: U ca. '+fmt(R.uWand,2)+' W/m²K';
   $('fuw').textContent='Angesetzt für die Bestandsfenster: Uw ca. '+fmt(R.uFen,2)+' W/m²K';
+  btSumSet(R);
   var sav1=I.cost-s1.cost, add2=s1.cost-s2.cost, add3=s1.cost-s3.cost;
   // Geplante Solaranlagen werden getrennt amortisiert: Die Wärmepumpe rechnet ohne ihren Vorteil, die Solaranlagen mit ihrem Gesamtnutzen
   var rsol=R.solar||{},pvOk=o.pvSt===2&&rsol.pv&&rsol.pv.kwp>0,stOk=o.stSt===2&&!!rsol.st;
@@ -1888,6 +1895,36 @@ function syncWand(){
 
 // Bekannte Dämmung: Dämmstoff, WLG, Stärke nur anzeigen, wenn der Dämmzustand „Dämmung bekannt“ gewählt ist
 var DSLAM={eps:35,epsg:32,mw:35,holz:40,pur:24,resol:22,kern:40,cs:60};
+// Bereiche der Gebäudehülle als aufklappbare Abschnitte untereinander; Zustand wird je Gerät gemerkt, Standard: nur Außenwand offen
+var BTKEYS=['wand','dach','keller','fenster'];
+function btSumSet(R){
+  function s(id,t){var e=$(id);if(e) e.textContent=t}
+  function otxt(id){var e=$(id);return (e&&e.selectedOptions&&e.selectedOptions[0])?e.selectedOptions[0].text:''}
+  try{
+    s('bts_wand',otxt('wtyp')+' · U '+fmt(R.uWand,2));
+    var tb=document.querySelector('#dtiles button[aria-checked="true"] span');
+    s('bts_dach',(tb?tb.textContent:'Dachform offen')+' · U '+fmt(R.uIst.dach,2));
+    s('bts_keller',otxt('kshare')+(+$('kshare').value>0?', '+otxt('kart'):''));
+    s('bts_fenster','Uw '+fmt(R.uFen,2));
+  }catch(e){}
+}
+function initBt(){
+  var st=null;try{st=JSON.parse(localStorage.getItem('ocheck.bt')||'null')}catch(e){}
+  if(!st) st={wand:1};
+  BTKEYS.forEach(function(k){
+    var sec=document.querySelector('.hcols .bt-'+k),h=sec&&sec.querySelector('.bt-h');if(!h) return;
+    var b=document.createElement('button');b.type='button';b.className='bt-tg';
+    while(h.firstChild) b.appendChild(h.firstChild);
+    var sm=document.createElement('span');sm.className='bt-sum';sm.id='bts_'+k;
+    b.insertBefore(sm,null);h.appendChild(b);
+    function set(open,save){
+      sec.classList.toggle('bt-closed',!open);b.setAttribute('aria-expanded',open?'true':'false');
+      if(save){st[k]=open?1:0;try{localStorage.setItem('ocheck.bt',JSON.stringify(st))}catch(e){}}
+    }
+    set(!!st[k],false);
+    b.addEventListener('click',function(){set(sec.classList.contains('bt-closed'),true)});
+  });
+}
 function syncDmD(){
   var on=$('dach').value==='3',f=$('dform').value,sk=(f==='sd_kalt'),fd=(f==='fd');
   $('dkbox').hidden=!on;if(!on) return;
@@ -3181,6 +3218,7 @@ function init(){
   ['wwart','wzirk'].forEach(function(id){$(id).addEventListener('change',syncWw)});
   $('bar').addEventListener('click',function(){if(cTab!=='all'){setTab('ergebnis');return}try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
   var fm0=document.querySelector('form');if(fm0){fm0.addEventListener('input',onTouch,true);fm0.addEventListener('change',onTouch,true)}
+  initBt();
   syncKeller();syncWand();syncHk();syncWw();syncSolar();initGeo();initPhotos();
   render();
   initTabs();
@@ -3210,7 +3248,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 14:19',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 14:31',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

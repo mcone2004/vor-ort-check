@@ -318,6 +318,9 @@ body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
 .tiles svg{width:100%;max-width:4.6rem;height:auto;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
 .tiles .t-l{fill:rgba(124,176,40,.10)}.tiles .t-w{fill:rgba(224,160,48,.30)}.tiles .t-k{fill:rgba(120,130,140,.25);stroke:none}.tiles .t-r{stroke-width:2.6;stroke:currentColor}
 .rep-sn{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:.3rem 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rep-sn svg{width:11rem;height:auto;color:#20252A}.rep-sn .sn-leg{font-size:.85em;color:#20252A}
+
+body[data-mode="ausweis"] #kd_copy,body[data-mode="erfassung"] #kd_copy{display:none!important}
+.kc-ic{min-width:2.9rem}.ov-list{grid-template-columns:repeat(auto-fill,minmax(21rem,1fr))}
 </style>
 </head><body>
 <header class="top"><div>
@@ -373,7 +376,7 @@ body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
     <div class="ph-box"><label for="ph_in">Fotos (Typenschild, Heizraum, Zähler, Fassade)<input id="ph_in" type="file" accept="image/*" multiple></label>
     <div id="ph_list" class="ph-list"></div><span class="hint" id="ph_hint">Bis zu 8 Fotos je Kunde, verkleinert gespeichert. Sie stehen nur auf der internen Seite.</span></div>
     <label for="kd_note">Notiz<textarea id="kd_note" rows="2" placeholder="Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
-    <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_erf" class="ghost">Gebäudeerfassung</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
+    <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_erf" class="ghost">Gebäudeerfassung</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_copy" class="ghost" hidden>Als Alternative kopieren</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
     <div class="delbox" id="kd_delbox" hidden>
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
@@ -2094,6 +2097,7 @@ function initKunden(backendP){
     // Kopfbereich: ohne Kunde „Neuer Kunde“, mit geöffnetem Kunden „Kunde schließen“ und dessen Name
     var n=$('kd_new'),k=$('hdrkd');
     if(n) n.textContent=curId?'Kunde schließen':'Neuer Kunde';
+    var cp=$('kd_copy');if(cp) cp.hidden=!curId;
     if(k) k.textContent=curId?((docs[curId]&&docs[curId].name)||'Kunde geöffnet'):'';
     renderOv();
   }
@@ -2148,6 +2152,7 @@ function initKunden(backendP){
     setAuto('warn','Nicht gespeicherte Eingaben vom '+hhmm(new Date(d.at))+' Uhr wiederhergestellt');
     scheduleAuto();
   }
+  var pendCopy=null;
   function save(silent){
     var name=$('kd_name').value.trim(),adr=$('kd_adr').value.trim();
     if(!name&&!adr){
@@ -2156,7 +2161,7 @@ function initKunden(backendP){
     }
     if(saving){clearTimeout(autoT);autoT=setTimeout(autoSave,1000);return Promise.resolve(false)}
     var id=curId||('k'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),now=new Date().toISOString(),prev=docs[id]||{};
-    var ap=adrParts(),data={name:name,adr:adr,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value.trim(),form:collect(),photos:PHOTOS.slice(),erf:erfGet(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};rgAssign(data);
+    var ap=adrParts(),data={name:name,adr:adr,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value.trim(),form:collect(),photos:PHOTOS.slice(),erf:erfGet(),summary:lastText,snap:makeSnap(),created:prev.created||now,updated:now};if(prev.copyOf||pendCopy) data.copyOf=prev.copyOf||pendCopy;pendCopy=null;rgAssign(data);
     var b=$('kd_save'),mine=chg;b.disabled=true;saving=true;
     if(!silent) setAuto('', 'Speichere …');
     return be.save(id,data).then(function(){
@@ -2166,6 +2171,22 @@ function initKunden(backendP){
       if(!silent) msg('Gespeichert: '+(name||adr)+', mit Eingaben und Ergebnis.');
       return true;
     },function(e){setAuto('warn','Speichern fehlgeschlagen');msg(be.errText(e));return false}).then(function(r){saving=false;b.disabled=false;return r});
+  }
+  // Alternative anlegen: Kopie des geöffneten Kunden mit allen Eingaben (ohne Fotos und Gebäudeerfassung), um Varianten zum Bestand durchzurechnen.
+  // Das Original bleibt wie zuletzt gespeichert, Änderungen im Formular gehen in die Kopie.
+  function copyKd(){
+    if(!curId||!docs[curId]){msg('Zuerst den Kunden speichern, dann kann er kopiert werden.');return Promise.resolve(false)}
+    var src=curId,sd=docs[src],base=String(sd.name||'Ohne Name').replace(/ – Alternative \d+.*$/,''),n=1,re=new RegExp('^'+base.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+' – Alternative (\\d+)');
+    Object.keys(docs).forEach(function(k){var m=re.exec(docs[k].name||'');if(m&&+m[1]>=n) n=+m[1]+1});
+    var nm=$('kd_name').value.trim();if(!nm) $('kd_name').value=sd.name||'';
+    curId=null;$('kd_list').value='';PHOTOS=[];drawPhotos();erfSet(null);
+    $('kd_name').value=base+' – Alternative '+n;$('kd_del').hidden=true;resetDel();
+    pendCopy=(sd.copyOf||src);dirty=true;chg++;
+    return save(true).then(function(ok){
+      if(ok){msg('Alternative angelegt: '+$('kd_name').value+'. Das Original bleibt unverändert. Jetzt Eingaben ändern, zum Beispiel den Heizkörpertyp.');var cv=$('ctab_prev');try{$('kd_name').focus()}catch(e){}}
+      else{pendCopy=null;msg('Kopie konnte nicht gespeichert werden.')}
+      updSnap();return ok;
+    });
   }
   // Vor dem Laden eines anderen Kunden: offene Änderungen sichern oder nachfragen
   function guard(next,onCancel){
@@ -2262,14 +2283,16 @@ function initKunden(backendP){
       m.setAttribute('aria-label',nm+', '+ad+' bearbeiten');
       var st=document.createElement('strong');st.textContent=nm;
       var sp=document.createElement('span');sp.className='kc-adr';sp.textContent=ad;
-      var sd=document.createElement('span');sd.className='kc-dt';sd.textContent=[id===curId?'geöffnet':'',d.updated?fmtDate(d.updated):''].filter(Boolean).join(' · ');
+      var sd=document.createElement('span');sd.className='kc-dt';sd.textContent=[id===curId?'geöffnet':'',(d.copyOf&&docs[d.copyOf])?'Alternative zu '+(docs[d.copyOf].name||'Kunde'):'',d.updated?fmtDate(d.updated):''].filter(Boolean).join(' · ');
       m.appendChild(st);m.appendChild(sp);if(sd.textContent) m.appendChild(sd);
       var b=document.createElement('div');b.className='kc-act';
       var o=document.createElement('button');o.type='button';o.className='kc-ic';o.setAttribute('data-act','edit');o.setAttribute('data-id',id);o.setAttribute('aria-label','Bearbeiten: '+nm);o.title='Bearbeiten';
       o.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+      var cpb=document.createElement('button');cpb.type='button';cpb.className='kc-ic';cpb.setAttribute('data-act','copy');cpb.setAttribute('data-id',id);cpb.setAttribute('aria-label','Als Alternative kopieren: '+nm);cpb.title='Als Alternative kopieren';
+      cpb.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
       var x=document.createElement('button');x.type='button';x.className='kc-ic kc-del';x.setAttribute('data-act','del');x.setAttribute('data-id',id);x.setAttribute('aria-label','Löschen: '+nm);x.title='Löschen';
       x.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
-      b.appendChild(o);b.appendChild(x);r.appendChild(m);r.appendChild(b);list.appendChild(r);
+      b.appendChild(o);b.appendChild(cpb);b.appendChild(x);r.appendChild(m);r.appendChild(b);list.appendChild(r);
       if(id===ovDel){list.appendChild(box);box.hidden=false;$('kd_ovname').textContent='Löschen: '+(d.name||'Ohne Name')}
     });
     if(ovDel&&!docs[ovDel]){ovDel=null;box.hidden=true;$('kd_ovpw').value=''}
@@ -2280,6 +2303,10 @@ function initKunden(backendP){
     list.addEventListener('click',function(e){
       var b=e.target.closest?e.target.closest('button[data-act]'):null;if(!b) return;
       var id=b.getAttribute('data-id'),act=b.getAttribute('data-act');
+      if(act==='copy'){
+        guard(function(){load(id);$('kd_list').value=id;copyKd().then(function(ok){ovSay(ok?'Alternative angelegt.':'');if(ok&&window.setKview) window.setKview(true)})});
+        return;
+      }
       if(act==='open'||act==='edit'){
         if(id===curId){ovSay('');if(window.setKview) window.setKview(true);return}
         guard(function(){load(id);$('kd_list').value=id;ovSay('');if(window.setKview) window.setKview(true);try{$('kd').scrollIntoView({block:'start'})}catch(x){}});
@@ -2366,6 +2393,7 @@ function initKunden(backendP){
     });
     $('kd_save').addEventListener('click',function(){save(false)});
     $('kd_del').addEventListener('click',del);
+    $('kd_copy').addEventListener('click',function(){copyKd().then(function(ok){if(ok&&document.body.getAttribute('data-mode')==='kunden'&&window.setKview) window.setKview(true)})});
     $('kd_snap').addEventListener('click',function(){var d=curId&&docs[curId];if(d&&d.snap&&repApi) repApi.open(Object.assign({},d.snap,{photos:d.photos||[]}))});
     $('kd_delgo').addEventListener('click',delGo);$('kd_delno').addEventListener('click',resetDel);
     $('kd_delpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();delGo()}});
@@ -2783,7 +2811,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 10:56',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 11:20',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

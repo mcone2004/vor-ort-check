@@ -425,7 +425,7 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
 
   <fieldset data-tab="huelle"><legend>Gebäudehülle</legend>
     <section class="bt bt-wand"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 9.7v4.6M9 14.3V19"/></svg>Außenwand</h3>
-    <label for="wtyp">Außenwand, Bauart<select id="wtyp"><option value="voll">Vollziegel oder Vollmauerwerk (24 bis 36,5 cm)</option><option value="hlz" selected>Hochlochziegel, Hohlblock, Bims</option><option value="ks">Kalksandstein (KS), Vollstein oder Lochstein</option><option value="bruch">Feldstein, Bruchstein, Mischmauerwerk</option><option value="mono">Porenbeton oder monolithischer Wärmedämmziegel</option><option value="zwei">Zweischalig mit Verblender (Luftschicht oder Kerndämmung)</option><option value="fach">Fachwerk</option><option value="hrb">Holzrahmenbau, Fertighaus (HRB)</option><option value="block">Holzmassiv, Blockbau</option><option value="platte">Betonplatte, Plattenbau</option></select></label>
+    <label for="wtyp">Außenwand, Bauart<select id="wtyp"><optgroup label="Mauerwerk"><option value="voll">Vollziegel oder Vollmauerwerk (24 bis 36,5 cm)</option><option value="hlz" selected>Hochlochziegel, Hohlblock, Bims</option><option value="ks">Kalksandstein (KS), Vollstein oder Lochstein</option><option value="schlacke">Schlacken-, Hütten-, Schwemmstein, Schüttbeton (ca. 1920 bis 1960)</option><option value="bruch">Feldstein, Bruchstein, Mischmauerwerk</option><option value="lehm">Lehmstein, Lehmwellerwand, Stampflehm (massiv, kein Fachwerk)</option><option value="mono">Porenbeton oder monolithischer Wärmedämmziegel</option><option value="zwei">Zweischalig mit Verblender (Luftschicht oder Kerndämmung)</option></optgroup><optgroup label="Plattenbau und Beton"><option value="wbs70">DDR Plattenbau WBS 70 (1973 bis 1990)</option><option value="pfr">DDR Plattenbau früh (Leichtbeton, bis ca. 1972)</option><option value="platte">Betonplatte, Plattenbau, Serie unbekannt</option></optgroup><optgroup label="Holz"><option value="fach">Fachwerk</option><option value="hrb">Holzrahmenbau, Fertighaus (HRB)</option><option value="block">Holzmassiv, Blockbau</option></optgroup></select></label>
     <label for="wd" id="wdl"><span id="wdt">Wandstärke</span><select id="wd"></select></label>
     <label for="wlgg" id="wlggl" hidden>WLG der Gefachdämmung, wenn bekannt<select id="wlgg"><option value="0" selected>unbekannt, Schätzung nach Baujahr</option><option value="32">WLG 032</option><option value="34">WLG 034</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option></select></label>
     <label for="wand"><span id="wstl">Dämmzustand Außenwand</span><select id="wand"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option><option value="3">Dämmung bekannt (Dämmstoff, WLG, Stärke)</option></select></label>
@@ -736,14 +736,18 @@ var UW={
   fach:[1.8,1.7,1.4,0.9,0.5,0.3],       // Fachwerk
   hrb:[1.0,0.60,0.40,0.28,0.22,0.17],   // Holzrahmenbau, Fertighaus
   block:[0.8,0.7,0.6,0.5,0.4,0.3],      // Holzmassiv, Blockbau
-  platte:[1.3,1.3,0.95,0.55,0.38,0.25]  // Betonplatte, Plattenbau
+  platte:[1.3,1.3,0.95,0.55,0.38,0.25], // Betonplatte, Plattenbau, Serie unbekannt
+  wbs70:[0.80,0.80,0.80,0.80,0.80,0.80], // DDR WBS 70: Dreischichtplatte mit ca. 5 cm Schaumpolystyrol. Rechenannahme, siehe Hinweis in der Oberfläche
+  pfr:[1.5,1.5,1.5,1.5,1.5,1.5],        // DDR früh: Leichtbeton-Großblock oder -platte, ca. 29 cm (Spanne 1,2 bis 1,8)
+  schlacke:[1.6,1.6,1.5,1.3,1.1,1.0],   // Schlacken-, Hütten-, Schwemmstein, Schüttbeton, 24 bis 36 cm. Annahme
+  lehm:[1.5,1.5,1.5,1.5,1.5,1.5]        // Lehmstein, Lehmwellerwand, 30 bis 50 cm. Annahme
 };
 // Zusätzlicher Wärmedurchlasswiderstand durch Nachdämmung in m²K/W: [älter oder dünn, realistischer Zielstand]
 // Der Zielstand ist je Bauart begrenzt: Kerndämmung höchstens ca. 8 cm, Fachwerk nur Innendämmung
-var RW={voll:[1.2,3.8],hlz:[1.2,3.8],ks:[1.2,3.8],bruch:[1.0,3.0],mono:[1.2,3.0],zwei:[1.2,2.2],fach:[0.8,2.0],hrb:[1.0,3.0],block:[1.2,3.0],platte:[1.2,3.8]};
+var RW={voll:[1.2,3.8],hlz:[1.2,3.8],ks:[1.2,3.8],bruch:[1.0,3.0],mono:[1.2,3.0],zwei:[1.2,2.2],fach:[0.8,2.0],hrb:[1.0,3.0],block:[1.2,3.0],platte:[1.2,3.8],wbs70:[1.2,3.8],pfr:[1.2,3.8],schlacke:[1.2,3.8],lehm:[1.0,3.0]};
 // Bezugsstärke in cm, auf die die Tabelle oben gerechnet ist. Nur Bauarten, bei denen die Stärke den U-Wert bestimmt.
 // WDFIX: fester Anteil am Wärmedurchlasswiderstand (Beplankung, Bekleidung), der von der Stärke nicht abhängt.
-var WDREF={voll:36.5,hlz:30,ks:24,bruch:50,mono:36.5,block:16,hrb:12};
+var WDREF={voll:36.5,hlz:30,ks:24,bruch:50,mono:36.5,block:16,hrb:12,schlacke:30,lehm:40};
 var WDFIX={hrb:0.25};
 // Bekannte Dämmung (Zustand 3): Dämmstoff, Wärmeleitgruppe (WLG) und Stärke. R = d / lambda.
 // Typische Rechenwerte lambda in W/mK, wenn die WLG unbekannt ist.
@@ -1508,8 +1512,8 @@ function syncKeller(){
   for(var i=0;i<3;i++) opt[i].textContent=T[i];
 }
 
-var WDOPT={voll:[24,30,36.5,42.5,49],hlz:[17.5,24,30,36.5,42.5],ks:[17.5,24,30,36.5],bruch:[40,50,60,70],mono:[24,30,36.5,42.5,49],block:[10,12,16,20,25],hrb:[8,10,12,14,16,18,20,22,24,26]};
-var WDREFUI={voll:36.5,hlz:30,ks:24,bruch:50,mono:36.5,block:16,hrb:12};
+var WDOPT={voll:[24,30,36.5,42.5,49],hlz:[17.5,24,30,36.5,42.5],ks:[17.5,24,30,36.5],bruch:[40,50,60,70],mono:[24,30,36.5,42.5,49],block:[10,12,16,20,25],hrb:[8,10,12,14,16,18,20,22,24,26],schlacke:[24,30,36.5,40],lehm:[24,30,40,50,60]};
+var WDREFUI={voll:36.5,hlz:30,ks:24,bruch:50,mono:36.5,block:16,hrb:12,schlacke:30,lehm:40};
 var WSET={
   voll:{L:'Dämmzustand Außenwand, Vollmauerwerk',T:['Original, Stand Baujahr','Nachgedämmt, älter oder dünn (WDVS bis ca. 5 cm)','Gedämmt nach aktuellem Stand (WDVS ca. 14 cm)'],H:'Außendämmung (WDVS) meist gut machbar. Bei Sichtmauerwerk oder Stuck bleibt nur Innendämmung, das ist bauphysikalisch heikel.'},
   ks:{L:'Dämmzustand Außenwand, Kalksandstein',T:['Original, ungedämmt','Nachgedämmt, älter oder dünn (WDVS bis ca. 5 cm)','Gedämmt nach aktuellem Stand (WDVS ca. 14 cm)'],H:'Kalksandstein dämmt kaum: 24 cm ohne Dämmung erreichen nur U ca. 2. Meist gibt es eine WDVS. Dämmstoff, WLG und Stärke stehen oft in der Bauakte oder auf der Rechnung. Dann unten „Dämmung bekannt“ wählen.'},
@@ -1520,6 +1524,10 @@ var WSET={
   fach:{L:'Dämmzustand Außenwand, Fachwerk',T:['Original, Gefach ungedämmt','Innendämmung dünn (bis ca. 4 cm)','Innendämmung ca. 8 cm'],H:'Außendämmung ist bei Sichtfachwerk meist nicht möglich oder nicht erlaubt. Innendämmung braucht Feuchtenachweis, Holzbalkenköpfe und Schlagregen beachten.'},
   hrb:{L:'Dämmzustand Außenwand, Holzrahmenbau',T:['Original, Stand Baujahr','Nachgedämmt, älter oder dünn','Aufdoppelung oder Außendämmung, ca. 12 cm'],H:'Das Gefach ist bereits gedämmt (Gefachdicke oben wählen), Zusatzdämmung bringt weniger als beim Massivbau. Hat das Haus eine Außendämmung (WDVS), unten „WDVS vorhanden“ wählen und Dämmstoff, WLG, Stärke und Baujahr angeben. Luftdichtheit und Dampfbremse vor einer Maßnahme prüfen.'},
   block:{L:'Dämmzustand Außenwand, Blockbau',T:['Original, Stand Baujahr','Nachgedämmt, älter oder dünn','Außendämmung ca. 12 cm'],H:'Fugen, Setzung und Erscheinungsbild beachten. Dämmung bei Blockbohlen nur mit geeignetem Aufbau, Holzfeuchte im Blick behalten.'},
+  wbs70:{L:'Dämmzustand Außenwand, WBS 70',T:['Original, Stand Baujahr (ca. 5 cm Dämmung in der Platte)','Nachgedämmt, älter oder dünn (WDVS bis ca. 5 cm)','Gedämmt nach aktuellem Stand (WDVS ca. 14 cm)'],H:'Dreischichtplatte: tragende Innenschicht, ca. 5 cm Schaumpolystyrol, Wetterschutzschicht. Gerechnet mit U = 0,80 als Annahme: Der Pauschalwert für Plattenbau ab 1969 liegt bei etwa 0,7 (IRB, Typisierte Bauteilaufbauten), dazu ein Zuschlag für Anker und Plattenfugen. Bitte am Aufbau prüfen (Wandanschnitt, Bauunterlagen, Typenprojekt). Schwachstellen sind die Fugen, Balkonplatten und die Attika. Vor einer WDVS die Fugenabdichtung und den Zustand der Wetterschale ansehen.'},
+  pfr:{L:'Dämmzustand Außenwand, DDR Plattenbau früh',T:['Original, Stand Baujahr','Nachgedämmt, älter oder dünn (WDVS bis ca. 5 cm)','Gedämmt nach aktuellem Stand (WDVS ca. 14 cm)'],H:'Leichtbetonplatten oder -blöcke, meist ca. 25 bis 30 cm, ohne eigene Dämmschicht. Gerechnet mit U = 1,5 als Annahme (Spanne etwa 1,2 bis 1,8). Fugen und Anschlüsse sind die Schwachstellen, oft auch Feuchte im Sockel und an Balkonen. Ob schon einmal gedämmt wurde, am Aufbau prüfen.'},
+  schlacke:{L:'Dämmzustand Außenwand, Schlacken- oder Schüttbeton',T:['Original, ungedämmt','Nachgedämmt, älter oder dünn (WDVS bis ca. 5 cm)','Gedämmt nach aktuellem Stand (WDVS ca. 14 cm)'],H:'Schlacken- und Hüttensteine, Schwemmstein und Schüttbeton dämmen mäßig und streuen stark in Rohdichte und Hohlraum. Gerechnet mit U = 1,6 als Annahme für 30 cm. Auf Salze und Feuchte im Stein achten. Wandstärke oben angeben.'},
+  lehm:{L:'Dämmzustand Außenwand, Lehm',T:['Original, ungedämmt','Innendämmung oder Vorsatzschale dünn','Innendämmung diffusionsoffen ca. 10 cm'],H:'Dicke Lehmwände dämmen mäßig, speichern aber Feuchte. Gerechnet mit U = 1,5 als Annahme für 40 cm. Außen darf nur diffusionsoffen und mit Schlagregenschutz gearbeitet werden. Innendämmung braucht ein Feuchtekonzept. Auf Sockel und Feuchteeintrag achten.'},
   platte:{L:'Dämmzustand Außenwand, Plattenbau',T:['Original, Stand Baujahr','Nachgedämmt, älter oder dünn (WDVS bis ca. 5 cm)','Gedämmt nach aktuellem Stand (WDVS ca. 14 cm)'],H:'Fugen und Anschlüsse der Platten sind die Schwachstellen. Wärmebrücken über Balkonplatten und Attika bleiben.'}
 };
 function syncWand(){
@@ -2615,7 +2623,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 06:48',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 10:23',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

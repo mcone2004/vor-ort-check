@@ -2971,6 +2971,11 @@ function collectInputs(){
 }
 function isoDe(i){var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(i||'');return m?m[3]+'.'+m[2]+'.'+m[1]:''}
 function isoOrToday(i){return /^\d{4}-\d\d-\d\d$/.test(i||'')?i:new Date().toISOString().slice(0,10)}
+function bauteilLis(o){var x='';
+        if(o.st.dach===3){var A=CALC.dachAufbau(o);if(A.list.length) x+='<li>'+esc(CALC.dachNmOf(o))+', Aufbau von innen nach außen: '+esc(A.list.join(' · '))+'. U ca. '+fmt(A.u,2)+' W/m²K</li>'}
+        if(o.st.keller===3&&o.dk){var kn={eps:'EPS',epsg:'EPS grau',xps:'XPS',mw:'Mineralwolle',cs:'Calciumsilikat (Calzitherm)',beflock:'Beflockung/Spritzdämmung',hwl:'Holzwolle-Leichtbauplatte',mwsch:'Mineralschaum',glas:'Schaumglas',pur:'PUR/PIR',resol:'Resol',holz:'Holzfaser',kork:'Kork',zell:'Zellulose',perl:'Perlite'};
+          x+='<li>Kellerdecke: gedämmt mit '+esc(kn[o.dk.ds]||o.dk.ds)+(o.dk.d>0?', '+o.dk.d+' cm':', Stärke unbekannt (typisch angesetzt)')+(o.dk.wlg>0?', WLG '+String(o.dk.wlg).padStart(3,'0'):'')+(o.dk.f<1?', auf '+Math.round(o.dk.f*100)+' % der Fläche':'')+'</li>'}
+        return x}
 function buildReport(internal,snap){
   var X=snap?snap.ctx:lastCtx;if(!X) return '<div class="rep-page"><p>Noch kein Ergebnis berechnet.</p></div>';
   var o=X.o,R=X.R,S=X.S,I=X.I,rt=S[0].rate,s1=S[0],s2=S[1],s3=S[2];
@@ -3026,6 +3031,7 @@ function buildReport(internal,snap){
   // Maßnahmen
   var LPr=lastParts(R);
   if(LPr){var lmr=LPr.rows[0][1];h+='<h2>Woher kommt die Heizlast?</h2><div class="rep-sn">'+schnittSvg(o,R.uIst,{ink:'#20252A',bg:'#fff'})+'<ul class="sn-leg">'+schnittLeg(o,R.uIst)+'</ul></div><p>'+esc(hlText(R,LPr))+'</p>'+LPr.rows.map(function(r){return '<div class="rep-two"><span>'+esc(r[0])+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="rep-bar"><i style="width:'+(r[1]/lmr*100)+'%"></i></div>'}).join('')}
+  var bl=bauteilLis(o);if(bl) h+='<h2>Vorhandene Dämmung, wie angegeben</h2><ul>'+bl+'</ul>';
   h+='<h2>Was senkt die Heizlast? Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
   else{var mx=R.hebel[0].d;h+=R.hebel.map(function(x){return '<div class="rep-two"><span>'+esc(x.label||NAMES[x.k])+'</span><span>'+fmt(x.d/1000,1)+' MWh/a, ca. '+eur(x.eur)+'/a · Heizlast danach etwa '+fmt(x.kwNew,1)+' kW (minus '+fmt(x.dkw,1)+' kW), Vorlauf etwa '+Math.round(x.vl)+' °C</span></div><div class="rep-bar"><i style="width:'+(x.d/mx*100)+'%"></i></div>'}).join('')}
@@ -3042,6 +3048,7 @@ function buildReport(internal,snap){
       h+='<table><thead><tr><th colspan="2" style="text-align:left">'+esc(g.h)+'</th></tr></thead><tbody>'+g.rows.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>'}).join('')+'</tbody></table>';
     });
     h+='<h2>Rechenbasis</h2><ul><li>'+esc(X.basis)+'</li><li>Außenwand: U ca. '+fmt(R.uWand,2)+' W/m²K, Bestandsfenster: Uw ca. '+fmt(R.uFen,2)+' W/m²K</li>'+
+      bauteilLis(o)+
       '<li>Nutzungsgrad Bestandsheizung ca. '+Math.round(I.eta*100)+' %, Endenergie '+fmt(I.end/1000,1)+' MWh/a</li></ul>';
     var al=$('annlist');if(al) h+='<h2>Annahmen und Grenzen</h2><ul style="font-size:.85em">'+al.innerHTML+'</ul>';
     h+='</div>';
@@ -3313,7 +3320,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 18:58',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 19:12',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

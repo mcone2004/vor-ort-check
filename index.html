@@ -1644,7 +1644,7 @@ function hkxRender(o,R,I){
   var mx=Math.max.apply(null,mon.map(function(m){return m.e}));
   var wint=mon[0].e+mon[1].e+mon[11].e,somm=mon[5].e+mon[6].e+mon[7].e,pk=mon.reduce(function(a,m){return m.e>a.e?m:a},mon[0]);
   var diff=K-Cw;
-  var h='<div class="hk-big"><p>Mit '+(A>0?'Ihrem Abschlag':'Ihren jetzigen Heizkosten')+' von <b>'+(A>0?eur(A)+' im Monat':eur(K)+' im Jahr')+'</b> ('+(A>0?(GP>0?eur(K)+' im Jahr ohne Grundpreis':eur(K)+' im Jahr'):eur(K/12)+' im Monat')+') könnten Sie bei '+fmt(pW*100,1)+' ct/kWh etwa <b>'+fmt(Math.round(E/10)*10)+' kWh Strom</b> einkaufen.</p></div>';
+  var h='<div class="hk-big"><p>Mit '+(A>0?'deinem Abschlag':'deinen jetzigen Heizkosten')+' von <b>'+(A>0?eur(A)+' im Monat':eur(K)+' im Jahr')+'</b> ('+(A>0?(GP>0?eur(K)+' im Jahr ohne Grundpreis':eur(K)+' im Jahr'):eur(K/12)+' im Monat')+') kannst du bei '+fmt(pW*100,1)+' ct/kWh etwa <b>'+fmt(Math.round(E/10)*10)+' kWh Strom</b> einkaufen.</p></div>';
   h+='<p>Monatlich gerechnet: heute '+eur(K/12)+(GP>0?' ohne Grundpreis':'')+', mit Wärmepumpe etwa <b>'+eur(Cw/12)+' Strom-Abschlag</b> im Monat'+(Cw<K?' ('+eur((K-Cw)/12)+' weniger).':' ('+eur((Cw-K)/12)+' mehr).')+'</p>';
   if(A>0&&Kv>0&&Math.abs(Kv/K-1)>0.1&&!(GP>0)) h+='<p class="hint">Aus Verbrauch und Preis ergäben sich '+eur(Kv/12)+' im Monat, der Abschlag liegt '+(A*12>Kv?'darüber':'darunter')+'. Möglich sind Grundpreis, Kochgas, Warmwasser, Preisanpassungen oder Nachzahlung und Guthaben in der Jahresabrechnung.</p>';
   h+='<p>Die Wärmepumpe braucht für dieselbe Wärme etwa <b>'+fmt(Math.round(Ew/10)*10)+' kWh Strom</b> im Jahr (Jahresarbeitszahl ca. '+fmt(jEff,1)+'). Das sind '+Math.round(Ew/E*100)+' % des Stroms, den die jetzigen Heizkosten bezahlen würden. Stromkosten ca. '+eur(Cw)+' im Jahr, das ist '+(diff>=0?eur(diff)+' weniger':eur(-diff)+' mehr')+' als heute.</p>';
@@ -3433,7 +3433,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 20:10',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 20:14',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

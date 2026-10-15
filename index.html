@@ -613,9 +613,22 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     <label for="frahmen">Rahmenmaterial<select id="frahmen"><option value="holz">Holz</option><option value="kst" selected>Kunststoff</option><option value="ha">Holz-Aluminium</option><option value="alu">Aluminium, thermisch getrennt</option><option value="alu0">Aluminium ohne thermische Trennung, älter</option></select></label>
     <label for="fdicht">Dichtheit der Fenster<select id="fdicht"><option value="0" selected>normal</option><option value="1">spürbar undicht, Zugluft an den Fugen</option></select></label>
     </div>
+    <div class="row">
+    <label for="fshut">Läden und Sonnenschutz vor den Fenstern<select id="fshut"><option value="none" selected>keine</option><option value="roll">Rollladen außen (Kunststoff, Alu), mit Kasten</option><option value="rollh">Rollladen Holz</option><option value="klapp">Klapp- oder Schiebeläden</option><option value="raff">Raffstore, Außenjalousie (Lamellen)</option><option value="screen">Außenrollo, Screen (Textil)</option><option value="innen">nur innen: Rollo, Plissee, Jalousie, Vorhang</option></select></label>
+    <label for="fshutuse" id="fshutusel" hidden>Wird in der Heizperiode geschlossen<select id="fshutuse"><option value="nacht">jede Nacht und bei Abwesenheit</option><option value="teils" selected>gelegentlich</option><option value="nie">selten oder nie</option></select></label>
+    </div>
+    <span class="hint" id="fshh" hidden></span>
     <span class="hint">Maßgeblich ist die Verglasung, nicht das Baujahr des Hauses. Angesetzt sind Uw-Werte von 4,7 (Einfach) über 2,6 (Kasten alt), 2,8, 1,5 und 1,2 (2-fach) bis 0,95 (3-fach) und 1,1 (Kastenfenster neu). Der Dichtheitsaufschlag gilt nur für ältere Fenster. Rahmen als Aufschlag auf den Uw: Kunststoff Bezug, Holz und Holz-Aluminium +0,05, Aluminium getrennt +0,3, Aluminium ohne Trennung +0,9.</span>
     <span class="hint" id="fuw"></span>
     <label for="af">Fensterfläche gesamt in m² (optional)<input id="af" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
+    </section>
+    <section class="bt bt-lueft"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/></svg>Lüftung</h3>
+    <div class="row">
+    <label for="lvor">Lüftungsanlage vorhanden<select id="lvor"><option value="nein" selected>nein, Fensterlüftung</option><option value="ja">ja</option></select></label>
+    <label for="lart" id="lartl" hidden>Art der Lüftung<select id="lart"><option value="abluft">Abluftanlage (zentral oder Bad-/Küchenventilator), ohne Wärmerückgewinnung</option><option value="dez">Dezentrale Geräte mit Wärmerückgewinnung (Wand- oder Pendellüfter)</option><option value="zent" selected>Zentrale Zu- und Abluftanlage mit Wärmerückgewinnung</option></select></label>
+    </div>
+    <label for="lwrg" id="lwrgl" hidden>Wärmerückgewinnung, Wirkungsgrad nach Herstellerangabe<select id="lwrg"><option value="0" selected>unbekannt, typischer Wert</option><option value="60">60 %</option><option value="70">70 %</option><option value="75">75 %</option><option value="80">80 %</option><option value="85">85 %</option><option value="90">90 %</option></select></label>
+    <span class="hint" id="lvh"></span>
     </section>
   </div></div>
   </fieldset>
@@ -780,6 +793,8 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
       <li>Heizkörpertyp: Leistung je Baugröße relativ zu Typ 22 angesetzt mit Gliederheizkörper 0,9, Typ 10 0,5, Typ 11 0,65, Typ 21 0,85, Typ 33 1,45. Richtwerte, je Hersteller etwa ±10 %. Der Typ ändert den Ausgangsvorlauf nicht, nur die Variante Heizkörpertausch auf Typ 33 in gleicher Baugröße. Dabei werden alle Heizkörper dieses Typs getauscht.</li>
       <li>Energieklasse: Endenergie je m² Gebäudenutzfläche nach der GEG-Skala (A+ unter 30, A unter 50, B unter 75, C unter 100, D unter 130, E unter 160, F unter 200, G unter 250, H ab 250 kWh/m²a). Nutzfläche gleich 1,2 mal Wohnfläche, bei Ein- und Zweifamilienhaus mit beheiztem Keller 1,35. Hilfsenergie und Primärenergie fehlen. Bei Wärmepumpen ist die Endenergie der Strom, deshalb fällt die Klasse dort deutlich besser aus. Das ersetzt keinen Energieausweis.</li>
       <li>Fenster: Uw-Werte je Bauart wie oben, dazu ein Aufschlag je Rahmenmaterial. Holz und Kunststoff liegen bei gleicher Verglasung innerhalb der Streuung von etwa ±0,1 W/m²K, Aluminium ohne thermische Trennung weicht deutlich ab. Neufenster in Varianten mit Uw 0,95 und Holz-, Kunststoff- oder Holz-Alu-Rahmen. Dichtheitsaufschlag 8 kWh/m²a Lüftungsverlust bei älteren undichten Fenstern.</li>
+      <li>Läden und Sonnenschutz: zusätzlicher Wärmedurchlasswiderstand bei geschlossenem Behang, Größenordnung nach DIN EN ISO 10077-1 (Rollladen 0,15 bis 0,20, Raffstore 0,08, Textil 0,05 m²K/W), gewichtet mit der Zeit, in der er geschlossen ist (jede Nacht 50 %, gelegentlich 25 % der Heizzeit). Annahmen, keine Messwerte.</li>
+      <li>Lüftung: Eine Anlage deckt etwa 60 % des Luftwechsels, Wärmerückgewinnung wirkt in der Praxis mit 85 % des Nennwerts. Abluft ohne Wärmerückgewinnung pauschal minus 10 %. Hilfsenergie der Ventilatoren und die Dichtheit der Hülle sind nicht gerechnet.</li>
       <li>Außenwand: Original-U-Wert je Bauart und Baujahrband als Schätzwert (zum Beispiel Vollziegel 1949 bis 1977 etwa 1,4, Hochlochziegel 1,3, Holzrahmenbau etwa 0,6, Fachwerk etwa 1,7). Nachdämmung als zusätzlicher Wärmedurchlasswiderstand, je Bauart begrenzt (Zweischalig nur Kerndämmung, Fachwerk nur innen, Porenbeton kaum sinnvoll). U-Wert nach Dämmung nie unter 0,14. Streuung innerhalb einer Bauart groß, Wandaufbau und Dicke bitte vor Ort prüfen.</li>
       <li>Wandstärke: Bei Vollziegel, Hochlochziegel, Porenbeton, Blockbau und Holzrahmenbau skaliert sie den Wärmedurchlasswiderstand des Wandkerns gegenüber einer typischen Stärke (Bezug: Vollziegel 36,5 cm, Hochlochziegel 30 cm, Porenbeton 36,5 cm, Blockbau 16 cm, Holzrahmenbau 12 cm Gefach). Putz, Übergangswiderstände und beim Holzrahmenbau die Beplankung bleiben fest. Bei zweischalig, Fachwerk und Plattenbau bestimmt die Stärke den U-Wert nicht, dort entfällt die Auswahl.</li>
       <li>Heizlast aus Heizwärme mit 1.700 Volllaststunden. Keine Heizlastberechnung nach DIN EN 12831.</li>
@@ -1021,6 +1036,20 @@ function dachAufbau(o){
 function uDachKnown(o){return dachAufbau(o).u}
 // Stand der Dämmung für die Variante „Dach nach aktuellem Stand“: bekannte, schon gute Dämmung bleibt erhalten
 function dachTo2(o){var s=o.st.dach;return s===3?(uDachKnown(o)<=UST.dach[2]*1.15?3:2):Math.max(s,2)}
+// Läden und Sonnenschutz vor dem Fenster: zusätzlicher Wärmedurchlasswiderstand ΔR in m²K/W bei geschlossenem Behang (grobe Annahmen,
+// Größenordnung nach DIN EN ISO 10077-1 Anhang G). Wirkt nur in der Zeit, in der er geschlossen ist: nachts meistens 50 %, gelegentlich 25 % der Zeit.
+var SHUT={none:0,roll:0.15,rollh:0.20,klapp:0.20,raff:0.08,screen:0.05,innen:0.03};
+function shutF(o){return {nacht:0.5,teils:0.25,nie:0}[o.shutUse||'teils']||0}
+function shutU(o,u){var dR=SHUT[o.shut]||0,f=shutF(o);return (dR>0&&f>0)?(1-f)*u+f/(1/u+dR):u}
+// Lüftung: Faktor auf den Lüftungswärmeverlust. Anlage deckt ca. 60 % des Luftwechsels (Rest Infiltration und Fensterlüftung),
+// Wärmerückgewinnung in der Praxis mit 85 % des Nennwerts angesetzt. Abluft ohne WRG: pauschal 10 % weniger (weniger unkontrollierte Lüftung). Annahmen.
+function lvf(o){
+  if(o.lvor!=='ja') return 1;
+  if(o.lart==='abluft') return 0.90;
+  if(o.lart!=='dez'&&o.lart!=='zent') return 1;
+  var e=(+o.lwrg>0)?(+o.lwrg/100):(o.lart==='zent'?0.80:0.70);
+  return 0.4+0.6*(1-e*0.85);
+}
 function uOf(o,s,fen){
   var b=o.band,r={};
   if(s.dach===3) r.dach=uDachKnown(o);
@@ -1030,8 +1059,9 @@ function uOf(o,s,fen){
   // Ist die vorhandene, bekannte Dämmung besser als der Zielstand, bleibt sie erhalten
   if(o.st&&o.st.wand===3&&(s.wand===1||s.wand===2)) r.wand=Math.min(r.wand,uWall(o,3));
   r.kst=(o.st&&o.st.keller===3&&(s.keller===1||s.keller===2)&&kellerTerm(o,3)<kellerTerm(o,s.keller))?3:s.keller;
-  r.fenster=(fen==='new')?0.95:(UFEN[fen]+matDelta(o,fen));
-  r.leak=(o.fdicht===1&&r.fenster>=1.6)?8:0; // undichte ältere Fenster: mehr Lüftungsverlust in kWh/(m²a)
+  r.fbase=(fen==='new')?0.95:(UFEN[fen]+matDelta(o,fen));
+  r.fenster=shutU(o,r.fbase);
+  r.leak=(o.fdicht===1&&r.fbase>=1.6)?8:0; // undichte ältere Fenster: mehr Lüftungsverlust in kWh/(m²a)
   return r;
 }
 function uOrig(o){var b=o.band;return {wand:uWall(o,0),dach:U0.dach[b],kst:0,fenster:U0.fenster[b],leak:0}}
@@ -1082,13 +1112,13 @@ function qh(o,u){
   var A=AR(o).use;
   var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
   var ht=a.w*u.wand+a.f*u.fenster+a.d*u.dach*dfm(o).fx+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k);
-  return Math.max(15,ht*(o.gt>0?o.gt:GT)+QV[o.band]+u.leak-GEW); // o.gt: Gradtagfaktor des Standorts, sonst Vorgabe
+  return Math.max(15,ht*(o.gt>0?o.gt:GT)+QV[o.band]*lvf(o)+u.leak-GEW); // o.gt: Gradtagfaktor des Standorts, sonst Vorgabe
 }
 // Zerlegung der Heizwärme in Anteile (kWh/m²a), gleiche Rechnung wie qh. Summe = qh (ohne die Untergrenze 15).
 function qhParts(o,u){
   var A=AR(o).use,gt=(o.gt>0?o.gt:GT);
   var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
-  return {wand:a.w*u.wand*gt,fenster:a.f*u.fenster*gt,dach:a.d*u.dach*dfm(o).fx*gt,keller:kellerTerm(o,u.kst)*gt,wb:0.08*(a.w+a.f+a.d+a.k)*gt,lueft:QV[o.band]+u.leak,gew:-GEW};
+  return {wand:a.w*u.wand*gt,fenster:a.f*u.fenster*gt,dach:a.d*u.dach*dfm(o).fx*gt,keller:kellerTerm(o,u.kst)*gt,wb:0.08*(a.w+a.f+a.d+a.k)*gt,lueft:QV[o.band]*lvf(o)+u.leak,gew:-GEW};
 }
 function vlModel(o,qNow,qOrigW,qNowW,fm){
   if(o.hk==='fbh') return 24+0.30*qNowW; // ungekappt, damit ein gemessener Vorlauf sauber verschoben werden kann
@@ -1298,9 +1328,9 @@ function compute(o){
   hebel.sort(function(a,b){return b.d-a.d});
   var pp=qhParts(o,uIst),kwP={};
   Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
-  return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
+  return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uFenB:uIst.fbase,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {typU:typU,REG:REG,kLevel:kLevel,kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {shutU:shutU,SHUT:SHUT,shutF:shutF,lvf:lvf,typU:typU,REG:REG,kLevel:kLevel,kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -1383,7 +1413,7 @@ function hhMean(){return yearMean([['sv1','sj1'],['sv2','sj2'],['sv3','sj3']])}
 function read(){
   var g=geoGet();
   return {geo:g,gt:g?g.gt:0,pvy:g?g.pvy:0,kfAuto:verbMean().auto,
-    obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
+    obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,shut:$('fshut').value,shutUse:$('fshutuse').value,lvor:$('lvor').value,lart:$('lart').value,lwrg:+$('lwrg').value||0,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},dk:{ds:$('kstoff').value,wlg:+$('kwlg').value||0,d:+$('kstark').value||0,bj:+$('kbj').value||0,td:true,f:($('kdd').value==='teil'?(+$('kdanteil').value||50)/100:1),lage:'beide'},dkmat:($('kart').value==='kk'?'unbek':$('kdmat').value),dkw:{m:$('kwd').value,a:+$('kwanteil').value||50,ds:$('kwstoff').value,wlg:+$('kwwlg').value||0,d:+$('kwstark').value||0},bpart:$('bpart').value,dkb:{ds:$('kbstoff').value,wlg:+$('kbwlg').value||0,d:+$('kbstark').value||0,bj:+$('kbbj').value||0},dl:{dka:$('dka').value,dkh:+$('dkh').value||0,dkf:$('dkf').value,dkfd:+$('dkfd').value||0,dkfw:+$('dkfw').value||0,dib:$('dib').value,dab:$('dab').value,dzs:$('dzs').value,dzd:+$('dzd').value||0,dzw:+$('dzw').value||0,ddb:$('ddb').value},st:{wand:+$('wand').value,dach:+$('dach').value,keller:((+$('kshare').value>0&&$('kart').value!=='bh'&&($('kdd').value==='ja'||$('kdd').value==='teil'))?3:0)},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
@@ -1600,8 +1630,8 @@ function render(){
   var s1=S[0],s2=S[1],s3=S[2],rt=s1.rate;
   var cu=CALC.canUp(o), dk=cu?'Dach und Kellerdecke':'Dach';
   $('wuw').textContent='Angesetzt für die Außenwand: U ca. '+fmt(R.uWand,2)+' W/m²K'+(($('wtyp').value==='unb'&&+$('wand').value===0)?' (baujahrtypisch, '+CALC.REG[o.band]+')':'');
-  $('fuw').textContent='Angesetzt für die Bestandsfenster: Uw ca. '+fmt(R.uFen,2)+' W/m²K';
-  btSumSet(R);bjSet(o);syncKD();
+  $('fuw').textContent='Angesetzt für die Bestandsfenster: Uw ca. '+fmt(R.uFenB,2)+' W/m²K'+(R.uFen<R.uFenB-0.005?', mit Läden im Mittel ca. '+fmt(R.uFen,2)+' W/m²K':'');
+  btSumSet(R);bjSet(o);syncKD();syncFL();
   var sav1=I.cost-s1.cost, add2=s1.cost-s2.cost, add3=s1.cost-s3.cost;
   // Geplante Solaranlagen werden getrennt amortisiert: Die Wärmepumpe rechnet ohne ihren Vorteil, die Solaranlagen mit ihrem Gesamtnutzen
   var rsol=R.solar||{},pvOk=o.pvSt===2&&rsol.pv&&rsol.pv.kwp>0,stOk=o.stSt===2&&!!rsol.st;
@@ -1914,6 +1944,22 @@ function syncKD(){
   $('kwanl').hidden=!(s>0&&kw==='teil');$('kwrow1').hidden=!wOn;$('kwstl').hidden=!wOn;
   $('kwhint').textContent=(wOn?'Gerechnet mit '+lam($('kwstoff').value,+$('kwwlg').value,0)+(kw==='teil'?', auf '+$('kwanteil').value+' % der Wandfläche':'')+'. ':'')+(bh?'':'Der Keller ist unbeheizt: Die Kellerwände liegen außerhalb der Hülle und fließen nicht in die Heizlast ein. Die Angabe dient der Dokumentation.');
 }
+function syncFL(){
+  var o=read(),sh=$('fshut').value,on=sh!=='none';
+  $('fshutusel').hidden=!on;
+  var h=$('fshh');h.hidden=!on;
+  if(on){
+    var dR=CALC.SHUT[sh],f=CALC.shutF(o);
+    h.textContent=dR>0?'Angesetzt: zusätzlicher Wärmedurchlasswiderstand ca. '+String(dR).replace('.',',')+' m²K/W bei geschlossenem Behang, wirksam in '+Math.round(f*100)+' % der Heizzeit. Der Sommerschutz vor Überhitzung ist nicht Teil dieser Rechnung. Rollladenkästen sind meist Wärmebrücken, das ist nicht eingerechnet.':'';
+  }
+  var lv=$('lvor').value==='ja',la=$('lart').value;
+  $('lartl').hidden=!lv;$('lwrgl').hidden=!(lv&&(la==='dez'||la==='zent'));
+  var f2=CALC.lvf(o),t='';
+  if(!lv) t='Fensterlüftung: Lüftungsverlust nach Baujahr angesetzt. Mit einer Lüftungsanlage mit Wärmerückgewinnung sinkt er deutlich, Voraussetzung ist eine dichte Gebäudehülle.';
+  else if(la==='abluft') t='Abluftanlage ohne Wärmerückgewinnung: Lüftungsverlust pauschal ca. '+Math.round((1-f2)*100)+' % geringer. Sie sichert den Luftwechsel, spart aber kaum Heizenergie.';
+  else t='Lüftungsverlust ca. '+Math.round((1-f2)*100)+' % geringer. Angenommen: Anlage deckt etwa 60 % des Luftwechsels, Wärmerückgewinnung in der Praxis mit 85 % des Nennwerts'+(+$('lwrg').value>0?'':', Nennwert '+(la==='zent'?'80':'70')+' % typisch')+'. Der Stromverbrauch der Ventilatoren ist nicht gerechnet. Bei undichter Hülle fällt die Wirkung geringer aus.';
+  $('lvh').textContent=t;
+}
 // Baujahr-Typologie: Regelwerk zur Bauzeit und die daraus angesetzten U-Werte, solange nichts Genaueres angegeben ist
 function bjSet(o){
   try{
@@ -1961,7 +2007,7 @@ function syncWand(){
 // Bekannte Dämmung: Dämmstoff, WLG, Stärke nur anzeigen, wenn der Dämmzustand „Dämmung bekannt“ gewählt ist
 var DSLAM={eps:35,epsg:32,mw:35,holz:40,pur:24,resol:22,kern:40,cs:60};
 // Bereiche der Gebäudehülle als aufklappbare Abschnitte untereinander; Zustand wird je Gerät gemerkt, Standard: nur Außenwand offen
-var BTKEYS=['wand','dach','keller','boden','fenster'];
+var BTKEYS=['wand','dach','keller','boden','fenster','lueft'];
 function btSumSet(R){
   function s(id,t){var e=$(id);if(e) e.textContent=t}
   function otxt(id){var e=$(id);return (e&&e.selectedOptions&&e.selectedOptions[0])?e.selectedOptions[0].text:''}
@@ -1971,7 +2017,8 @@ function btSumSet(R){
     s('bts_dach',(tb?tb.textContent:'Dachform offen')+' · U '+fmt(R.uIst.dach,2));
     s('bts_keller',otxt('kshare')+(+$('kshare').value>0?', '+otxt('kart'):''));
     s('bts_boden',($('bpart').value==='unbek'?'Aufbau unbekannt':otxt('bpart').replace(/ \(.*$/,''))+(['none','unk'].indexOf($('kbstoff').value)<0?' · gedämmt':''));
-    s('bts_fenster','Uw '+fmt(R.uFen,2));
+    s('bts_fenster','Uw '+fmt(R.uFenB,2)+($('fshut').value!=='none'?' · mit Läden '+fmt(R.uFen,2):''));
+    s('bts_lueft',$('lvor').value==='ja'?otxt('lart').replace(/ \(.*$/,'').replace(/,.*$/,''):'Fensterlüftung');
   }catch(e){}
 }
 function initBt(){
@@ -2354,7 +2401,7 @@ function initKunden(backendP){
     if(f.wwart==='zz') f=Object.assign({},f,{wwart:'zh',wzirk:'ja'}); // ältere Datensätze: Zirkulation war Teil der Warmwasser-Auswahl
     f=Object.assign({},DEF0,f);
     ['wtyp','kshare','kart','hk','traeger'].forEach(function(id){if(f[id]!=null&&$(id)) $(id).value=f[id]});
-    syncKeller();syncWand();syncHk();
+    syncKeller();syncWand();syncHk();syncFL();
     if(f.dform!=null&&$('dform')) $('dform').value=f.dform;syncDach();
     fields().forEach(function(e){
       if(f[e.id]==null||['wtyp','kshare','kart','hk','traeger'].indexOf(e.id)>=0) return;
@@ -2975,6 +3022,10 @@ function bauteilLis(o){var x='';
         if(o.st.dach===3){var A=CALC.dachAufbau(o);if(A.list.length) x+='<li>'+esc(CALC.dachNmOf(o))+', Aufbau von innen nach außen: '+esc(A.list.join(' · '))+'. U ca. '+fmt(A.u,2)+' W/m²K</li>'}
         if(o.st.keller===3&&o.dk){var kn={eps:'EPS',epsg:'EPS grau',xps:'XPS',mw:'Mineralwolle',cs:'Calciumsilikat (Calzitherm)',beflock:'Beflockung/Spritzdämmung',hwl:'Holzwolle-Leichtbauplatte',mwsch:'Mineralschaum',glas:'Schaumglas',pur:'PUR/PIR',resol:'Resol',holz:'Holzfaser',kork:'Kork',zell:'Zellulose',perl:'Perlite'};
           x+='<li>Kellerdecke: gedämmt mit '+esc(kn[o.dk.ds]||o.dk.ds)+(o.dk.d>0?', '+o.dk.d+' cm':', Stärke unbekannt (typisch angesetzt)')+(o.dk.wlg>0?', WLG '+String(o.dk.wlg).padStart(3,'0'):'')+(o.dk.f<1?', auf '+Math.round(o.dk.f*100)+' % der Fläche':'')+'</li>'}
+        if(o.shut&&o.shut!=='none'){var sn={roll:'Rollladen außen',rollh:'Rollladen Holz',klapp:'Klapp- oder Schiebeläden',raff:'Raffstore, Außenjalousie',screen:'Außenrollo, Screen',innen:'Innenrollo, Vorhang'},su={nacht:'jede Nacht geschlossen',teils:'gelegentlich geschlossen',nie:'selten oder nie geschlossen'};
+          x+='<li>Läden und Sonnenschutz: '+esc(sn[o.shut])+', '+su[o.shutUse||'teils']+'</li>'}
+        if(o.lvor==='ja'){var ln={abluft:'Abluftanlage ohne Wärmerückgewinnung',dez:'dezentrale Lüftungsgeräte mit Wärmerückgewinnung',zent:'zentrale Zu- und Abluftanlage mit Wärmerückgewinnung'};
+          x+='<li>Lüftung: '+esc(ln[o.lart]||'')+(o.lwrg>0&&o.lart!=='abluft'?', Wirkungsgrad '+o.lwrg+' %':'')+'</li>'}
         return x}
 function buildReport(internal,snap){
   var X=snap?snap.ctx:lastCtx;if(!X) return '<div class="rep-page"><p>Noch kein Ergebnis berechnet.</p></div>';
@@ -3250,7 +3301,7 @@ function initHome(){
 }
 function init(){
   ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -3320,7 +3371,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 19:12',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 19:24',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

@@ -328,7 +328,7 @@ body[data-mode="ausweis"] #kd_addobj,body[data-mode="erfassung"] #kd_addobj{disp
 .kg-h{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;padding:0 .2rem}.kg-h strong{font-size:1.1rem;font-weight:800;color:var(--ink);overflow-wrap:anywhere}.kg-h span{font-size:.8rem;color:var(--muted);white-space:nowrap}
 .kg .ov-row.kc{border-left-width:1.5px;border-radius:.6rem}.kg-add{justify-self:start;min-height:3rem;padding:.4rem 1rem;font-size:.9rem}
 .kc-ol{font-weight:700;color:var(--c-kd)}
-#dkbox{display:grid;gap:.7rem}#dkbox .row{grid-template-columns:minmax(0,1fr)}#dkbox label[hidden],#dkbox .row[hidden],#dkbox [hidden]{display:none}#dshintD{padding:.5rem .7rem;border-left:4px solid var(--green);background:var(--surface);border-radius:.4rem;color:var(--ink)}
+#kdbox,#kbbox{display:grid;gap:.7rem}#kdbox [hidden]{display:none}.kb-t{font-size:.9rem;padding-top:.3rem;border-top:1px solid var(--line)}#dkbox{display:grid;gap:.7rem}#dkbox .row{grid-template-columns:minmax(0,1fr)}#dkbox label[hidden],#dkbox .row[hidden],#dkbox [hidden]{display:none}#dshintD{padding:.5rem .7rem;border-left:4px solid var(--green);background:var(--surface);border-radius:.4rem;color:var(--ink)}
 body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:none!important}
 .cmp{position:fixed;inset:0;z-index:60;background:var(--page,var(--bg));overflow:auto;-webkit-overflow-scrolling:touch}
 .cmp[hidden]{display:none}
@@ -554,15 +554,25 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     </div>
     <label for="keller"><span id="kstl">Dämmzustand Bodenplatte</span><select id="keller"><option value="0" selected>Original</option><option value="1">Nachgedämmt</option><option value="2">Aktuell gedämmt</option><option value="3">Dämmung bekannt (Dämmstoff, WLG, Stärke, Baujahr)</option></select></label>
     <div id="kdbox" hidden>
-      <div class="row">
-        <label for="kstoff">Dämmstoff<select id="kstoff"><option value="eps" selected>EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="xps">XPS (Perimeterdämmung)</option><option value="mw">Mineralwolle, Steinwolle-Lamellen</option><option value="hwl">Holzwolle-Leichtbauplatte (Heraklith)</option><option value="mwsch">Mineralschaum (Multipor)</option><option value="glas">Schaumglas</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="perl">Perlite, Schüttung</option></select></label>
+      <div class="row" id="krow1">
+        <label for="kstoff"><span id="kstl2">Dämmstoff</span><select id="kstoff"><option value="none">keine</option><option value="eps" selected>EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="xps">XPS (Perimeterdämmung)</option><option value="mw">Mineralwolle, Steinwolle-Lamellen</option><option value="hwl">Holzwolle-Leichtbauplatte (Heraklith)</option><option value="mwsch">Mineralschaum (Multipor)</option><option value="glas">Schaumglas</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="perl">Perlite, Schüttung</option></select></label>
         <label for="kwlg">Wärmeleitgruppe (WLG)<select id="kwlg"><option value="0" selected>unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
       </div>
       <div class="row">
         <label for="kstark">Dämmstärke<select id="kstark"><option value="2">2 cm</option><option value="3">3 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6">6 cm</option><option value="8" selected>8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16">16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="24">24 cm</option><option value="30">30 cm</option></select></label>
         <label for="kbj">Wann gedämmt (Baujahr der Dämmung)<select id="kbj"><option value="0" selected>unbekannt</option><option value="1">bis 1979</option><option value="2">1980 bis 1994</option><option value="3">1995 bis 2009</option><option value="4">ab 2010</option></select></label>
       </div>
-      <label for="klage" id="klagel" hidden>Wo gedämmt<select id="klage"><option value="beide" selected>Boden und Wände</option><option value="wand">nur Wände (Perimeterdämmung)</option><option value="boden">nur Boden</option></select></label>
+      <div id="kbbox" hidden>
+        <strong id="kbt" class="kb-t">Bodenplatte</strong>
+        <div class="row">
+          <label for="kbstoff">Dämmstoff<select id="kbstoff"><option value="none" selected>keine, Bodenplatte original</option><option value="xps">XPS (Perimeterdämmung)</option><option value="eps">EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="glas">Schaumglas (auch Schotter)</option><option value="mwsch">Mineralschaum (Multipor)</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="perl">Perlite, Schüttung</option></select></label>
+          <label for="kbwlg" id="kbwlgl" hidden>Wärmeleitgruppe (WLG)<select id="kbwlg"><option value="0" selected>unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
+        </div>
+        <div class="row" id="kbrow2" hidden>
+          <label for="kbstark">Dämmstärke<select id="kbstark"><option value="2">2 cm</option><option value="3">3 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6">6 cm</option><option value="8" selected>8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16">16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="24">24 cm</option><option value="30">30 cm</option></select></label>
+          <label for="kbbj">Wann gedämmt (Baujahr der Dämmung)<select id="kbbj"><option value="0" selected>unbekannt</option><option value="1">bis 1979</option><option value="2">1980 bis 1994</option><option value="3">1995 bis 2009</option><option value="4">ab 2010</option></select></label>
+        </div>
+      </div>
       <span class="hint" id="kdhint"></span>
     </div>
     <span class="hint" id="khint"></span>
@@ -893,7 +903,7 @@ var WDFIX={hrb:0.25};
 // Typische Rechenwerte lambda in W/mK, wenn die WLG unbekannt ist.
 var LAMT={eps:0.035,epsg:0.032,mw:0.035,holz:0.040,pur:0.024,resol:0.022,kern:0.040,cs:0.060,zell:0.040,schaf:0.040,hanf:0.040,perl:0.050,lehm:0.60,sand:0.40,spaene:0.09,xps:0.036,hwl:0.09,mwsch:0.045,glas:0.045};
 function rKnown(o,key){
-  var m=o[key||'dm']||{},d=+m.d||0;if(d<=0) return 0;
+  var m=o[key||'dm']||{},d=+m.d||0;if(d<=0||m.ds==='none') return 0;
   return (d/100)/lamKnown(m);
 }
 // λ der vorhandenen Dämmung: angegebene WLG, sonst typischer Wert des Dämmstoffs.
@@ -981,14 +991,17 @@ function uOrig(o){var b=o.band;return {wand:uWall(o,0),dach:U0.dach[b],kst:0,fen
 function kellerTerm(o,st){
   var b=o.band,F=AR(o).use.k/o.wf;
   var s=(o.kShare==null)?1:o.kShare, t=o.kArt||'ub';
-  var restSt=(s>0&&t!=='bh')?0:st;
-  var part=0,rk=(st===3)?rKnown(o,'dk'):0,lg=(o.dk&&o.dk.lage)||'beide';
+  var restSt=(s>0&&t!=='bh')?((st===3&&rKnown(o,'dkb')>0)?3:0):st;
+  // st 3 (Dämmung bekannt): Hauptdämmung rk gilt für Kellerdecke, Kriechkeller-Decke, Kelleraußenwände (beheizt) oder die Bodenplatte ohne Keller;
+  // rb ist die Dämmung der Bodenplatte im beheizten Keller bzw. im nicht unterkellerten Teil
+  var part=0,rk=(st===3)?rKnown(o,'dk'):0,rb=(st===3)?rKnown(o,'dkb'):0;
   if(s>0){
     if(t==='ub') part=F*s*pick(UDK,b,st,rk)*0.6;
     else if(t==='kk') part=F*s*pick(UKK,b,st,rk)*0.8;
-    else part=F*s*0.75*(pick(UBP,b,st,lg==='wand'?0:rk)+0.7*pick(UWE,b,st,lg==='boden'?0:rk));
+    else part=F*s*0.75*(pick(UBP,b,st,rb)+0.7*pick(UWE,b,st,rk));
   }
-  return part+F*(1-s)*pick(UBP,b,restSt,(t==='bh'&&lg==='wand')?0:rk);
+  var rRest=(s===0)?rk:rb;
+  return part+F*(1-s)*pick(UBP,b,restSt,rRest);
 }
 // Nachdämmen nur dort angesetzt, wo es praktisch machbar ist: Kellerdecke und Kriechkeller-Decke
 // Stand der Kellerdämmung für „aktueller Stand“: bekannte, schon gute Dämmung bleibt erhalten
@@ -1224,7 +1237,7 @@ function compute(o){
   Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
   return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -1308,7 +1321,7 @@ function read(){
   var g=geoGet();
   return {geo:g,gt:g?g.gt:0,pvy:g?g.pvy:0,kfAuto:verbMean().auto,
     obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
-    wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},dk:{ds:$('kstoff').value,wlg:+$('kwlg').value||0,d:+$('kstark').value||0,bj:+$('kbj').value||0,lage:$('klage').value},dl:{dka:$('dka').value,dkh:+$('dkh').value||0,dkf:$('dkf').value,dkfd:+$('dkfd').value||0,dkfw:+$('dkfw').value||0,dib:$('dib').value,dab:$('dab').value,dzs:$('dzs').value,dzd:+$('dzd').value||0,dzw:+$('dzw').value||0,ddb:$('ddb').value},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
+    wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},dk:{ds:$('kstoff').value,wlg:+$('kwlg').value||0,d:+$('kstark').value||0,bj:+$('kbj').value||0,lage:'beide'},dkb:{ds:$('kbstoff').value,wlg:+$('kbwlg').value||0,d:+$('kbstark').value||0,bj:+$('kbbj').value||0},dl:{dka:$('dka').value,dkh:+$('dkh').value||0,dkf:$('dkf').value,dkfd:+$('dkfd').value||0,dkfw:+$('dkfw').value||0,dib:$('dib').value,dab:$('dab').value,dzs:$('dzs').value,dzd:+$('dzd').value||0,dzw:+$('dzw').value||0,ddb:$('ddb').value},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
@@ -1810,11 +1823,21 @@ function syncKeller(){
   syncKD();
 }
 function syncKD(){
-  var on=$('keller').value==='3',bh=(+$('kshare').value>0&&$('kart').value==='bh');
+  var on=$('keller').value==='3',s=+$('kshare').value,bh=(s>0&&$('kart').value==='bh');
   $('kdbox').hidden=!on;if(!on) return;
-  $('klagel').hidden=!bh;
-  var w=+$('kwlg').value,bj=+$('kbj').value||0,lam=CALC.lamKnown({ds:$('kstoff').value,wlg:w,bj:bj});
-  $('kdhint').textContent='Gerechnet mit λ = '+lam.toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(bj===1||bj===2?', Einbau vor 1995':'')+')')+'. Die Dämmschicht wird zum Original-U-Wert des Bauteils addiert.';
+  var bp=bh||(s>0&&s<1);                       // zweiter Satz für die Bodenplatte
+  $('kbbox').hidden=!bp;
+  $('kbt').textContent=bh?'Bodenplatte im beheizten Keller':'Bodenplatte im nicht unterkellerten Teil';
+  $('kstl2').textContent=bh?'Kelleraußenwände (Perimeterdämmung), Dämmstoff':(s===0?'Dämmung der Bodenplatte, Dämmstoff':($('kart').value==='kk'?'Dämmung der Decke über Kriechkeller, Dämmstoff':'Dämmung der Kellerdecke, Dämmstoff'));
+  var ks=$('kstoff').value,kOn=ks!=='none';
+  ['kwlg','kstark','kbj'].forEach(function(id){var l=$(id).closest('label');if(l) l.hidden=!kOn});
+  var bs=$('kbstoff').value,bOn=bp&&bs!=='none';
+  $('kbwlgl').hidden=!bOn;$('kbrow2').hidden=!bOn;
+  function lam(ds,w,bj){return CALC.lamKnown({ds:ds,wlg:w,bj:bj})}
+  var t=[];
+  if(kOn){var w=+$('kwlg').value,bj=+$('kbj').value||0;t.push((bh?'Wände':'Dämmung')+': λ = '+lam(ks,w,bj).toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(bj===1||bj===2?', Einbau vor 1995':'')+')'))}
+  if(bOn){var w2=+$('kbwlg').value,bj2=+$('kbbj').value||0;t.push('Bodenplatte: λ = '+lam(bs,w2,bj2).toFixed(3).replace('.',',')+' W/mK'+(w2>0?'':' (typischer Wert'+(bj2===1||bj2===2?', Einbau vor 1995':'')+')'))}
+  $('kdhint').textContent=(t.length?'Gerechnet mit '+t.join('; ')+'. ':'')+'Die Dämmschicht wird zum Original-U-Wert des Bauteils addiert.';
 }
 
 var WDOPT={voll:[24,30,36.5,42.5,49],hlz:[17.5,24,30,36.5,42.5],ks:[17.5,24,30,36.5],bruch:[40,50,60,70],mono:[24,30,36.5,42.5,49],block:[10,12,16,20,25],hrb:[8,10,12,14,16,18,20,22,24,26],schlacke:[24,30,36.5,40],lehm:[24,30,40,50,60]};
@@ -3106,7 +3129,7 @@ function initHome(){
 }
 function init(){
   ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','klage','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kbstoff','kbwlg','kbstark','kbbj','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -3129,7 +3152,7 @@ function init(){
   $('wtyp').addEventListener('change',function(){if($('wtyp').value==='ks') $('wand').value='3';syncWand();render()});
   $('wand').addEventListener('change',function(){syncDm();render()});
   $('dach').addEventListener('change',function(){syncDmD();render()});
-  ['keller','kstoff','kwlg','kstark','kbj','klage'].forEach(function(id){$(id).addEventListener('change',function(){if(id==='kstoff') $('kwlg').value='0';syncKD();render()})});
+  ['keller','kstoff','kwlg','kstark','kbj','kbstoff','kbwlg','kbstark','kbbj'].forEach(function(id){$(id).addEventListener('change',function(){if(id==='kstoff') $('kwlg').value='0';if(id==='kbstoff') $('kbwlg').value='0';syncKD();render()})});
   ['dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb'].forEach(function(id){$(id).addEventListener('change',function(){syncDmD();render()})});
   $('dstoffD').addEventListener('change',function(){$('wlgD').value='0';syncDmD();render()});
   $('dbjD').addEventListener('change',function(){syncDmD();render()});
@@ -3175,7 +3198,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 12:49',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 13:09',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

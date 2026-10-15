@@ -305,6 +305,19 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
 @media (min-width:900px){.hcols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
 .row[hidden]{display:none}
+
+/* Gebäudeschnitt und Dachform-Kacheln */
+.schnitt{margin:0;display:flex;flex-wrap:wrap;gap:.6rem 1.4rem;align-items:center;padding:.6rem .9rem;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.schnitt svg{flex:0 0 auto;width:min(100%,19rem);height:auto;color:var(--ink)}
+.schnitt figcaption{flex:1 1 14rem;display:grid;gap:.4rem;min-width:0}
+.sn-leg{list-style:none;margin:0;padding:0;display:grid;gap:.25rem;font-size:.9rem}
+.sn-leg li{display:flex;align-items:center;gap:.5rem}.sn-leg i{flex:none;width:.9rem;height:.9rem;border-radius:50%;border:1px solid rgba(0,0,0,.25)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:.5rem}
+.tiles button{display:grid;gap:.3rem;justify-items:center;align-content:start;padding:.5rem .4rem;min-height:0;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:.6rem;font:inherit;font-size:.8rem;font-weight:600;line-height:1.25;text-align:center;cursor:pointer}
+.tiles button[aria-checked="true"]{border-color:var(--green);box-shadow:0 0 0 2px var(--green)}
+.tiles svg{width:100%;max-width:4.6rem;height:auto;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.tiles .t-l{fill:rgba(124,176,40,.10)}.tiles .t-w{fill:rgba(224,160,48,.30)}.tiles .t-k{fill:rgba(120,130,140,.25);stroke:none}.tiles .t-r{stroke-width:2.6;stroke:currentColor}
+.rep-sn{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:.3rem 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rep-sn svg{width:11rem;height:auto;color:#20252A}.rep-sn .sn-leg{font-size:.85em;color:#20252A}
 </style>
 </head><body>
 <header class="top"><div>
@@ -431,6 +444,8 @@ body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
   </fieldset>
 
   <fieldset data-tab="huelle"><legend>Gebäudehülle</legend>
+    <figure class="schnitt" aria-label="Gebäudeschnitt"><svg id="schnitt" viewBox="0 0 320 200" role="img" aria-label="Schematischer Gebäudeschnitt, eingefärbt nach Dämmzustand"></svg>
+    <figcaption><strong>Gebäudeschnitt</strong><ul id="schnitt_leg" class="sn-leg"></ul><span class="hint">Die Farben zeigen den Dämmzustand: rot Original, orange nachgedämmt oder älter, grün aktueller Stand. Der Schnitt ist schematisch.</span></figcaption></figure>
     <div class="hcols"><div class="hcol">
     <section class="bt bt-wand"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 9.7v4.6M9 14.3V19"/></svg>Außenwand</h3>
     <label for="wtyp">Außenwand, Bauart<select id="wtyp"><optgroup label="Mauerwerk"><option value="voll">Vollziegel oder Vollmauerwerk (24 bis 36,5 cm)</option><option value="hlz" selected>Hochlochziegel, Hohlblock, Bims</option><option value="ks">Kalksandstein (KS), Vollstein oder Lochstein</option><option value="schlacke">Schlacken-, Hütten-, Schwemmstein, Schüttbeton (ca. 1920 bis 1960)</option><option value="bruch">Feldstein, Bruchstein, Mischmauerwerk</option><option value="lehm">Lehmstein, Lehmwellerwand, Stampflehm (massiv, kein Fachwerk)</option><option value="mono">Porenbeton oder monolithischer Wärmedämmziegel</option><option value="zwei">Zweischalig mit Verblender (Luftschicht oder Kerndämmung)</option></optgroup><optgroup label="Plattenbau und Beton"><option value="wbs70">DDR Plattenbau WBS 70 (1973 bis 1990)</option><option value="pfr">DDR Plattenbau früh (Leichtbeton, bis ca. 1972)</option><option value="platte">Betonplatte, Plattenbau, Serie unbekannt</option></optgroup><optgroup label="Holz"><option value="fach">Fachwerk</option><option value="hrb">Holzrahmenbau, Fertighaus (HRB)</option><option value="block">Holzmassiv, Blockbau</option></optgroup></select></label>
@@ -451,8 +466,16 @@ body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
     <label for="aw">Außenwandfläche in m², ohne Fenster (optional, wenn aufgemessen)<input id="aw" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     <section class="bt bt-dach"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12 12 4l9.5 8M5.5 10.5V20h13v-9.5"/></svg>Dach oder oberste Geschossdecke</h3>
-    <label for="dach">Dämmzustand Dach oder Geschossdecke<select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option></select></label>
-    <label for="ad">Dachfläche bzw. Fläche der obersten Geschossdecke in m² (optional)<input id="ad" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
+    <div class="tiles" id="dtiles" role="radiogroup" aria-label="Dachform und Nutzung des Dachgeschosses">
+      <button type="button" role="radio" aria-checked="false" data-v="sd_aus"><svg viewBox="0 0 64 44" aria-hidden="true"><rect x="14" y="24" width="36" height="18" class="t-l"/><path d="M9 25 32 5l23 20z" class="t-w"/><path d="M9 25 32 5l23 20" class="t-r"/></svg><span>Satteldach, Dachgeschoss ausgebaut</span></button>
+      <button type="button" role="radio" aria-checked="false" data-v="sd_kalt"><svg viewBox="0 0 64 44" aria-hidden="true"><rect x="14" y="24" width="36" height="18" class="t-l"/><path d="M9 24 32 5l23 19z" class="t-k"/><path d="M14 24h36" class="t-r"/></svg><span>Satteldach, Dachboden kalt (Decke über Obergeschoss)</span></button>
+      <button type="button" role="radio" aria-checked="false" data-v="sd_teil"><svg viewBox="0 0 64 44" aria-hidden="true"><rect x="14" y="24" width="36" height="18" class="t-l"/><path d="M9 25 32 5l23 20z" class="t-w"/><path d="M24 14h16 L32 5z" class="t-k"/><path d="M9 25 32 5l23 20M24 14h16" class="t-r"/></svg><span>Ausgebaut, darüber kalter Spitzboden</span></button>
+      <button type="button" role="radio" aria-checked="false" data-v="fd"><svg viewBox="0 0 64 44" aria-hidden="true"><rect x="14" y="14" width="36" height="28" class="t-l"/><path d="M11 14h42" class="t-r"/></svg><span>Flachdach</span></button>
+    </div>
+    <input type="hidden" id="dform" value="">
+    <span class="hint" id="dform_h"></span>
+    <label for="dach"><span id="dachl">Dämmzustand Dach oder Geschossdecke</span><select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option></select></label>
+    <label for="ad"><span id="adl">Dachfläche bzw. Fläche der obersten Geschossdecke in m² (optional)</span><input id="ad" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     </div><div class="hcol">
     <section class="bt bt-keller"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M3 9v11h18V9M7 20v-5h10v5M12 3v6M9 6l3 3 3-3"/></svg>Keller und Bodenplatte</h3>
@@ -724,8 +747,14 @@ var DTN=[47.5,47.5,47.5,42.5,35,30];  // Heizkörper-Übertemperatur bei Auslegu
 var BASE={w:0.75,f:0.14,d:0.50,k:0.45}; // Hüllfläche je m² Wohnfläche (EFH freistehend)
 var GEO={efh:{w:1,f:1,d:1,k:1},dhh:{w:0.8,f:0.95,d:1,k:1},rmh:{w:0.4,f:0.8,d:1,k:1},mfh:{w:0.7,f:0.9,d:0.4,k:0.4}};
 // Bauteilflächen in m²: gemessene Eingabe (aW Außenwand netto, aF Fenster, aD Dach/oberste Decke, aK Boden/Kellerdecke), sonst Schätzung aus Wohnfläche und Gebäudetyp
+// Dachform: Faktor auf die geschätzte Dachfläche (Schrägen sind größer als die Grundfläche) und Temperaturkorrektur Fx für den Verlust über Decken
+// zum kalten Dachraum (0,8). Beides Annahmen, ohne Angabe 1,0. Gemessene Fläche geht vor.
+var DFORM={sd_aus:{a:1.25,fx:1.0},sd_teil:{a:1.1,fx:0.92},sd_kalt:{a:1.0,fx:0.8},fd:{a:1.0,fx:1.0}};
+function dfm(o){return DFORM[o.dform]||{a:1,fx:1}}
+function dachNm(o){return {sd_aus:'Dachschrägen',sd_teil:'Dachschrägen und Decke zum Spitzboden',sd_kalt:'Oberste Geschossdecke',fd:'Flachdach'}[o.dform]||'Dach / oberste Geschossdecke'}
+function dachHebel(o){return {sd_aus:'Dachschrägen dämmen (zwischen und auf den Sparren)',sd_teil:'Dachschrägen und Decke zum Spitzboden dämmen',sd_kalt:'Oberste Geschossdecke dämmen',fd:'Flachdach dämmen (Aufdach)'}[o.dform]||null}
 function AR(o){
-  var g=GEO[o.typ]||GEO.efh,wf=o.wf,e={w:BASE.w*g.w*wf,f:BASE.f*g.f*wf,d:BASE.d*g.d*wf,k:BASE.k*g.k*wf};
+  var g=GEO[o.typ]||GEO.efh,wf=o.wf,e={w:BASE.w*g.w*wf,f:BASE.f*g.f*wf,d:BASE.d*g.d*wf*dfm(o).a,k:BASE.k*g.k*wf};
   var m={w:+o.aW>0,f:+o.aF>0,d:+o.aD>0,k:+o.aK>0};
   var u={w:m.w?+o.aW:e.w,f:m.f?+o.aF:e.f,d:m.d?+o.aD:e.d,k:m.k?+o.aK:e.k};
   return {est:e,use:u,meas:m,n:(m.w?1:0)+(m.f?1:0)+(m.d?1:0)+(m.k?1:0)};
@@ -831,14 +860,14 @@ function kLabel(o){
 function qh(o,u){
   var A=AR(o).use;
   var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
-  var ht=a.w*u.wand+a.f*u.fenster+a.d*u.dach+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k);
+  var ht=a.w*u.wand+a.f*u.fenster+a.d*u.dach*dfm(o).fx+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k);
   return Math.max(15,ht*(o.gt>0?o.gt:GT)+QV[o.band]+u.leak-GEW); // o.gt: Gradtagfaktor des Standorts, sonst Vorgabe
 }
 // Zerlegung der Heizwärme in Anteile (kWh/m²a), gleiche Rechnung wie qh. Summe = qh (ohne die Untergrenze 15).
 function qhParts(o,u){
   var A=AR(o).use,gt=(o.gt>0?o.gt:GT);
   var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
-  return {wand:a.w*u.wand*gt,fenster:a.f*u.fenster*gt,dach:a.d*u.dach*gt,keller:kellerTerm(o,u.kst)*gt,wb:0.08*(a.w+a.f+a.d+a.k)*gt,lueft:QV[o.band]+u.leak,gew:-GEW};
+  return {wand:a.w*u.wand*gt,fenster:a.f*u.fenster*gt,dach:a.d*u.dach*dfm(o).fx*gt,keller:kellerTerm(o,u.kst)*gt,wb:0.08*(a.w+a.f+a.d+a.k)*gt,lueft:QV[o.band]+u.leak,gew:-GEW};
 }
 function vlModel(o,qNow,qOrigW,qNowW,fm){
   if(o.hk==='fbh') return 24+0.30*qNowW; // ungekappt, damit ein gemessener Vorlauf sauber verschoben werden kann
@@ -1043,14 +1072,14 @@ function compute(o){
     var q=sc*qh(o,uOf(o,s,f)), d=(qIst-q)*o.wf;
     if(d<100) return;
     var vl=clamp(vlModel(o,q,qOrigW,q*1000/VBH)+shift,30,80);
-    hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,kwNew:q*o.wf/VBH,dkw:(qIst-q)*o.wf/VBH,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':null)});
+    hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,kwNew:q*o.wf/VBH,dkw:(qIst-q)*o.wf/VBH,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':(k==='dach'?dachHebel(o):null))});
   });
   hebel.sort(function(a,b){return b.d-a.d});
   var pp=qhParts(o,uIst),kwP={};
   Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
-  return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
+  return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -1068,7 +1097,7 @@ var LNAMES={wand:'Außenwand',fenster:'Fenster',dach:'Dach / oberste Geschossdec
 // Anteile der Heizlast je Bauteil, absteigend. rows: [Name, kW, Anteil an den Verlusten]; gew: Gewinne in kW (negativ); sum: Summe der Verluste
 function lastParts(R){
   var kp=R.kwP;if(!kp) return null;
-  var rows=Object.keys(LNAMES).map(function(k){return [LNAMES[k],kp[k]]}).filter(function(r){return r[1]>0.005});
+  var rows=Object.keys(LNAMES).map(function(k){return [(k==='dach'&&R.dachNm)?R.dachNm:LNAMES[k],kp[k]]}).filter(function(r){return r[1]>0.005});
   var sum=rows.reduce(function(a,r){return a+r[1]},0);if(sum<=0) return null;
   rows.sort(function(a,b){return b[1]-a[1]});
   rows.forEach(function(r){r.push(r[1]/sum)});
@@ -1133,7 +1162,7 @@ function hhMean(){return yearMean([['sv1','sj1'],['sv2','sj2'],['sv3','sj3']])}
 function read(){
   var g=geoGet();
   return {geo:g,gt:g?g.gt:0,pvy:g?g.pvy:0,kfAuto:verbMean().auto,
-    obj:$('objekt').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
+    obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
@@ -1334,6 +1363,7 @@ function srcHtml(X){return '<table class="srct"><tbody>'+srcRows(X).map(function
 
 function render(){
   var o=read(),R=CALC.compute(o),S=R.S,I=R.ist;
+  drawSchnitt(o,R.uIst);
   (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
   (function(){
     var y=new Date().getFullYear();['vj1','vj2','vj3','sj1','sj2','sj3'].forEach(function(id,i){$(id).placeholder=String(y-1-(i%3))});
@@ -1534,6 +1564,82 @@ function copy(){
   }catch(e){fallback()}
 }
 
+
+// Dachform: Kacheln setzen das versteckte Feld dform; Beschriftungen und Hinweis folgen der Form
+var DFTXT={
+  sd_aus:['Dämmzustand der Dachschrägen','Dachfläche (Schrägen) in m², optional','Dachschrägen, Kehlbalkenlage und Giebel gehören zur Hülle. Dachfläche geschätzt mit Faktor 1,25 auf die Grundfläche (Neigung ca. 35 bis 45 Grad). Bei Aufmaß bitte die Fläche eintragen.'],
+  sd_kalt:['Dämmzustand der obersten Geschossdecke','Fläche der obersten Geschossdecke in m², optional','Dachboden nicht ausgebaut: Der Verlust läuft über die oberste Geschossdecke. Gerechnet mit Temperaturkorrektur 0,8 für den kalten Dachraum (Annahme). Nachdämmen der Decke ist die einfachste und günstigste Maßnahme am Dach.'],
+  sd_teil:['Dämmzustand der Schrägen und der Decke zum Spitzboden','Fläche Schrägen und Decke in m², optional','Mischform: Schrägen im ausgebauten Teil, darüber ein kalter Spitzboden. Gerechnet als Mittelwert (Faktor 1,1 auf die Fläche, Temperaturkorrektur 0,92, beides Annahme). Beide Flächen sollten gleich gut gedämmt sein.'],
+  fd:['Dämmzustand des Flachdachs','Dachfläche in m², optional','Flachdach: Dämmung meist auf der Dachhaut (Warmdach) oder zwischen den Balken (Kaltdach, Belüftung beachten). Gerechnet wie die Grundfläche ohne Korrektur.']
+};
+function syncDach(){
+  var v=$('dform').value,t=DFTXT[v];
+  $('dachl').textContent=t?t[0]:'Dämmzustand Dach oder Geschossdecke';
+  $('adl').textContent=t?t[1]:'Dachfläche bzw. Fläche der obersten Geschossdecke in m² (optional)';
+  $('dform_h').textContent=t?t[2]:'Ohne Angabe wird die Dachfläche pauschal angesetzt. Dachform antippen, dann passen sich Beschriftung, Fläche und Rechnung an.';
+  Array.prototype.forEach.call($('dtiles').querySelectorAll('button'),function(b){b.setAttribute('aria-checked',b.getAttribute('data-v')===v?'true':'false')});
+}
+// Schematischer Gebäudeschnitt, eingefärbt nach U-Wert bzw. Dämmzustand. pal: Farben für App oder Bericht
+function schnittSvg(o,U,pal){
+  var G='#7CB028',Or='#E0A030',Rd='#C0392B';
+  function cu(u,g,m){return u<=g?G:(u<=m?Or:Rd)}
+  var cw=cu(U.wand,0.30,0.60),cd=cu(U.dach,0.24,0.50),cf=cu(U.fenster,1.3,2.0),ck=U.kst>=2?G:(U.kst===1?Or:Rd);
+  var x0=70,x1=250,gy=150,ty=70,mid=160,f=o.dform,s=o.kShare,t=o.kArt;
+  var warm='rgba(224,160,48,.28)',cold='rgba(120,130,140,.22)',heat='rgba(124,176,40,.10)',ink=pal.ink,bg=pal.bg;
+  var p=[],ln=function(a,b,c,d,col,w,extra){return '<line x1="'+a+'" y1="'+b+'" x2="'+c+'" y2="'+d+'" stroke="'+col+'" stroke-width="'+w+'" stroke-linecap="round"'+(extra||'')+'/>'};
+  // Gelände
+  p.push(ln(10,gy,310,gy,ink,1,' opacity=".35"'));
+  // Keller
+  if(s>0){
+    var kx=(s>=1)?x1:(x0+(x1-x0)/2),kh=(t==='kk')?14:36;
+    p.push('<rect x="'+x0+'" y="'+gy+'" width="'+(kx-x0)+'" height="'+kh+'" fill="'+(t==='bh'?warm:cold)+'" stroke="'+ink+'" stroke-opacity=".4" stroke-width="1.5"/>');
+    if(t==='bh'){p.push(ln(x0,gy,x0,gy+kh,ck,5),ln(kx,gy,kx,gy+kh,ck,5),ln(x0,gy+kh,kx,gy+kh,ck,5))}
+    if(s<1) p.push(ln(kx,gy,kx,gy+kh,ink,1.5,' opacity=".4"'));
+  }
+  // Baukörper
+  p.push('<rect x="'+x0+'" y="'+ty+'" width="'+(x1-x0)+'" height="'+(gy-ty)+'" fill="'+heat+'"/>');
+  p.push(ln(x0,110,x1,110,ink,1,' opacity=".35"'));
+  // Dach
+  if(f==='sd_aus'){
+    p.push('<path d="M'+x0+' '+ty+'L'+mid+' 28L'+x1+' '+ty+'Z" fill="'+warm+'"/>');
+    p.push('<path d="M'+(x0-8)+' '+(ty+1)+'L'+mid+' 24L'+(x1+8)+' '+(ty+1)+'" fill="none" stroke="'+cd+'" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>');
+  }else if(f==='sd_kalt'){
+    p.push('<path d="M'+x0+' '+ty+'L'+mid+' 28L'+x1+' '+ty+'Z" fill="'+cold+'"/>');
+    p.push('<path d="M'+(x0-8)+' '+(ty+1)+'L'+mid+' 24L'+(x1+8)+' '+(ty+1)+'" fill="none" stroke="'+ink+'" stroke-opacity=".55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>');
+    p.push(ln(x0,ty,x1,ty,cd,5));
+    p.push('<text x="'+mid+'" y="58" text-anchor="middle" font-size="10" fill="'+ink+'" opacity=".7">kalt</text>');
+  }else if(f==='sd_teil'){
+    var yd=46,xl=x0-8+(ty+1-yd)/(ty-24)*(mid-(x0-8)),xr=2*mid-xl;
+    p.push('<path d="M'+x0+' '+ty+'L'+mid+' 28L'+x1+' '+ty+'Z" fill="'+cold+'"/>');
+    p.push('<path d="M'+x0+' '+ty+'L'+xl+' '+yd+'L'+xr+' '+yd+'L'+x1+' '+ty+'Z" fill="'+warm+'"/>');
+    p.push('<path d="M'+(x0-8)+' '+(ty+1)+'L'+mid+' 24L'+(x1+8)+' '+(ty+1)+'" fill="none" stroke="'+cd+'" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>');
+    p.push(ln(xl,yd,xr,yd,cd,5));
+  }else if(f==='fd'){
+    p.push(ln(x0-6,ty,x1+6,ty,cd,6));
+    p.push(ln(x0-6,ty-6,x0-6,ty,ink,1.5,' opacity=".5"'),ln(x1+6,ty-6,x1+6,ty,ink,1.5,' opacity=".5"'));
+  }else{
+    p.push('<path d="M'+(x0-8)+' '+(ty+1)+'L'+mid+' 24L'+(x1+8)+' '+(ty+1)+'" fill="none" stroke="'+ink+'" stroke-opacity=".35" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>');
+    p.push(ln(x0,ty,x1,ty,cd,5));
+    p.push('<text x="'+mid+'" y="52" text-anchor="middle" font-size="14" fill="'+ink+'" opacity=".6">?</text>');
+  }
+  // Außenwände, Fenster, Boden
+  p.push(ln(x0,ty,x0,gy,cw,6),ln(x1,ty,x1,gy,cw,6));
+  [[96,78],[96,118],[196,78],[196,118]].forEach(function(w){p.push('<rect x="'+w[0]+'" y="'+w[1]+'" width="28" height="22" fill="'+bg+'" stroke="'+cf+'" stroke-width="3.5"/>',ln(w[0]+14,w[1],w[0]+14,w[1]+22,cf,1.5))});
+  if(!(s>0&&t==='bh')) p.push(ln(x0,gy,x1,gy,ck,6)); else p.push(ln(x0,gy,x1,gy,ink,1,' opacity=".25"'));
+  return '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Schematischer Gebäudeschnitt">'+p.join('')+'</svg>';
+}
+var DOT={g:'#7CB028',o:'#E0A030',r:'#C0392B'};
+function schnittLeg(o,U){
+  function c(u,g,m){return u<=g?DOT.g:(u<=m?DOT.o:DOT.r)}
+  var kc=U.kst>=2?DOT.g:(U.kst===1?DOT.o:DOT.r),kt=U.kst>=2?'aktueller Stand':(U.kst===1?'nachgedämmt':'Original');
+  var rows=[['Außenwand','U ca. '+fmt(U.wand,2)+' W/m²K',c(U.wand,0.30,0.60)],[CALC.dachNmOf(o),'U ca. '+fmt(U.dach,2)+' W/m²K',c(U.dach,0.24,0.50)],['Fenster','Uw ca. '+fmt(U.fenster,2)+' W/m²K',c(U.fenster,1.3,2.0)],[CALC.kLabel(o).replace(/ \(.*\)$/,''),kt,kc]];
+  return rows.map(function(r){return '<li><i style="background:'+r[2]+'"></i><span><strong>'+r[0]+':</strong> '+r[1]+'</span></li>'}).join('');
+}
+function drawSchnitt(o,U){
+  var el=$('schnitt');if(!el) return;
+  el.innerHTML=schnittSvg(o,U,{ink:'currentColor',bg:'var(--surface)'}).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
+  $('schnitt_leg').innerHTML=schnittLeg(o,U);
+}
 function syncKeller(){
   var s=+$('kshare').value,t=$('kart').value,opt=$('keller').options,L,T,H='';
   $('kartl').hidden=(s===0);
@@ -1925,6 +2031,7 @@ function initKunden(backendP){
     f=Object.assign({},DEF0,f);
     ['wtyp','kshare','kart','hk','traeger'].forEach(function(id){if(f[id]!=null&&$(id)) $(id).value=f[id]});
     syncKeller();syncWand();syncHk();
+    if(f.dform!=null&&$('dform')) $('dform').value=f.dform;syncDach();
     fields().forEach(function(e){
       if(f[e.id]==null||['wtyp','kshare','kart','hk','traeger'].indexOf(e.id)>=0) return;
       if(e.type==='checkbox'){e.checked=(f[e.id]==='1'||f[e.id]===true);return}
@@ -2399,7 +2506,7 @@ function buildReport(internal,snap){
   if(Fx&&Fx.fb&&Fx.fb.ok&&!Fx.fb.mfh) h+='<h2>Förderung, Schätzung</h2>'+foerdLines(o,Fx).map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Maßnahmen
   var LPr=lastParts(R);
-  if(LPr){var lmr=LPr.rows[0][1];h+='<h2>Woher kommt die Heizlast?</h2><p>'+esc(hlText(R,LPr))+'</p>'+LPr.rows.map(function(r){return '<div class="rep-two"><span>'+esc(r[0])+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="rep-bar"><i style="width:'+(r[1]/lmr*100)+'%"></i></div>'}).join('')}
+  if(LPr){var lmr=LPr.rows[0][1];h+='<h2>Woher kommt die Heizlast?</h2><div class="rep-sn">'+schnittSvg(o,R.uIst,{ink:'#20252A',bg:'#fff'})+'<ul class="sn-leg">'+schnittLeg(o,R.uIst)+'</ul></div><p>'+esc(hlText(R,LPr))+'</p>'+LPr.rows.map(function(r){return '<div class="rep-two"><span>'+esc(r[0])+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="rep-bar"><i style="width:'+(r[1]/lmr*100)+'%"></i></div>'}).join('')}
   h+='<h2>Was senkt die Heizlast? Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
   else{var mx=R.hebel[0].d;h+=R.hebel.map(function(x){return '<div class="rep-two"><span>'+esc(x.label||NAMES[x.k])+'</span><span>'+fmt(x.d/1000,1)+' MWh/a, ca. '+eur(x.eur)+'/a · Heizlast danach etwa '+fmt(x.kwNew,1)+' kW (minus '+fmt(x.dkw,1)+' kW), Vorlauf etwa '+Math.round(x.vl)+' °C</span></div><div class="rep-bar"><i style="width:'+(x.d/mx*100)+'%"></i></div>'}).join('')}
@@ -2627,6 +2734,12 @@ function init(){
     render();
   });
   ['kshare','kart'].forEach(function(id){$(id).addEventListener('change',function(){syncKeller();render()})});
+  $('dtiles').addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('button[data-v]'):null;if(!b) return;
+    var v=b.getAttribute('data-v'),h=$('dform');h.value=(h.value===v)?'':v;
+    syncDach();h.dispatchEvent(new Event('change',{bubbles:true}));render();
+  });
+  syncDach();
   $('copy').addEventListener('click',copy);
   $('wtyp').addEventListener('change',function(){if($('wtyp').value==='ks') $('wand').value='3';syncWand();render()});
   $('wand').addEventListener('change',function(){syncDm();render()});
@@ -2670,7 +2783,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 10:43',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 10:56',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

@@ -44,7 +44,7 @@ p{margin:0}
 .hdr-kd{font-family:var(--f-data);font-size:.8rem;font-weight:600;color:#C9CED3;text-align:right;overflow-wrap:anywhere}
 .hdr-act button{background:transparent;color:var(--onDark);border:1.5px solid #C9CED3;border-radius:999px;padding:.45rem 1.1rem;font-weight:700;font-size:.85rem;cursor:pointer}
 .hdr-act button:hover{background:rgba(255,255,255,.12)}
-@media (max-width:700px){.hdr-act{position:static;flex-direction:row;align-items:center;justify-content:space-between;max-width:none;margin-bottom:.7rem}}
+@media (max-width:900px){.hdr-act{position:static;flex-direction:row;align-items:center;justify-content:space-between;max-width:none;margin-bottom:.7rem}}
 @media (pointer:coarse),(any-pointer:coarse){.hdr-act button{min-height:44px;padding-inline:1.2rem}}
 
 .top h1{color:var(--onDark);font-size:clamp(1.5rem,4vw,2.1rem);font-weight:800}
@@ -298,6 +298,13 @@ body[data-mode="kunden"] #kd:not(.kd-edit)>*:not(legend):not(.kd-tb):not(#kd_ov)
 body[data-mode="kunden"] #kd.kd-edit #kd_ov,body[data-mode="kunden"] #kd.kd-edit #kd_set{display:none!important}
 body[data-mode="kunden"] #kd_ov>summary{display:none}
 body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{display:none!important}
+
+/* Gebäudehülle: zwei Spalten ab Tablet quer und am PC, Tabs mittig über dem Formular */
+.ctabs>button:first-child{margin-left:auto}.ctabs>button:last-child{margin-right:auto}
+.hcols{display:grid;gap:.9rem;grid-template-columns:minmax(0,1fr)}.hcol{display:grid;gap:.9rem;align-content:start;min-width:0}
+@media (min-width:900px){.hcols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+body[data-mode="check"][data-ctab="huelle"] form{max-width:68rem!important}
+.row[hidden]{display:none}
 </style>
 </head><body>
 <header class="top"><div>
@@ -424,15 +431,20 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
   </fieldset>
 
   <fieldset data-tab="huelle"><legend>Gebäudehülle</legend>
+    <div class="hcols"><div class="hcol">
     <section class="bt bt-wand"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 9.7v4.6M9 14.3V19"/></svg>Außenwand</h3>
     <label for="wtyp">Außenwand, Bauart<select id="wtyp"><optgroup label="Mauerwerk"><option value="voll">Vollziegel oder Vollmauerwerk (24 bis 36,5 cm)</option><option value="hlz" selected>Hochlochziegel, Hohlblock, Bims</option><option value="ks">Kalksandstein (KS), Vollstein oder Lochstein</option><option value="schlacke">Schlacken-, Hütten-, Schwemmstein, Schüttbeton (ca. 1920 bis 1960)</option><option value="bruch">Feldstein, Bruchstein, Mischmauerwerk</option><option value="lehm">Lehmstein, Lehmwellerwand, Stampflehm (massiv, kein Fachwerk)</option><option value="mono">Porenbeton oder monolithischer Wärmedämmziegel</option><option value="zwei">Zweischalig mit Verblender (Luftschicht oder Kerndämmung)</option></optgroup><optgroup label="Plattenbau und Beton"><option value="wbs70">DDR Plattenbau WBS 70 (1973 bis 1990)</option><option value="pfr">DDR Plattenbau früh (Leichtbeton, bis ca. 1972)</option><option value="platte">Betonplatte, Plattenbau, Serie unbekannt</option></optgroup><optgroup label="Holz"><option value="fach">Fachwerk</option><option value="hrb">Holzrahmenbau, Fertighaus (HRB)</option><option value="block">Holzmassiv, Blockbau</option></optgroup></select></label>
     <label for="wd" id="wdl"><span id="wdt">Wandstärke</span><select id="wd"></select></label>
     <label for="wlgg" id="wlggl" hidden>WLG der Gefachdämmung, wenn bekannt<select id="wlgg"><option value="0" selected>unbekannt, Schätzung nach Baujahr</option><option value="32">WLG 032</option><option value="34">WLG 034</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option></select></label>
     <label for="wand"><span id="wstl">Dämmzustand Außenwand</span><select id="wand"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option><option value="3">Dämmung bekannt (Dämmstoff, WLG, Stärke)</option></select></label>
+    <div class="row" id="dmrow1" hidden>
     <label for="dstoff" id="dsl" hidden>Dämmstoff<select id="dstoff"><option value="eps" selected>EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="mw">Mineralwolle (Stein- oder Glaswolle)</option><option value="holz">Holzfaserplatte</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="kern">Kerndämmung (Einblas, Granulat, Flocken)</option><option value="cs">Calciumsilikat, Mineraldämmplatte (Innendämmung)</option></select></label>
     <label for="wlg" id="wlgl" hidden>Wärmeleitgruppe (WLG)<select id="wlg"><option value="0">unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35" selected>WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
+    </div>
+    <div class="row" id="dmrow2" hidden>
     <label for="dstark" id="dstl" hidden>Dämmstärke<select id="dstark"><option value="2">2 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10" selected>10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16">16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="24">24 cm</option><option value="30">30 cm</option></select></label>
     <label for="dbj" id="dbjl" hidden>Baujahr der Dämmung<select id="dbj"><option value="0" selected>unbekannt</option><option value="1">bis 1979</option><option value="2">1980 bis 1994</option><option value="3">1995 bis 2009</option><option value="4">ab 2010</option></select></label>
+    </div>
     <span class="hint" id="dshint" hidden></span>
     <span class="hint" id="whint"></span>
     <span class="hint" id="wuw"></span>
@@ -442,6 +454,7 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
     <label for="dach">Dämmzustand Dach oder Geschossdecke<select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option></select></label>
     <label for="ad">Dachfläche bzw. Fläche der obersten Geschossdecke in m² (optional)<input id="ad" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
+    </div><div class="hcol">
     <section class="bt bt-keller"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18M3 9v11h18V9M7 20v-5h10v5M12 3v6M9 6l3 3 3-3"/></svg>Keller und Bodenplatte</h3>
     <div class="row">
       <label for="kshare">Unterkellerung<select id="kshare"><option value="0" selected>Kein Keller, Bodenplatte</option><option value="0.5">Teilweise unterkellert</option><option value="1">Komplett unterkellert</option></select></label>
@@ -453,12 +466,15 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
     </section>
     <section class="bt bt-fenster"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM12 3v18M5 12h14"/></svg>Fenster</h3>
     <label for="fenster">Fenster, vorhandene Bauart<select id="fenster"><option value="0">Einfachverglasung</option><option value="1">Kasten- oder Verbundfenster, älter</option><option value="2">2-fach Isolierglas, bis 1994</option><option value="3" selected>2-fach Wärmeschutzglas, 1995 bis 2009</option><option value="4">2-fach Wärmeschutzglas, ab 2010</option><option value="5">3-fach Wärmeschutzglas</option><option value="6">Kastenfenster neu oder saniert, mit Wärmeschutzglas</option></select></label>
+    <div class="row">
     <label for="frahmen">Rahmenmaterial<select id="frahmen"><option value="holz">Holz</option><option value="kst" selected>Kunststoff</option><option value="ha">Holz-Aluminium</option><option value="alu">Aluminium, thermisch getrennt</option><option value="alu0">Aluminium ohne thermische Trennung, älter</option></select></label>
     <label for="fdicht">Dichtheit der Fenster<select id="fdicht"><option value="0" selected>normal</option><option value="1">spürbar undicht, Zugluft an den Fugen</option></select></label>
+    </div>
     <span class="hint">Maßgeblich ist die Verglasung, nicht das Baujahr des Hauses. Angesetzt sind Uw-Werte von 4,7 (Einfach) über 2,6 (Kasten alt), 2,8, 1,5 und 1,2 (2-fach) bis 0,95 (3-fach) und 1,1 (Kastenfenster neu). Der Dichtheitsaufschlag gilt nur für ältere Fenster. Rahmen als Aufschlag auf den Uw: Kunststoff Bezug, Holz und Holz-Aluminium +0,05, Aluminium getrennt +0,3, Aluminium ohne Trennung +0,9.</span>
     <span class="hint" id="fuw"></span>
     <label for="af">Fensterfläche gesamt in m² (optional)<input id="af" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
+  </div></div>
   </fieldset>
 
   <fieldset data-tab="heizung"><legend>Heizung</legend>
@@ -1550,7 +1566,7 @@ function syncWand(){
 var DSLAM={eps:35,epsg:32,mw:35,holz:40,pur:24,resol:22,kern:40,cs:60};
 function syncDm(){
   var on=$('wand').value==='3';
-  ['dsl','wlgl','dstl','dbjl','dshint'].forEach(function(id){$(id).hidden=!on});
+  ['dsl','wlgl','dstl','dbjl','dshint','dmrow1','dmrow2'].forEach(function(id){$(id).hidden=!on});
   if(on){
     var w=+$('wlg').value,lam=CALC.lamKnown({ds:$('dstoff').value,wlg:w,bj:+$('dbj').value||0});
     $('dshint').textContent='Gerechnet mit λ = '+lam.toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(+$('dbj').value===1||+$('dbj').value===2?', Einbau vor 1995':'')+')');
@@ -2623,7 +2639,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 10:23',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 10:32',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

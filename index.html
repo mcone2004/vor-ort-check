@@ -834,6 +834,12 @@ function qh(o,u){
   var ht=a.w*u.wand+a.f*u.fenster+a.d*u.dach+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k);
   return Math.max(15,ht*(o.gt>0?o.gt:GT)+QV[o.band]+u.leak-GEW); // o.gt: Gradtagfaktor des Standorts, sonst Vorgabe
 }
+// Zerlegung der Heizwärme in Anteile (kWh/m²a), gleiche Rechnung wie qh. Summe = qh (ohne die Untergrenze 15).
+function qhParts(o,u){
+  var A=AR(o).use,gt=(o.gt>0?o.gt:GT);
+  var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
+  return {wand:a.w*u.wand*gt,fenster:a.f*u.fenster*gt,dach:a.d*u.dach*gt,keller:kellerTerm(o,u.kst)*gt,wb:0.08*(a.w+a.f+a.d+a.k)*gt,lueft:QV[o.band]+u.leak,gew:-GEW};
+}
 function vlModel(o,qNow,qOrigW,qNowW,fm){
   if(o.hk==='fbh') return 24+0.30*qNowW; // ungekappt, damit ein gemessener Vorlauf sauber verschoben werden kann
   var f=((o.hk==='hk_neu')?1.6:1.15)*(fm||1);
@@ -1037,10 +1043,12 @@ function compute(o){
     var q=sc*qh(o,uOf(o,s,f)), d=(qIst-q)*o.wf;
     if(d<100) return;
     var vl=clamp(vlModel(o,q,qOrigW,q*1000/VBH)+shift,30,80);
-    hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':null)});
+    hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,kwNew:q*o.wf/VBH,dkw:(qIst-q)*o.wf/VBH,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':null)});
   });
   hebel.sort(function(a,b){return b.d-a.d});
-  return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
+  var pp=qhParts(o,uIst),kwP={};
+  Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
+  return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
 return {FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
@@ -1056,6 +1064,22 @@ var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'
 var DEF={oel:0.11,gas:0.11,pellets:0.07,fern:0.13,strom:0.32};
 var UNIT={oel:'Liter',gas:'kWh',pellets:'kg',fern:'kWh',strom:'kWh'};
 var NAMES={wand:'Außenwand',dach:'Dach / oberste Geschossdecke',keller:'Kellerdecke / Bodenplatte',fenster:'Fenster'};
+var LNAMES={wand:'Außenwand',fenster:'Fenster',dach:'Dach / oberste Geschossdecke',keller:'Kellerdecke / Bodenplatte',wb:'Wärmebrücken (Pauschale)',lueft:'Lüftung und Undichtheiten'};
+// Anteile der Heizlast je Bauteil, absteigend. rows: [Name, kW, Anteil an den Verlusten]; gew: Gewinne in kW (negativ); sum: Summe der Verluste
+function lastParts(R){
+  var kp=R.kwP;if(!kp) return null;
+  var rows=Object.keys(LNAMES).map(function(k){return [LNAMES[k],kp[k]]}).filter(function(r){return r[1]>0.005});
+  var sum=rows.reduce(function(a,r){return a+r[1]},0);if(sum<=0) return null;
+  rows.sort(function(a,b){return b[1]-a[1]});
+  rows.forEach(function(r){r.push(r[1]/sum)});
+  return {rows:rows,gew:kp.gew,sum:sum,tot:R.ist.kw};
+}
+function hlText(R,L){
+  var t='Die Heizlast von etwa '+fmt(L.tot,1)+' kW ist die Summe der Wärmeverluste: '+fmt(L.sum,1)+' kW gehen über Bauteile und Lüftung verloren, '+fmt(-L.gew,1)+' kW decken Sonne, Personen und Geräte ab.';
+  t+=' Am meisten trägt '+L.rows[0][0]+' bei ('+fmt(Math.round(L.rows[0][2]*100))+' %).';
+  if(R.anchored) t+=' Die Anteile sind aus den Bauteilen berechnet und auf den Verbrauch skaliert.';
+  return t;
+}
 var HKN={g:'Gliederheizkörper',10:'Typ 10',11:'Typ 11',21:'Typ 21',22:'Typ 22',33:'Typ 33'};
 var TRN={oel:'Öl',gas:'Gas',pellets:'Pellets',fern:'Fernwärme',strom:'Strom (Direkt/Speicher)'};
 var lastText='',lastCtx=null,PHOTOS=[];
@@ -1410,13 +1434,18 @@ function render(){
   var srcp='<section class="panel"><details class="src"'+(srcOpen?' open':'')+'><summary>Woher kommen die Zahlen?</summary>'+srcHtml({o:o,R:R,S:S,I:I,F:F})+'</details></section>';
 
   // 4 Hebel
-  var hb='<section class="panel"><h2>Wirksamste Maßnahmen einzeln</h2>';
+  var LP=lastParts(R),lp='';
+  if(LP){
+    var lmx=LP.rows[0][1];
+    lp='<section class="panel"><h2>Woher kommt die Heizlast?</h2><p>'+esc(hlText(R,LP))+'</p><ul class="bars">'+LP.rows.map(function(r){return '<li><div class="lbl"><span>'+r[0]+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="bar"><i style="width:'+(r[1]/lmx*100)+'%"></i></div></li>'}).join('')+'</ul><p class="sub">Heizlast ohne Warmwasser und ohne Reserve, Näherung aus Bauteilen und Verbrauch. Die Gerätegröße kommt erst aus der Heizlastberechnung nach DIN EN 12831.</p></section>';
+  }
+  var hb='<section class="panel"><h2>Was senkt die Heizlast?</h2>';
   if(!R.hebel.length) hb+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
   else{
     var mx=R.hebel[0].d;
     hb+='<ul class="bars">';
     R.hebel.forEach(function(h){
-      hb+='<li><div class="lbl"><span>'+(h.label||NAMES[h.k])+'</span><span>'+fmt(h.d/1000,1)+' MWh/a, ca. '+eur(h.eur)+'/a</span></div><div class="bar"><i style="width:'+(h.d/mx*100)+'%"></i></div><p class="sub">Vorlauf danach etwa '+Math.round(h.vl)+' °C</p></li>';
+      hb+='<li><div class="lbl"><span>'+(h.label||NAMES[h.k])+'</span><span>'+fmt(h.d/1000,1)+' MWh/a, ca. '+eur(h.eur)+'/a</span></div><div class="bar"><i style="width:'+(h.d/mx*100)+'%"></i></div><p class="sub">Heizlast danach etwa '+fmt(h.kwNew,1)+' kW (minus '+fmt(h.dkw,1)+' kW), Vorlauf etwa '+Math.round(h.vl)+' °C</p></li>';
     });
     hb+='</ul>';
   }
@@ -1483,7 +1512,7 @@ function render(){
     h.textContent=(o.wwArt==='el'?'Das Warmwasser steckt dann nicht im Brennstoffverbrauch. Der Strom dafür liegt im Haushaltsstrom und geht bei der Wärmepumpe auf diese über. ':'')+'Angesetzt: ca. '+fmt(R.ww,1)+' kWh/m²a Nutzwärme'+(o.wwP>0?' bei '+fmt(o.wwP)+' Personen':' (Pauschale, ohne Personenzahl)')+((o.wwZirk||o.wwArt==='zz')?', mit 40 % Zuschlag für die Zirkulation (Annahme, unabhängig von Art und Dämmung)':'')+'.';
   })();
   geoShow();
-  var outHtml=top+unc+rec+foep+hkp+solp+sc+srcp+hb+bf;
+  var outHtml=top+unc+rec+foep+hkp+solp+sc+srcp+lp+hb+bf;
   if(outHtml!==lastOut){lastOut=outHtml;$('out').innerHTML=outHtml} // unveränderte Ausgabe nicht neu aufbauen, damit aufgeklappte Bereiche stehen bleiben
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
   bar.innerHTML='<span>'+rt.t+'</span><span>Vorlauf '+Math.round(s1.vl)+' °C · '+fmt(s1.kw,1)+' kW · JAZ '+fmt(s1.jaz,1)+'</span>';
@@ -2369,9 +2398,11 @@ function buildReport(internal,snap){
   h+='</tbody></table><p style="font-size:.82em;color:#555">Amortisation: V1 gegenüber der Bestandsheizung, V2 bis V4'+(R.cv?' und die eigene Variante':'')+' jeweils gegenüber V1.'+(Fx&&Fx.tot?' Gesamtkosten: Investition'+(fh?' nach Förderung':'')+' plus Betriebskosten und Wartung über 20 Jahre bei '+fmt(o.kPa,1)+' % Brennstoff- und '+fmt(o.kPs,1)+' % Strompreissteigerung je Jahr (Annahmen), der Bestand ohne Kesselersatz.':'')+(pl.has?' Geplante Solaranlagen sind getrennt amortisiert, mit ihrem Gesamtnutzen einschließlich Haushaltsstrom.':'')+((hasST||hasPV)?' Vorhandene Solaranlagen wirken im Bestand und in allen Varianten, geplante nur in den Varianten. Der Vorteil der Photovoltaik umfasst nur den Wärmepumpenstrom, die Investition für Solaranlagen ist nicht enthalten.':'')+'</p>';
   if(Fx&&Fx.fb&&Fx.fb.ok&&!Fx.fb.mfh) h+='<h2>Förderung, Schätzung</h2>'+foerdLines(o,Fx).map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Maßnahmen
-  h+='<h2>Wirksamste Maßnahmen einzeln</h2>';
+  var LPr=lastParts(R);
+  if(LPr){var lmr=LPr.rows[0][1];h+='<h2>Woher kommt die Heizlast?</h2><p>'+esc(hlText(R,LPr))+'</p>'+LPr.rows.map(function(r){return '<div class="rep-two"><span>'+esc(r[0])+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="rep-bar"><i style="width:'+(r[1]/lmr*100)+'%"></i></div>'}).join('')}
+  h+='<h2>Was senkt die Heizlast? Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
-  else{var mx=R.hebel[0].d;h+=R.hebel.map(function(x){return '<div class="rep-two"><span>'+esc(x.label||NAMES[x.k])+'</span><span>'+fmt(x.d/1000,1)+' MWh/a, ca. '+eur(x.eur)+'/a · Vorlauf danach etwa '+Math.round(x.vl)+' °C</span></div><div class="rep-bar"><i style="width:'+(x.d/mx*100)+'%"></i></div>'}).join('')}
+  else{var mx=R.hebel[0].d;h+=R.hebel.map(function(x){return '<div class="rep-two"><span>'+esc(x.label||NAMES[x.k])+'</span><span>'+fmt(x.d/1000,1)+' MWh/a, ca. '+eur(x.eur)+'/a · Heizlast danach etwa '+fmt(x.kwNew,1)+' kW (minus '+fmt(x.dkw,1)+' kW), Vorlauf etwa '+Math.round(x.vl)+' °C</span></div><div class="rep-bar"><i style="width:'+(x.d/mx*100)+'%"></i></div>'}).join('')}
   var sl2=solarLines(R);if(sl2.length) h+='<h2>Solar und Strom</h2>'+sl2.map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Hinweise
   h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
@@ -2639,7 +2670,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 10:32',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 10:43',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

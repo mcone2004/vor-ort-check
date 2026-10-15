@@ -644,6 +644,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
       <label for="traeger">Energieträger<select id="traeger"><option value="oel" selected>Öl</option><option value="gas">Gas</option><option value="pellets">Pellets</option><option value="fern">Fernwärme</option><option value="strom">Strom, Direkt oder Speicher</option></select></label>
       <label for="hz_alter">Alter der Anlage<select id="hz_alter"><option value="0">vor 1995</option><option value="1" selected>1995 bis 2005</option><option value="2">2006 bis 2015</option><option value="3">ab 2016</option></select></label>
     </div>
+    <label for="hpumpe">Heizungsumwälzpumpe<select id="hpumpe"><option value="" selected>unbekannt, nach Alter der Anlage</option><option value="alt">ältere, ungeregelte Pumpe</option><option value="reg">geregelte Pumpe</option><option value="hoch">Hocheffizienzpumpe</option></select></label>
     <label for="hk">Wärmeübergabe<select id="hk"><option value="hk_alt" selected>Heizkörper Bestand, ausgelegt ca. 70/55 oder höher</option><option value="hk_neu">Heizkörper teils erneuert oder großzügig dimensioniert</option><option value="fbh">Fußboden- oder Flächenheizung</option></select></label>
     <label for="hktyp" id="hktypl">Überwiegender Heizkörpertyp<select id="hktyp"><option value="g">Gliederheizkörper, Röhrenradiator</option><option value="10">Typ 10, eine Platte</option><option value="11">Typ 11, eine Platte, ein Konvektorblech</option><option value="21">Typ 21, zwei Platten, ein Konvektorblech</option><option value="22" selected>Typ 22, zwei Platten, zwei Konvektorbleche</option><option value="33">Typ 33, drei Platten</option></select></label>
     <span class="hint" id="hktyph">Der Typ sagt nichts über die Größe. Er zeigt, wie viel Leistung ein Tausch in gleicher Baugröße bringt.</span>
@@ -1250,6 +1251,23 @@ function gesamt(inv,run,g,wart,n){
   for(var t=0;t<n;t++) s+=run*Math.pow(q,t)+wart;
   return s;
 }
+// Strom der bestehenden Heizungsanlage (Hilfsenergie) in kWh/a. Faustwerte, Streuung ±30 % und mehr:
+// Brenner, Gebläse, Regelung in Prozent der Brennstoffenergie; Heizungsumwälzpumpe nach Bauart oder Anlagenalter; Zirkulationspumpe aus Leistung und Laufzeit.
+function hilfsE(o,end){
+  var p={oel:0.012,gas:0.0125,pellets:0.025,fern:0,strom:0}[o.tr]||0;
+  var br=(o.tr==='strom')?0:end*p,pu=0;
+  if(o.tr!=='strom'){
+    var hp={alt:400,reg:160,hoch:70}[o.hpumpe];
+    if(hp==null) hp=[400,300,160,80][o.ha==null?1:o.ha];
+    pu=hp;
+  }
+  var zi=0;
+  if(o.wwZirk){
+    var W={alt:45,hoch:12}[o.zpu]||30,H={dauer:8760,zeit:5500,temp:3000}[o.zart]||6000;
+    zi=W*H/1000;
+  }
+  return {brenner:br,pumpe:pu,zirk:zi,tot:br+pu+zi,entfall:br+pu};
+}
 function compute(o){
   var uIst=uOf(o,o.st,o.fen), uO=uOrig(o);
   var WWq=wwq(o),wwEl=(o.wwArt==='el')?WWq*o.wf/0.95:0; // elektrisches Warmwasser: Strom (Wirkungsgrad 95 %), steckt nicht im Brennstoffverbrauch
@@ -1343,9 +1361,9 @@ function compute(o){
   hebel.sort(function(a,b){return b.d-a.d});
   var pp=qhParts(o,uIst),kwP={};
   Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
-  return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uFenB:uIst.fbase,uWand:uIst.wand,vlIst:S[0].vl};
+  return {hilf:hilfsE(o,ist.end),uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uFenB:uIst.fbase,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {shutU:shutU,SHUT:SHUT,shutF:shutF,lvf:lvf,typU:typU,REG:REG,kLevel:kLevel,kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {hilfsE:hilfsE,shutU:shutU,SHUT:SHUT,shutF:shutF,lvf:lvf,typU:typU,REG:REG,kLevel:kLevel,kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -1428,7 +1446,7 @@ function hhMean(){return yearMean([['sv1','sj1'],['sv2','sj2'],['sv3','sj3']])}
 function read(){
   var g=geoGet();
   return {geo:g,gt:g?g.gt:0,pvy:g?g.pvy:0,kfAuto:verbMean().auto,
-    obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,shut:$('fshut').value,shutUse:$('fshutuse').value,lvor:$('lvor').value,lart:$('lart').value,lwrg:+$('lwrg').value||0,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
+    obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,shut:$('fshut').value,hpumpe:$('hpumpe').value,zart:$('wzart').value,zpu:$('wzpu').value,shutUse:$('fshutuse').value,lvor:$('lvor').value,lart:$('lart').value,lwrg:+$('lwrg').value||0,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
     wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},dk:{ds:$('kstoff').value,wlg:+$('kwlg').value||0,d:+$('kstark').value||0,bj:+$('kbj').value||0,td:true,f:($('kdd').value==='teil'?(+$('kdanteil').value||50)/100:1),lage:'beide'},dkmat:($('kart').value==='kk'?'unbek':$('kdmat').value),dkw:{m:$('kwd').value,a:+$('kwanteil').value||50,ds:$('kwstoff').value,wlg:+$('kwwlg').value||0,d:+$('kwstark').value||0},bpart:$('bpart').value,dkb:{ds:$('kbstoff').value,wlg:+$('kbwlg').value||0,d:+$('kbstark').value||0,bj:+$('kbbj').value||0},dl:{dka:$('dka').value,dkh:+$('dkh').value||0,dkf:$('dkf').value,dkfd:+$('dkfd').value||0,dkfw:+$('dkfw').value||0,dib:$('dib').value,dab:$('dab').value,dzs:$('dzs').value,dzd:+$('dzd').value||0,dzw:+$('dzw').value||0,ddb:$('ddb').value},st:{wand:+$('wand').value,dach:+$('dach').value,keller:((+$('kshare').value>0&&$('kart').value!=='bh'&&($('kdd').value==='ja'||$('kdd').value==='teil'))?3:0)},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
@@ -1650,6 +1668,7 @@ function hkxRender(o,R,I){
   h+='<p>Die Wärmepumpe braucht für dieselbe Wärme etwa <b>'+fmt(Math.round(Ew/10)*10)+' kWh Strom</b> im Jahr (Jahresarbeitszahl ca. '+fmt(jEff,1)+'). Das sind '+Math.round(Ew/E*100)+' % des Stroms, den die jetzigen Heizkosten bezahlen würden. Stromkosten ca. '+eur(Cw)+' im Jahr, das ist '+(diff>=0?eur(diff)+' weniger':eur(-diff)+' mehr')+' als heute.</p>';
   h+='<p>Gleich teuer wie heute wäre die Wärmepumpe bei einem Strompreis von etwa '+fmt(pBe*100,1)+' ct/kWh oder bei einer Jahresarbeitszahl von etwa '+fmt(jBe,1)+'.'+(o.stSt>0?' Die Solarthermie ist beim Strombedarf berücksichtigt, die Jahresarbeitszahl-Grenze ohne sie gerechnet.':'')+'</p>';
   h+='<p><b>Über das Jahr braucht die Wärmepumpe weniger Energie als die jetzige Heizung</b>, weil sie aus einer kWh Strom mehrere kWh Wärme macht. Verschoben wird die Last: Dezember bis Februar liegen bei etwa '+fmt(Math.round(wint/10)*10)+' kWh Strom ('+Math.round(wint/Ew*100)+' % des Jahres), Spitzenmonat '+pk.n+' mit etwa '+fmt(Math.round(pk.e/10)*10)+' kWh. Juni bis August bleiben nur etwa '+fmt(Math.round(somm/10)*10)+' kWh für das Warmwasser.</p>';
+  if(R.hilf.tot>0){var hf=R.hilf,pH=(+o.pHH>0)?+o.pHH:0.35;h+='<p>Die jetzige Heizungsanlage zieht selbst etwa <b>'+fmt(Math.round(hf.tot/10)*10)+' kWh Strom</b> im Jahr (Brenner und Regelung '+fmt(Math.round(hf.brenner/10)*10)+', Heizungspumpe '+fmt(Math.round(hf.pumpe/10)*10)+(hf.zirk>0?', Zirkulationspumpe '+fmt(Math.round(hf.zirk/10)*10):'')+'), das steckt im Haushaltsstrom. Beim Wechsel zur Wärmepumpe entfallen davon etwa '+fmt(Math.round(hf.entfall/10)*10)+' kWh, das sind etwa '+eur(hf.entfall*pH)+' im Jahr bei '+fmt(pH*100,1)+' ct/kWh. Das ist in den Zahlen oben nicht enthalten. Die Zirkulationspumpe bleibt.</p><p class="hint">Faustwerte: Brenner und Regelung 1 bis 2,5 % der Brennstoffenergie, Pumpen nach Bauart oder Alter. Die Streuung ist groß, die Zahl ist eine Orientierung.</p>'}
   h+='<table><thead><tr><th>Monat</th><th>Heizkosten bisher</th><th>Strom WP, kWh</th><th></th><th>Stromkosten WP</th></tr></thead><tbody>'+mon.map(function(m){return '<tr><td>'+m.n+'</td><td>'+eur(m.k)+'</td><td>'+fmt(Math.round(m.e))+'</td><td class="bar"><i style="width:'+(m.e/mx*100)+'%"></i></td><td>'+eur(m.c)+'</td></tr>'}).join('')+'</tbody></table>';
   h+='<p class="hint">Annahmen: Typische Verteilung der Heizgradtage in Deutschland, Warmwasser gleichmäßig über das Jahr, nicht standortgenau. Im Winter arbeitet die Wärmepumpe mit niedrigerer Zahl als im Jahresmittel, der Strombedarf im Winter fällt daher etwas höher aus als hier gezeigt. Gerechnet wird mit dem Strompreis oben, ein Wärmepumpentarif oder Eigenstrom ändert das Ergebnis. Grundpreise, Wartung, Photovoltaik und Förderung sind nicht enthalten.</p>';
   if(h!==box._h){box._h=h;box.innerHTML=h}
@@ -1731,7 +1750,7 @@ function render(){
   // 3 Szenarien
   var sc='<section><h2>Varianten im Vergleich</h2><div class="grid">';
   var istCardH=card('Bestandsheizung weiter',TRN[o.tr]+', Nutzungsgrad ca. '+Math.round(I.eta*100)+' %',[
-    ['Heizwärme',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlast',fmt(I.kw,1)+' kW'],['Energieeinsatz',fmt(I.end/1000,1)+' MWh/a']].concat(solRowsIst(o,I),I.wwEl>0?[['Warmwasser elektrisch',r10g(I.wwEl)+' kWh Strom, '+eur(I.wwCost)+'/a (in den Heizkosten)']]:[],[['Heizkosten',eur(I.cost)+'/a']],F.tot?[['Gesamtkosten 20 Jahre',eur(F.tot.bestand)+' (ohne Kesselersatz)']]:[]),'base');
+    ['Heizwärme',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlast',fmt(I.kw,1)+' kW'],['Energieeinsatz',fmt(I.end/1000,1)+' MWh/a'],['Strom der Heizungsanlage, ca.',(R.hilf.tot>0?fmt(Math.round(R.hilf.tot/10)*10)+' kWh/a':'–')+' (Brenner '+fmt(Math.round(R.hilf.brenner/10)*10)+', Pumpen '+fmt(Math.round((R.hilf.pumpe+R.hilf.zirk)/10)*10)+')']].concat(solRowsIst(o,I),I.wwEl>0?[['Warmwasser elektrisch',r10g(I.wwEl)+' kWh Strom, '+eur(I.wwCost)+'/a (in den Heizkosten)']]:[],[['Heizkosten',eur(I.cost)+'/a']],F.tot?[['Gesamtkosten 20 Jahre',eur(F.tot.bestand)+' (ohne Kesselersatz)']]:[]),'base');
   sc+=istCardH;
   var items=[[s1,'Heizkörper und Hülle bleiben',0,0,0],[s2,dk+' gedämmt',o.inv2,add2,1],[s3,'Wand, Dach, Fenster'+(cu?', Kellerdecke':'')+' auf aktuellem Stand',o.inv3,add3,2]].concat(S[3]?[[S[3],'Alle '+HKN[o.hkTyp]+' gegen Typ 33, gleiche Baugröße',o.inv4,s1.cost-S[3].cost,3]]:[]);
   if(R.cv) items.push([R.cv,'Angekreuzte Maßnahmen: '+R.cv.parts.join(', '),o.inv8,s1.cost-R.cv.cost,'cv']);
@@ -3363,7 +3382,7 @@ function initHome(){
 }
 function init(){
   ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -3433,7 +3452,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 20:14',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 20:24',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

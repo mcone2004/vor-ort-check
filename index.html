@@ -328,6 +328,7 @@ body[data-mode="ausweis"] #kd_addobj,body[data-mode="erfassung"] #kd_addobj{disp
 .kg-h{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;padding:0 .2rem}.kg-h strong{font-size:1.1rem;font-weight:800;color:var(--ink);overflow-wrap:anywhere}.kg-h span{font-size:.8rem;color:var(--muted);white-space:nowrap}
 .kg .ov-row.kc{border-left-width:1.5px;border-radius:.6rem}.kg-add{justify-self:start;min-height:3rem;padding:.4rem 1rem;font-size:.9rem}
 .kc-ol{font-weight:700;color:var(--c-kd)}
+#dkbox{display:grid;gap:.7rem}#dkbox .row{grid-template-columns:minmax(0,1fr)}#dkbox label[hidden],#dkbox .row[hidden],#dkbox [hidden]{display:none}#dshintD{padding:.5rem .7rem;border-left:4px solid var(--green);background:var(--surface);border-radius:.4rem;color:var(--ink)}
 body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:none!important}
 .cmp{position:fixed;inset:0;z-index:60;background:var(--page,var(--bg));overflow:auto;-webkit-overflow-scrolling:touch}
 .cmp[hidden]{display:none}
@@ -506,15 +507,43 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     <input type="hidden" id="dform" value="">
     <span class="hint" id="dform_h"></span>
     <label for="dach"><span id="dachl">Dämmzustand Dach oder Geschossdecke</span><select id="dach"><option value="0" selected>Original, Stand Baujahr</option><option value="1">Nachgedämmt, älter oder dünn</option><option value="2">Gedämmt nach aktuellem Stand</option><option value="3">Dämmung bekannt (Dämmstoff, WLG, Stärke, Baujahr)</option></select></label>
-    <div class="row" id="dmrowD1" hidden>
-    <label for="dstoffD">Dämmstoff<select id="dstoffD"><option value="mw" selected>Mineralwolle (Stein- oder Glaswolle)</option><option value="eps">EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="holz">Holzfaserdämmung (Platte oder Matte)</option><option value="zell">Zellulose (Einblas oder Platte)</option><option value="schaf">Schafwolle</option><option value="hanf">Hanf, Flachs, Jute</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="perl">Perlite oder Schüttung</option></select></label>
-    <label for="wlgD">Wärmeleitgruppe (WLG)<select id="wlgD"><option value="0" selected>unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
+    <div id="dkbox" hidden>
+    <div id="dkd" hidden>
+      <div class="row">
+        <label for="dka">Art der Decke<select id="dka"><option value="holz" selected>Holzbalkendecke</option><option value="beton">Stahlbeton- oder Spannbetondecke</option><option value="kappe">Kappendecke, Steineisendecke (Ziegelkappen)</option></select></label>
+        <label for="dkh"><span id="dkhl">Balkenhöhe</span><select id="dkh"><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16" selected>16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="22">22 cm</option><option value="24">24 cm</option></select></label>
+      </div>
+      <div class="row" id="dkfrow">
+        <label for="dkf">Füllung zwischen den Balken<select id="dkf"><option value="none" selected>keine, Gefach leer</option><option value="lehm">Lehmeinschub (Lehmwickel, Stakung)</option><option value="sand">Schüttung (Sand, Schlacke, Bauschutt)</option><option value="spaene">Holzspäne, Sägemehl</option><option value="mw">Mineralwolle (Stein- oder Glaswolle)</option><option value="zell">Zellulose</option><option value="schaf">Schafwolle</option><option value="hanf">Hanf, Flachs, Jute</option><option value="eps">EPS, Styropor</option><option value="perl">Perlite</option></select></label>
+        <label for="dkfd" id="dkfdl" hidden>Stärke der Füllung<select id="dkfd"><option value="4">4 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10" selected>10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16">16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="24">24 cm</option></select></label>
+      </div>
+      <label for="dkfw" id="dkfwl" hidden>WLG der Füllung<select id="dkfw"><option value="0" selected>unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
     </div>
-    <div class="row" id="dmrowD2" hidden>
-    <label for="dstarkD">Dämmstärke<select id="dstarkD"><option value="4">4 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16" selected>16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="22">22 cm</option><option value="24">24 cm</option><option value="26">26 cm</option><option value="30">30 cm</option><option value="35">35 cm</option><option value="40">40 cm</option></select></label>
-    <label for="dbjD">Baujahr der Dämmung<select id="dbjD"><option value="0" selected>unbekannt</option><option value="1">bis 1979</option><option value="2">1980 bis 1994</option><option value="3">1995 bis 2009</option><option value="4">ab 2010</option></select></label>
+    <div class="row" id="dmrowD1">
+      <label for="dstoffD"><span id="dsDl">Dämmstoff</span><select id="dstoffD"><option value="none">keine</option><option value="mw" selected>Mineralwolle (Stein- oder Glaswolle)</option><option value="eps">EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="holz">Holzfaserdämmung (Platte oder Matte)</option><option value="zell">Zellulose (Einblas oder Platte)</option><option value="schaf">Schafwolle</option><option value="hanf">Hanf, Flachs, Jute</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="perl">Perlite oder Schüttung</option></select></label>
+      <label for="wlgD" id="lblWlgD">Wärmeleitgruppe (WLG)<select id="wlgD"><option value="0" selected>unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
     </div>
+    <div class="row" id="dmrowD2">
+      <label for="dstarkD" id="lblStarkD"><span id="dstDl">Dämmstärke</span><select id="dstarkD"><option value="4">4 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16" selected>16 cm</option><option value="18">18 cm</option><option value="20">20 cm</option><option value="22">22 cm</option><option value="24">24 cm</option><option value="26">26 cm</option><option value="30">30 cm</option><option value="35">35 cm</option><option value="40">40 cm</option></select></label>
+      <label for="dbjD" id="lblBjD">Baujahr der Dämmung<select id="dbjD"><option value="0" selected>unbekannt</option><option value="1">bis 1979</option><option value="2">1980 bis 1994</option><option value="3">1995 bis 2009</option><option value="4">ab 2010</option></select></label>
+    </div>
+    <div class="row" id="dabrow" hidden>
+      <label for="dab">Decke abgehängt<select id="dab"><option value="nein" selected>nein, direkt an der Decke</option><option value="ja">ja, abgehängt (mit Hohlraum)</option></select></label>
+    </div>
+    <div id="dzbox" hidden>
+      <div class="row">
+        <label for="dzs"><span id="dzsl">Zusätzliche Dämmung</span><select id="dzs"><option value="none" selected>keine</option><option value="mw">Mineralwolle (Stein- oder Glaswolle)</option><option value="eps">EPS weiß (Styropor)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="holz">Holzfaserdämmung (Platte oder Matte)</option><option value="zell">Zellulose (Einblas oder Platte)</option><option value="schaf">Schafwolle</option><option value="hanf">Hanf, Flachs, Jute</option><option value="pur">PUR oder PIR Hartschaum</option><option value="resol">Resol Hartschaum</option><option value="perl">Perlite oder Schüttung</option></select></label>
+        <label for="dzd" id="dzdl" hidden>Stärke<select id="dzd"><option value="2">2 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6" selected>6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16">16 cm</option><option value="20">20 cm</option></select></label>
+      </div>
+      <label for="dzw" id="dzwl" hidden>WLG der zusätzlichen Dämmung<select id="dzw"><option value="0" selected>unbekannt, typischer Wert</option><option value="22">WLG 022</option><option value="24">WLG 024</option><option value="28">WLG 028</option><option value="31">WLG 031</option><option value="32">WLG 032</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option><option value="60">WLG 060</option></select></label>
+    </div>
+    <div class="row">
+      <label for="dib"><span id="dibl">Innenbekleidung</span><select id="dib"><option value="putz" selected>Putz auf Schalung oder Putzträger (Rohr, Streckmetall)</option><option value="gk">Gipskarton</option><option value="holz">Holzverkleidung (Profilbretter)</option><option value="none">ohne, Balken oder Schalung sichtbar</option></select></label>
+      <label for="ddb">Dampfbremse oder Dampfsperre<select id="ddb"><option value="">unbekannt</option><option value="ja">vorhanden (Folie oder Bahn, luftdicht verklebt)</option><option value="nein">keine</option></select></label>
+    </div>
+    <span class="hint" id="ddbh" hidden></span>
     <span class="hint" id="dshintD" hidden></span>
+    </div>
     <label for="ad"><span id="adl">Dachfläche bzw. Fläche der obersten Geschossdecke in m² (optional)</span><input id="ad" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     </div><div class="hcol">
@@ -848,7 +877,7 @@ var WDREF={voll:36.5,hlz:30,ks:24,bruch:50,mono:36.5,block:16,hrb:12,schlacke:30
 var WDFIX={hrb:0.25};
 // Bekannte Dämmung (Zustand 3): Dämmstoff, Wärmeleitgruppe (WLG) und Stärke. R = d / lambda.
 // Typische Rechenwerte lambda in W/mK, wenn die WLG unbekannt ist.
-var LAMT={eps:0.035,epsg:0.032,mw:0.035,holz:0.040,pur:0.024,resol:0.022,kern:0.040,cs:0.060,zell:0.040,schaf:0.040,hanf:0.040,perl:0.050};
+var LAMT={eps:0.035,epsg:0.032,mw:0.035,holz:0.040,pur:0.024,resol:0.022,kern:0.040,cs:0.060,zell:0.040,schaf:0.040,hanf:0.040,perl:0.050,lehm:0.60,sand:0.40,spaene:0.09};
 function rKnown(o,key){
   var m=o[key||'dm']||{},d=+m.d||0;if(d<=0) return 0;
   return (d/100)/lamKnown(m);
@@ -872,10 +901,50 @@ function uWall(o,st){
   if(st===3) return Math.max(0.10,1/(1/u0+rKnown(o)));
   return Math.max(0.14,1/(1/u0+RW[t][st-1]));
 }
-// Dach/oberste Geschossdecke mit bekannter Dämmung (Zustand 3): U des ungedämmten Aufbaus (Annahme je Dachform) plus Dämmschicht d/lambda.
-// Kein Sparren- oder Balkenanteil gerechnet, der Wert ist bei Zwischensparrendämmung eher etwas zu gut.
+// Dach/oberste Geschossdecke mit bekannter Dämmung (Zustand 3): Schichtenaufbau von innen nach außen, R = Summe d/lambda plus Übergangswiderstände.
+// Annahmen: U des ungedämmten Aufbaus je Dachform (DBASE), Holzanteil (lambda 0,13) bei Dämmung zwischen Sparren 12 %, zwischen Deckenbalken 10 %,
+// Dampfbremse hat keinen Einfluss auf den U-Wert (nur auf die Feuchtesicherheit).
 var DBASE={sd_aus:2.0,sd_teil:2.0,sd_kalt:1.0,fd:1.8};
-function uDachKnown(o){var u0=DBASE[o.dform]||1.5;return Math.max(0.10,1/(1/u0+rKnown(o,'dd')))}
+var DMAT={mw:'Mineralwolle',eps:'EPS',epsg:'EPS grau',holz:'Holzfaser',zell:'Zellulose',schaf:'Schafwolle',hanf:'Hanf/Flachs',pur:'PUR/PIR',resol:'Resol',perl:'Perlite',lehm:'Lehmeinschub',sand:'Schüttung',spaene:'Holzspäne'};
+var DBEK={putz:[0.02,'Putz'],gk:[0.05,'Gipskarton'],holz:[0.15,'Holzverkleidung'],none:[0,'']};
+function nz(x){return String(x).replace('.',',')}
+function dachAufbau(o){
+  var m=o.dd||{},l=o.dl||{},f=o.dform||'',sk=(f==='sd_kalt'),L=[],R=0;
+  function add(txt,r){R+=r;L.push(txt)}
+  function ins(ds,d,wlg,bj,fx,pre){
+    d=+d||0;if(!ds||ds==='none'||d<=0) return;
+    var lam=lamKnown({ds:ds,wlg:wlg,bj:bj}),le=fx?(1-fx)*lam+fx*0.13:lam;
+    add((pre||'')+(DMAT[ds]||ds)+' '+nz(d)+' cm',(d/100)/le);
+  }
+  if(!f){ // keine Dachform gewählt: einfache Rechnung wie bisher
+    var u0=1.5,r0=rKnown(o,'dd');return {u:Math.max(0.10,1/(1/u0+r0)),list:[],R:1/u0+r0}
+  }
+  var rs=sk?0.20:0.14,bek=DBEK[l.dib||'putz']||DBEK.putz;
+  // innen nach außen
+  if(bek[0]>0||l.dib==='none') add(l.dib==='none'?'ohne Bekleidung':bek[1],bek[0]);
+  if(sk&&l.dab==='ja'){add('abgehängt, Hohlraum',0.18);ins(l.dzs,l.dzd,+l.dzw||0,0,0,'Dämmung in der Abhängung: ')}
+  if(l.ddb==='ja') L.push('Dampfbremse (ohne Wirkung im U-Wert)');
+  var st;
+  if(sk){
+    var ka=l.dka||'holz',kh=+l.dkh||16;
+    if(ka==='beton'){st=kh/100/2.1+0.06;L.push((l.dka==='beton'?'Stahlbeton-/Spannbetondecke ':'')+kh+' cm')}
+    else if(ka==='kappe'){st=0.45;L.push('Kappendecke')}
+    else{
+      st=0.80;L.push('Holzbalkendecke '+kh+' cm');
+      var fd=+l.dkfd||0;
+      if(l.dkf&&l.dkf!=='none'&&fd>0){var g=Math.min(fd,kh);ins(l.dkf,g,+l.dkfw||0,0,0.10,'Füllung zwischen den Balken: ');if(fd>kh) ins(l.dkf,fd-kh,+l.dkfw||0,0,0,'Füllung über den Balken: ')}
+    }
+    R+=st;
+    ins(m.ds,m.d,+m.wlg||0,+m.bj||0,0,'oben aufgelegt: ');
+  }else{
+    st=1/DBASE[f]-rs;R+=st;L.push(f==='fd'?'Flachdachaufbau (Annahme)':'Sparren, Schalung, Eindeckung (Annahme)');
+    ins(m.ds,m.d,+m.wlg||0,+m.bj||0,(f==='fd'?0:0.12),f==='fd'?'Dämmung: ':'zwischen den Sparren: ');
+    ins(l.dzs,l.dzd,+l.dzw||0,0,0,f==='fd'?'zusätzlich: ':'auf oder unter den Sparren: ');
+  }
+  R+=rs;
+  return {u:Math.max(0.08,1/R),list:L,R:R};
+}
+function uDachKnown(o){return dachAufbau(o).u}
 // Stand der Dämmung für die Variante „Dach nach aktuellem Stand“: bekannte, schon gute Dämmung bleibt erhalten
 function dachTo2(o){var s=o.st.dach;return s===3?(uDachKnown(o)<=UST.dach[2]*1.15?3:2):Math.max(s,2)}
 function uOf(o,s,fen){
@@ -1139,7 +1208,7 @@ function compute(o){
   Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
   return {uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -1223,7 +1292,7 @@ function read(){
   var g=geoGet();
   return {geo:g,gt:g?g.gt:0,pvy:g?g.pvy:0,kfAuto:verbMean().auto,
     obj:$('objekt').value,dform:$('dform').value,typ:$('typ').value,kShare:+$('kshare').value,kArt:$('kart').value,fMat:$('frahmen').value,fdicht:+$('fdicht').value,hkTyp:$('hktyp').value,basis:$('basis').value,band:+$('baujahr').value,wf:Math.max(30,numG('wf')),
-    wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
+    wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},dl:{dka:$('dka').value,dkh:+$('dkh').value||0,dkf:$('dkf').value,dkfd:+$('dkfd').value||0,dkfw:+$('dkfw').value||0,dib:$('dib').value,dab:$('dab').value,dzs:$('dzs').value,dzd:+$('dzd').value||0,dzw:+$('dzw').value||0,ddb:$('ddb').value},st:{wand:+$('wand').value,dach:+$('dach').value,keller:+$('keller').value},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:$('hk').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
@@ -1760,12 +1829,34 @@ function syncWand(){
 // Bekannte Dämmung: Dämmstoff, WLG, Stärke nur anzeigen, wenn der Dämmzustand „Dämmung bekannt“ gewählt ist
 var DSLAM={eps:35,epsg:32,mw:35,holz:40,pur:24,resol:22,kern:40,cs:60};
 function syncDmD(){
-  var on=$('dach').value==='3';
-  ['dmrowD1','dmrowD2','dshintD'].forEach(function(id){$(id).hidden=!on});
-  if(on){
-    var w=+$('wlgD').value,bj=+$('dbjD').value||0,lam=CALC.lamKnown({ds:$('dstoffD').value,wlg:w,bj:bj}),o=read();
-    $('dshintD').textContent='Gerechnet mit λ = '+lam.toFixed(3).replace('.',',')+' W/mK'+(w>0?'':' (typischer Wert'+(bj===1||bj===2?', Einbau vor 1995':'')+')')+', U des Dachs mit Dämmung ca. '+fmt(CALC.uDachKnown(o),2)+' W/m²K. Ungedämmter Aufbau und Sparren- oder Balkenanteil sind Annahmen: bei Zwischensparrendämmung liegt der echte Wert etwas höher.';
-  }
+  var on=$('dach').value==='3',f=$('dform').value,sk=(f==='sd_kalt'),fd=(f==='fd');
+  $('dkbox').hidden=!on;if(!on) return;
+  $('dkd').hidden=!sk;$('dabrow').hidden=!sk;
+  var ka=$('dka').value;
+  $('dkhl').textContent=(ka==='holz')?'Balkenhöhe':'Stärke der Decke';
+  $('dkfrow').hidden=(ka!=='holz');
+  var kf=$('dkf').value,fOn=sk&&ka==='holz'&&kf!=='none';
+  $('dkfdl').hidden=!fOn;$('dkfwl').hidden=!(fOn&&['lehm','sand','spaene'].indexOf(kf)<0);
+  $('dsDl').textContent=sk?'Dämmung oben auf der Decke, Dämmstoff':(f==='sd_aus'||f==='sd_teil')?'Dämmung zwischen den Sparren, Dämmstoff':fd?'Dämmung im Flachdach, Dämmstoff':'Dämmstoff';
+  $('dstDl').textContent=sk?'Stärke der aufgelegten Dämmung':(f==='sd_aus'||f==='sd_teil')?'Stärke zwischen den Sparren':'Dämmstärke';
+  var ds=$('dstoffD').value,dOn=ds!=='none';
+  $('lblWlgD').hidden=!dOn;$('lblStarkD').hidden=!dOn;$('lblBjD').hidden=!dOn;
+  var zOn=f&&(!sk||$('dab').value==='ja');
+  $('dzbox').hidden=!zOn;
+  $('dzsl').textContent=sk?'Dämmung in der Abhängung (innere Deckendämmung)':fd?'Zusätzliche Dämmung (Aufdach oder innen)':'Zusätzliche Dämmung auf oder unter den Sparren';
+  var zs=$('dzs').value,zo=zOn&&zs!=='none';
+  $('dzdl').hidden=!zo;$('dzwl').hidden=!(zo&&['lehm','sand','spaene'].indexOf(zs)<0);
+  $('dibl').textContent=sk?'Untersicht der Decke':'Innenbekleidung';
+  var o=read(),A=CALC.dachAufbau(o),txt='';
+  if(A.list.length) txt='Aufbau von innen nach außen: '+A.list.join(' · ')+'. ';
+  txt+='U des Dachs ca. '+fmt(A.u,2)+' W/m²K. Annahmen: ungedämmter Aufbau, Holzanteil bei Dämmung im Gefach (Sparren 12 %, Balken 10 %), Wärmeleitwerte typisch. Messwerte gehen vor.';
+  $('dshintD').hidden=false;$('dshintD').textContent=txt;
+  var db=$('ddb').value,any=(ds!=='none'&&+$('dstarkD').value>0)||zo;
+  var hb='';
+  if(db==='nein'&&any&&!sk) hb='Ohne Dampfbremse oder luftdichte Ebene besteht bei Dämmung im Gefach ein Feuchterisiko, und Undichtheiten erhöhen den Verlust. In der U-Wert-Rechnung ist das nicht enthalten.';
+  else if(db==='nein'&&sk) hb='Ohne Dampfbremse unter der Dämmung kann warme Raumluft durch die Decke in den kalten Dachraum strömen. Vor dem Aufdoppeln Luftdichtheit klären. In der U-Wert-Rechnung ist das nicht enthalten.';
+  else if(db==='') hb='Dampfbremse unbekannt: bei Nachdämmung vor Ort prüfen (Folie, Pappe, Lage).';
+  $('ddbh').hidden=!hb;$('ddbh').textContent=hb;
 }
 function syncDm(){
   var on=$('wand').value==='3';
@@ -2990,7 +3081,7 @@ function initHome(){
 }
 function init(){
   ['wf','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','keller','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -3003,13 +3094,17 @@ function init(){
   $('dtiles').addEventListener('click',function(e){
     var b=e.target.closest?e.target.closest('button[data-v]'):null;if(!b) return;
     var v=b.getAttribute('data-v'),h=$('dform');h.value=(h.value===v)?'':v;
-    syncDach();h.dispatchEvent(new Event('change',{bubbles:true}));render();
+    // Vorbelegung der Dämmung: waagerechte Decke zunächst ohne aufgelegte Dämmung, sonst Mineralwolle 16 cm
+    if(h.value==='sd_kalt'&&$('dstoffD').value==='mw'&&$('dstarkD').value==='16') $('dstoffD').value='none';
+    else if(h.value&&h.value!=='sd_kalt'&&$('dstoffD').value==='none') $('dstoffD').value='mw';
+    syncDach();syncDmD();h.dispatchEvent(new Event('change',{bubbles:true}));render();
   });
   syncDach();
   $('copy').addEventListener('click',copy);
   $('wtyp').addEventListener('change',function(){if($('wtyp').value==='ks') $('wand').value='3';syncWand();render()});
   $('wand').addEventListener('change',function(){syncDm();render()});
   $('dach').addEventListener('change',function(){syncDmD();render()});
+  ['dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb'].forEach(function(id){$(id).addEventListener('change',function(){syncDmD();render()})});
   $('dstoffD').addEventListener('change',function(){$('wlgD').value='0';syncDmD();render()});
   $('dbjD').addEventListener('change',function(){syncDmD();render()});
   $('wlgD').addEventListener('change',function(){syncDmD();render()});
@@ -3054,7 +3149,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-15 12:21',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-15 12:33',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

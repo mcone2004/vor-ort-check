@@ -327,7 +327,7 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
 .dq h2{display:flex;align-items:center;gap:.55rem}.dqd{flex:none;width:.9rem;height:.9rem;border-radius:50%;border:1px solid rgba(0,0,0,.3)}.dqd.dq-g{background:#5E8F16}.dqd.dq-y{background:#E0A030}.dqd.dq-r{background:#B03A2E}
 .dql{list-style:none;margin:.5rem 0;padding:0;display:grid;gap:.25rem;font-size:.9rem}.dql li{display:flex;gap:.7rem;align-items:baseline}
 .dqs{flex:none;min-width:5.8rem;font-weight:700;font-size:.74rem;text-transform:uppercase;letter-spacing:.03em}
-.dql .dq-ok .dqs{color:var(--green)}.dql .dq-ann .dqs{color:#9A6A10}.dql .dq-fehlt .dqs{color:#B03A2E}
+.dql .dq-warn .dqs{color:#B03A2E}.dq h3{font-size:.95rem;margin:.8rem 0 .2rem}.dql .dq-ok .dqs{color:var(--green)}.dql .dq-ann .dqs{color:#9A6A10}.dql .dq-fehlt .dqs{color:#B03A2E}
 .rep-dq{margin:.3rem 0;font-size:.9em;border-left:3px solid #C1C1C1;padding-left:.6rem}
 
 /* Schichtaufbau der Außenwand */
@@ -866,7 +866,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
   </div>
   <details id="ann"><summary>Annahmen und Grenzen</summary>
     <ul class="small" id="annlist" style="margin:0;padding-left:1.1rem">
-      <li>Vereinfachtes Bauteilmodell mit typischen U-Werten je Baujahrband und pauschaler Hüllfläche je m² Wohnfläche. Genauigkeit grob ±25 %.</li>
+      <li>Vereinfachtes Bauteilmodell mit typischen U-Werten je Baujahrband und pauschaler Hüllfläche je m² Wohnfläche. Eine Genauigkeit in Prozent lässt sich nicht belegen, siehe Datenqualität.</li>
       <li>Unten: Bodenplatte mit Wärmeverlust inklusive Erdreich (Beton, Dämmung nach Baujahr), Kellerdecke mit Faktor 0,6 gegen unbeheizten Keller, Kriechkeller mit 0,8, beheizter Keller über Boden und erdberührte Wände. Bei teilweiser Unterkellerung zu je 50 %. Nachgedämmt wird in Variante 2 und 3 nur die Decke über unbeheiztem Keller oder Kriechkeller.</li>
       <li>Heizkörpertyp: Leistung je Baugröße relativ zu Typ 22 angesetzt mit Gliederheizkörper 0,9, Typ 10 0,5, Typ 11 0,65, Typ 21 0,85, Typ 33 1,45. Richtwerte, je Hersteller etwa ±10 %. Der Typ ändert den Ausgangsvorlauf nicht, nur die Variante Heizkörpertausch auf Typ 33 in gleicher Baugröße. Dabei werden alle Heizkörper dieses Typs getauscht.</li>
       <li>Energieklasse: Endenergie je m² Gebäudenutzfläche nach der GEG-Skala (A+ unter 30, A unter 50, B unter 75, C unter 100, D unter 130, E unter 160, F unter 200, G unter 250, H ab 250 kWh/m²a). Nutzfläche gleich 1,2 mal Wohnfläche, bei Ein- und Zweifamilienhaus mit beheiztem Keller 1,35. Hilfsenergie und Primärenergie fehlen. Bei Wärmepumpen ist die Endenergie der Strom, deshalb fällt die Klasse dort deutlich besser aus. Das ersetzt keinen Energieausweis.</li>
@@ -924,7 +924,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
 <script src="erfassung-calc.js"></script>
 <script src="erfassung.js"></script>
 <script>
-/* Vor-Ort-Check Sanierung / Wärmepumpe: Rechenkern (Näherungsmodell, Genauigkeit grob ±25 %) */
+/* Vor-Ort-Check Sanierung / Wärmepumpe: Rechenkern (Näherungsmodell, Genauigkeit nicht belegt) */
 var CALC=(function(){
 'use strict';
 var clamp=function(x,a,b){return Math.max(a,Math.min(b,x))};
@@ -1299,7 +1299,7 @@ function solar(o,S,ist,q,hhV){
 // ---- Förderung (Schätzung) nach den Konditionen der BEG ab 21.07.2026, Stand der Tabelle: 05.10.2026 ----
 // KfW 458 (Wärmepumpe): 30 % Grundförderung, Klimageschwindigkeitsbonus und Einkommensbonus nur für selbstnutzende Eigentümer.
 // BAFA BEG EM (Hülle, Heizungsoptimierung): 15 %, mit iSFP 5 % zusätzlich auf den Teil über 30.000 €. Verbindlich sind nur Zusage und Bescheid.
-var FOERD={stand:'16.10.2026',
+var FOERD={stand:'16.10.2026',quelle:'KfW-Merkblatt 458 (Stand 09/2026, gültig ab 24.09.2026) und BAFA-Seite zur Gebäudehülle, abgerufen am 16.10.2026',
   wp27:{ab:'2027-01-01',basis:15,wsb:15},
   termine:[['2027-03-31','Q1 2027, Tag nicht genannt','Grundförderung für Wärmepumpen sinkt von 30 auf 15 %. Wärmepumpen mit Ursprung in der EU erhalten 15 % Wertschöpfungsbonus und liegen damit wieder bei 30 %. Was „Ursprung in der EU“ genau heißt, ist noch offen.'],['2027-03-31','Q1 2027, Tag nicht genannt','Kein Anspruch mehr beim Wechsel von Fernwärme auf eine andere erneuerbare Heizung. Ersatz erneuerbarer Heizungen ab Baujahr 2008 wird nicht mehr gefördert, bei älteren gelten pauschal 25 % der Ausgaben als förderfähig.'],['2027-03-31','BAFA, Q1 2027, Tag nicht genannt','Neuer WPB-Bonus von 5 % für Dämmmaßnahmen der Hülle (nicht Fenster), nur bei Energiebedarf ab 300 kWh/(m²a) oder Klasse H, Berechnung höchstens ein Jahr alt.'],['2027-07-01','01.07.2027','Wärmepumpen: Schnittstelle nach § 14a EnWG und Beauftragung eines intelligenten Messsystems, falls nicht vorhanden.'],['2028-01-01','01.01.2028','Wärmepumpen: natürliches Kältemittel ist Pflicht.']],
   kfw:[['2026-07-21',28000,16],['2027-02-01',27250,12],['2027-08-01',26500,8],['2028-02-01',25750,4],['2028-08-01',25000,0],['2029-02-01',24250,0],['2029-08-01',23500,0],['2030-02-01',22750,0],['2030-08-01',22000,0]],
@@ -1312,9 +1312,10 @@ function kfwStufe(today){
   return {ab:st[0],kosten:st[1],kgb:st[2]};
 }
 function kgbOk(o){
-  // Annahme: Öl, Stromheizung (Nachtspeicher oder Direkt) immer; Gas und Pellets ab 20 Jahren (Anlage bis 2005)
+  // Nach Merkblatt 458: Öl, Kohle, Gas-Etagen- und Nachtstromspeicherheizungen unabhängig vom Alter; Gas und Biomasse, wenn die Inbetriebnahme mindestens 20 Jahre zurückliegt.
+  // Strom (Direkt oder Speicher) lässt sich hier nicht trennen: nur nach Bestätigung durch den Nutzer. Gas-Etagenheizungen (ohne Altersgrenze) ebenfalls nur nach Bestätigung.
   if(ofenTr(o)) return false; // Einzelöfen: Anspruch auf den Klimageschwindigkeits-Bonus nicht geklärt, nicht eingerechnet
-  return o.tr==='oel'||o.tr==='strom'||((o.tr==='gas'||o.tr==='pellets')&&o.ha<=1);
+  return o.tr==='oel'||((o.tr==='gas'||o.tr==='pellets')&&o.ha<=1);
 }
 // Grundförderung der Wärmepumpe: bis Ende 2026 30 %, ab Q1 2027 15 % plus 15 % Wertschöpfungsbonus bei EU-Ursprung (Tag im Quartal nicht genannt, 01.01.2027 angenommen)
 function wpBasis(today,herk){var w=FOERD.wp27;return today>=w.ab?w.basis+(herk==='nein'?0:w.wsb):FOERD.basis}
@@ -1335,6 +1336,8 @@ function foerdBasis(o){
   if(f.selbst){
     f.kgbOk=(o.fKgb==='ja')?true:(o.fKgb==='nein'?false:kgbOk(o));
     if(!f.kgbOk&&o.fKgb!=='nein'&&ofenTr(o)) f.notes.push('Einzelöfen statt Zentralheizung: Ob der Klimageschwindigkeits-Bonus für den Ersatz gilt, ist nicht geklärt und hier nicht eingerechnet. Vor der Aussage zum Kunden bei KfW und in den aktuellen Förderbedingungen prüfen.');
+    if(!f.kgbOk&&o.fKgb!=='nein'&&o.tr==='strom'&&!ofenTr(o)) f.notes.push('Strom: Der Klimageschwindigkeits-Bonus gilt nach dem Merkblatt nur für Nachtstromspeicherheizungen, nicht für Direktheizung. Bei Speicherheizung unter „Alte Heizung für den Klimabonus“ berechtigt wählen.');
+    if(!f.kgbOk&&o.fKgb!=='nein'&&(o.tr==='gas'||o.tr==='pellets')&&o.ha>1) f.notes.push('Gas und Biomasse: Der Klimageschwindigkeits-Bonus gilt, wenn die Heizung mindestens 20 Jahre alt ist. Gas-Etagenheizungen sind unabhängig vom Alter berechtigt. Bei Zweifel berechtigt oder nicht berechtigt wählen.');
     var incK=(+o.fZve>0)?o.fZve/1000:({30:30,40:40,50:50,60:60,99:999}[o.fEink]||null);
     f.einkOffen=(incK==null);
     if(incK!=null){
@@ -1674,7 +1677,7 @@ function foerdLines(o,F){
   }
   var inv=[[F.v[1],'V2'],[F.v[2],'V3'],[F.v[3],'V4'],[F.cv,'Eigene Variante']].filter(function(x){return x[0]&&x[0].inv>0&&x[0].fund>0}).map(function(x){return x[1]+' etwa '+r0(x[0].fund)+' €'});
   out.push('Hülle und Heizkörpertausch (BAFA): 15 %'+(o.fIsfp==='ja'?' plus 5 % iSFP-Bonus auf den Teil über 30.000 €':'')+' auf förderfähige Kosten bis '+(o.fIsfp==='ja'?'60.000':'30.000')+' €'+(inv.length?': '+inv.join(', '):'')+'. Der Heizkörpertausch ist als Heizungsoptimierung angenommen, bitte prüfen.');
-  out.push('Stand der Konditionen: '+CALC.FOERD.stand+' (Förderung ab 21.07.2026).'+(fb.today<CALC.FOERD.wp27.ab?' Ab Q1 2027 sinkt die Grundförderung für Wärmepumpen auf 15 %, mit EU-Ursprung kommt ein Bonus von 15 % dazu (siehe Förderrechner).':'')+' Antrag vor der Beauftragung stellen. Verbindlich sind nur Zusage und Bescheid.');
+  out.push('Stand der Konditionen: '+CALC.FOERD.stand+' (Förderung ab 21.07.2026). Grundlage: '+CALC.FOERD.quelle+'. Die Änderungen ab 2027 stehen dort noch nicht und stammen aus Presseberichten.'+(fb.today<CALC.FOERD.wp27.ab?' Ab Q1 2027 sinkt die Grundförderung für Wärmepumpen auf 15 %, mit EU-Ursprung kommt ein Bonus von 15 % dazu (siehe Förderrechner).':'')+' Antrag vor der Beauftragung stellen. Verbindlich sind nur Zusage und Bescheid.');
   return out;
 }
 function rbLines(o){
@@ -1699,7 +1702,7 @@ function confMissing(){
 }
 
 // ---- Datenqualität: wie vollständig und belastbar sind die Eingaben? Keine statistische Genauigkeit, nur eine offene Bewertung der Datengrundlage ----
-function dqEval(o){
+function dqEval(o,R){
   var t=$('touched')?$('touched').value:'',all=(t==='*'),set={};t.split(',').forEach(function(x){if(x) set[x]=1});
   var tc=function(id){return all||!!set[id]};
   var it=[],sc=0,mx=0;
@@ -1727,19 +1730,38 @@ function dqEval(o){
   add('Standort und Klima',o.geo?'ok':'ann',o.geo?'Gradtage und Strahlung vom Standort':'Vorgabewerte, Adresse nicht gefunden',1);
   add('Warmwasser',o.wwP>0?'ok':'ann',o.wwP>0?'nach Personenzahl':'Pauschale',0.5);
   add('Energiepreis',tc('p_alt')?'ok':'ann',tc('p_alt')?'angegeben':'Vorgabepreis',0.5);
+  var hkOffen=!(o.hkKeine||o.hk==='fbh')&&!(tc('hk')||tc('hktyp'));
+  // Auffälligkeiten (Schwellen sind Annahmen für grobe Plausibilität, keine Normwerte)
+  var wn=[],rr=function(v){return fmt(Math.round(v))};
+  if(R&&R.ist){
+    var qh=R.ist.qh;
+    if(qh<25) wn.push(['Heizwärme',rr(qh)+' kWh/m²a sind sehr niedrig. Verbrauch, Einheit und Wohnfläche prüfen.']);
+    else if(qh>300) wn.push(['Heizwärme',rr(qh)+' kWh/m²a sind sehr hoch. Verbrauch, Einheit und Wohnfläche prüfen.']);
+    if(R.qVerb!=null&&R.qBT>0&&!ofn){var dv=R.qVerb/R.qBT-1;if(Math.abs(dv)>0.4) wn.push(['Verbrauch gegen Bauteile','Der Verbrauch ergibt '+rr(R.qVerb)+', das Bauteilmodell '+rr(R.qBT)+' kWh/m²a ('+(dv>0?'+':'−')+Math.round(Math.abs(dv)*100)+' %). Mögliche Ursachen: Bauteile falsch erfasst, Zusatzheizung, Leerstand oder Verbrauchswerte.'])}
+    if(o.verbN>=2&&o.verbMax+o.verbMin>0){var spr=(o.verbMax-o.verbMin)/((o.verbMax+o.verbMin)/2);if(spr>0.3) wn.push(['Verbrauch schwankt','Die Jahre weichen um mehr als 30 % voneinander ab. Nutzung, Leerstand oder Eingabe prüfen.'])}
+    var Ar=R.areas;
+    if(Ar) [['aW','w','Außenwandfläche'],['aF','f','Fensterfläche'],['aD','d','Dachfläche'],['aK','k','Bodenfläche']].forEach(function(p){
+      var v=+o[p[0]];if(v>0&&Ar.est[p[1]]>0){var q=v/Ar.est[p[1]];if(q<0.5||q>2) wn.push([p[2],'eingegeben '+rr(v)+' m², aus der Wohnfläche geschätzt '+rr(Ar.est[p[1]])+' m². Das weicht um mehr als den Faktor 2 ab: Fläche und Wohnfläche prüfen.'])}});
+    var Ui=R.uIst||{};
+    if(Ui.wand&&(Ui.wand<0.12||Ui.wand>3.0)) wn.push(['U-Wert Außenwand','U '+fmt(Ui.wand,2)+' W/m²K ist ungewöhnlich. Aufbau und Dämmung prüfen.']);
+    if(Ui.dach&&(Ui.dach<0.10||Ui.dach>3.0)) wn.push(['U-Wert Dach','U '+fmt(Ui.dach,2)+' W/m²K ist ungewöhnlich. Aufbau und Dämmung prüfen.']);
+    if(R.uFenB&&(R.uFenB<0.7||R.uFenB>5.5)) wn.push(['Uw Fenster','Uw '+fmt(R.uFenB,2)+' W/m²K ist ungewöhnlich. Fensterart prüfen.']);
+  }
+  if(o.hk==='fbh'&&o.vlm!=null&&o.vlm>45) wn.push(['Fußbodenheizung','Der gemessene Vorlauf von '+o.vlm+' °C ist für eine Fußbodenheizung ungewöhnlich hoch. Angabe prüfen.']);
   var pc=mx>0?sc/mx:0,lv=pc>=0.75?'g':(pc>=0.40?'y':'r');
+  if(lv==='g'&&wn.length) lv='y';
   var fehl=it.filter(function(x){return x.st==='fehlt'});
   var anm=it.filter(function(x){return x.st==='ann'});
   var weder=(!(o.verb>0&&tc('verb'))||ofn)&&!wOk&&!dOk;
   if(!wfIn||weder) lv='r';
   var why=!wfIn?'Wohnfläche fehlt':(weder?'weder verwertbarer Verbrauch noch Angaben zu Außenwand und Dach':'');
-  var txt={g:'Wesentliche Angaben sind vorhanden.',y:'Einige wichtige Angaben beruhen auf Annahmen.',r:'Für eine sinnvolle Ersteinschätzung fehlen wesentliche Daten.'}[lv];
-  return {lvl:lv,pct:pc,items:it,txt:txt,why:why,name:{g:'Grün',y:'Gelb',r:'Rot'}[lv],nAnn:anm.length,nFehl:fehl.length};
+  var txt={g:'Wesentliche Angaben sind vorhanden.',y:(anm.length||!wn.length)?'Einige wichtige Angaben beruhen auf Annahmen.':'Die Angaben sind weitgehend vollständig, einzelne Werte fallen aber auf.',r:'Für eine sinnvolle Ersteinschätzung fehlen wesentliche Daten.'}[lv];
+  return {lvl:lv,pct:pc,items:it,warn:wn,hkOffen:hkOffen,txt:txt,why:why,name:{g:'Grün',y:'Gelb',r:'Rot'}[lv],nAnn:anm.length,nFehl:fehl.length};
 }
 function dqHtml(d){
   var lab={ok:'angegeben',ann:'angenommen',fehlt:'fehlt'};
   return '<section class="panel dq"><h2><span class="dqd dq-'+d.lvl+'"></span>Datenqualität: '+d.name+'</h2><p>'+esc(d.txt)+(d.why?' Grund: '+esc(d.why)+'.':'')+(d.lvl!=='g'?' Je mehr davon vor Ort erfasst wird, desto belastbarer wird das Ergebnis.':'')+'</p><ul class="dql">'+
-    d.items.map(function(x){return '<li class="dq-'+x.st+'"><span class="dqs">'+lab[x.st]+'</span><span><b>'+esc(x.n)+':</b> '+esc(x.t)+'</span></li>'}).join('')+'</ul><p class="sub">Das ist eine offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.</p></section>';
+    d.items.map(function(x){return '<li class="dq-'+x.st+'"><span class="dqs">'+lab[x.st]+'</span><span><b>'+esc(x.n)+':</b> '+esc(x.t)+'</span></li>'}).join('')+'</ul>'+(d.warn&&d.warn.length?'<h3>Auffälligkeiten, bitte prüfen</h3><ul class="dql">'+d.warn.map(function(x){return '<li class="dq-warn"><span class="dqs">prüfen</span><span><b>'+esc(x[0])+':</b> '+esc(x[1])+'</span></li>'}).join('')+'</ul>':'')+'<p class="sub">Das ist eine offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.</p></section>';
 }
 function dqRate(d){return {k:0,t:'Weitere Prüfung erforderlich',s:'Die Datenlage reicht für eine Eignungsaussage nicht aus'+(d.why?' ('+d.why+')':'')+'.'}}
 var TM={verb2:'verb',verb3:'verb'};
@@ -1806,7 +1828,7 @@ function srcRows(X){
     var A=R.areas,U=R.uIst||{};
     base='Aus den Bauteilen: Wärmeverluste über Außenwand'+(U.wand?' (U '+fmt(U.wand,2)+')':'')+', Fenster'+(U.fenster?' (Uw '+fmt(U.fenster,2)+')':'')+', Dach'+(U.dach?' (U '+fmt(U.dach,2)+')':'')+' und Boden bzw. Keller, dazu Wärmebrücken und Lüftung, abzüglich solarer und innerer Gewinne.'+(A?' Flächen: Wand '+r0(A.use.w)+', Fenster '+r0(A.use.f)+', Dach '+r0(A.use.d)+', Boden '+r0(A.use.k)+' m²'+(A.n<4?' (nicht eingegebene Flächen geschätzt)':'')+'.':'')+(R.qVerb!=null?' Der Verbrauch ergäbe '+fmt(R.qVerb)+' kWh/m²a.':'');
   }
-  if(X.dq) rows.push(['Datenqualität: '+X.dq.name,X.dq.items.map(function(x){return x.n+' ('+({ok:'angegeben',ann:'angenommen',fehlt:'fehlt'})[x.st]+': '+x.t+')'}).join('; ')+'. Offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.']);
+  if(X.dq) rows.push(['Datenqualität: '+X.dq.name,X.dq.items.map(function(x){return x.n+' ('+({ok:'angegeben',ann:'angenommen',fehlt:'fehlt'})[x.st]+': '+x.t+')'}).join('; ')+(X.dq.warn&&X.dq.warn.length?'. Auffälligkeiten: '+X.dq.warn.map(function(x){return x[0]+' ('+x[1]+')'}).join('; '):'')+'. Offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.']);
   rows.push(['Heizwärme '+fmt(I.qh)+' kWh/m²a',base]);
   var tab=(CALC.ETA[o.tr]||[]).map(function(x){return Math.round(x*100)}).join(' / ');
   if(CALC.ofenTr(o)) rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+OFN[o.ofen]+' (Kachelgrundofen 80, Kachelofen mit Heizeinsatz 75, Kaminofen 70, offener Kamin 30 %). Ein Schätzwert. Bei Einzelöfen ist der Energieeinsatz unten der Bedarf bei Vollbeheizung, nicht der tatsächliche Holz- oder Kohleverbrauch.']);
@@ -1834,7 +1856,7 @@ function srcRows(X){
   }
   if(X.F&&X.F.fb&&X.F.fb.ok&&!X.F.fb.mfh) rows.push(['Förderung (Schätzung)',foerdLines(o,X.F).join(' ')]);
   if(X.F&&X.F.tot) rows.push(['Gesamtkosten über 20 Jahre','Investition nach Förderung plus Betriebskosten über 20 Jahre. Brennstoff '+fmt(o.kPa,1)+' % und Strom '+fmt(o.kPs,1)+' % Preissteigerung je Jahr, Wartung Bestand '+eur(o.kWb)+' und Wärmepumpe '+eur(o.kWw)+' je Jahr gleichbleibend. Der Bestand rechnet ohne Kesselersatz in dieser Zeit, Kosten der Wärmepumpe mit Investition aus dem Angebot. Annahmen, keine Prognose.']);
-  rows.push(['Genauigkeit','Grobe Schätzung, etwa ±25 %. Die Eingaben beim Termin (Verbrauch, Bauteile, gemessener Vorlauf) bestimmen die Qualität. Eine genaue Auslegung braucht die Heizlastberechnung nach DIN EN 12831.']);
+  rows.push(['Genauigkeit','Überschlägige Schätzung. Eine Genauigkeit in Prozent lässt sich für das Modell nicht belegen. Wie belastbar das Ergebnis ist, zeigt die Datenqualität: Die Eingaben beim Termin (Verbrauch, Bauteile, gemessener Vorlauf) bestimmen sie. Eine genaue Auslegung braucht die Heizlastberechnung nach DIN EN 12831.']);
   return rows;
 }
 function srcHtml(X){return '<table class="srct"><tbody>'+srcRows(X).map(function(r){return '<tr><th scope="row">'+esc(r[0])+'</th><td>'+esc(r[1])+'</td></tr>'}).join('')+'</tbody></table>'}
@@ -1916,8 +1938,9 @@ function fsRender(o,R){
   if(h!==box._h){box._h=h;box.innerHTML=h}
 }
 function render(){
-  var o=read(),R=CALC.compute(o),S=R.S,I=R.ist,dqv=dqEval(o);
+  var o=read(),R=CALC.compute(o),S=R.S,I=R.ist,dqv=dqEval(o,R);
   if(dqv.lvl==='r'){S.forEach(function(s){s.rate=dqRate(dqv)});if(R.cv) R.cv.rate=dqRate(dqv)}
+  else if(dqv.hkOffen&&o.vlm==null){var hkR=function(s){if(s.rate&&s.rate.k===1) s.rate={k:2,t:'Voraussichtlich geeignet',s:'Heizkörper nicht erfasst: Heizflächen vor einer Zusage prüfen'}};S.forEach(hkR);if(R.cv) hkR(R.cv)}
   drawSchnitt(o,R.uIst);
   (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
   (function(){
@@ -3456,7 +3479,7 @@ function buildReport(internal,snap){
   h+='<dl class="rep-meta"><dt>Kunde</dt><dd>'+(nm?esc(nm):'&nbsp;')+'</dd><dt>Objekt</dt><dd>'+esc(ad||o.obj||'')+(ol?' ('+esc(ol)+')':'')+'</dd>'+(snap?(datB?'<dt>Datum</dt><dd>'+datB+'</dd><dt>Stand</dt><dd>'+dateTime+'</dd>':'<dt>Stand</dt><dd>'+dateTime+'</dd>'):'<dt>Datum</dt><dd>'+dateRep+'</dd>')+'</dl></div></div>';
   h+='<h2>Ergebnis für die Wärmepumpe im Bestand</h2>';
   h+='<div class="rep-verdict" style="--rc:'+RCOL[rt.k]+'"><div><strong>'+esc(rt.t)+'</strong><span>'+esc(rt.s)+'</span></div><div class="rep-kpi"><div><small>Heizlastabschätzung, ca.</small><b>'+fmt(s1.kw,1)+' kW</b></div><div><small>Vorlauf nötig, ca.</small><b>'+Math.round(s1.vl)+' °C</b></div><div><small>Jahresarbeitszahl, geschätzt</small><b>'+fmt(s1.jaz,1)+'</b></div></div></div>';
-  if(X.dq) h+='<p class="rep-dq"><b>Datenqualität: '+X.dq.name+'.</b> '+esc(X.dq.txt)+(X.dq.nAnn?' '+X.dq.nAnn+' Angaben beruhen auf Annahmen'+(internal?', siehe interne Seite.':'.'):'')+'</p>';
+  if(X.dq) h+='<p class="rep-dq"><b>Datenqualität: '+X.dq.name+'.</b> '+esc(X.dq.txt)+(X.dq.nAnn?' '+X.dq.nAnn+' Angaben beruhen auf Annahmen'+(internal?', siehe interne Seite.':'.'):'')+(X.dq.warn&&X.dq.warn.length?' '+X.dq.warn.length+(X.dq.warn.length===1?' Auffälligkeit wird geprüft.':' Auffälligkeiten werden geprüft.'):'')+'</p>';
   h+='<p>'+esc(X.t)+'</p>';
   // Varianten
   var cols=[{n:'Bestand',s:null}];
@@ -3505,7 +3528,7 @@ function buildReport(internal,snap){
   var sl2=solarLines(R);if(sl2.length) h+='<h2>Solar und Strom</h2>'+sl2.map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Hinweise
   h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
-  h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Die Heizlastabschätzung ist keine Heizlastberechnung nach DIN EN 12831. '+(fh?'Die Förderung ist eine Schätzung, verbindlich sind nur Zusage und Bescheid. ':'Förderung ist nicht eingerechnet. ')+(Fx&&Fx.tot?'Wartung und Preissteigerung gehen nur in die Gesamtkosten ein. ':'Wartung und Preisentwicklung sind nicht eingerechnet. ')+'Grundpreise sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
+  h+='<p class="rep-foot">Überschlägige Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch. Wie belastbar sie ist, zeigt die Datenqualität. Die Heizlastabschätzung ist keine Heizlastberechnung nach DIN EN 12831. '+(fh?'Die Förderung ist eine Schätzung, verbindlich sind nur Zusage und Bescheid. ':'Förderung ist nicht eingerechnet. ')+(Fx&&Fx.tot?'Wartung und Preissteigerung gehen nur in die Gesamtkosten ein. ':'Wartung und Preisentwicklung sind nicht eingerechnet. ')+'Grundpreise sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
   h+='<div class="rep-page"><h1>So kommen die Zahlen zustande</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+'</p>'+srcHtml({dq:X.dq,o:o,R:R,S:S,I:I,F:X.F})+'<p class="rep-foot">Alle Werte sind Näherungen aus den Angaben beim Termin.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
   if(internal){
     h+='<div class="rep-page"><h1>Intern: Eingaben und Annahmen</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+' · '+(snap?'gespeicherte Auswertung vom '+dateTime:dateRep)+'</p>';
@@ -3801,7 +3824,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-16 19:45',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-16 20:01',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

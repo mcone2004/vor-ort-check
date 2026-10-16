@@ -502,14 +502,14 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
         <label for="ztm">Grundmauerwerk, Innenschale<select id="ztm"><option value="unb" selected>unbekannt, nach Baujahr angenommen</option><option value="voll">Vollziegel, Mauerziegel</option><option value="hlz">Hochlochziegel</option><option value="ks">Kalksandstein, Vollstein</option><option value="ksl">Kalksandstein, Loch- oder Hohlblockstein</option><option value="poren">Porenbeton (Gasbeton)</option><option value="leicht">Hohlblockstein, Bims, Leichtbeton</option><option value="beton">Beton, Stahlbeton</option><option value="schlacke">Schlacken- oder Hüttenstein</option><option value="bruch">Feldstein, Bruchstein</option><option value="hrb">Holzrahmen mit Gefachdämmung</option></select></label>
         <label for="ztd">Stärke Grundmauerwerk<select id="ztd"><option value="0" selected>übliche Stärke des Materials</option><option value="10">10 cm</option><option value="11.5">11,5 cm</option><option value="14">14 cm</option><option value="17.5">17,5 cm</option><option value="20">20 cm</option><option value="24">24 cm</option><option value="30">30 cm</option><option value="36.5">36,5 cm</option><option value="40">40 cm</option><option value="50">50 cm</option></select></label>
       </div>
-      <label for="zlbr">Hohlraum zwischen Innenschale und Verblender<select id="zlbr"><option value="0" selected>unbekannt, ca. 4 cm angenommen</option><option value="2">2 cm</option><option value="3">3 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option></select></label>
-      <label for="zkern">Kerndämmung im Hohlraum<select id="zkern"><option value="unb" selected>unbekannt, baujahrtypisch (Tabelle)</option><option value="nein">nein, Hohlraum leer</option><option value="ja">ja, Hohlraum ganz oder teilweise gedämmt</option></select></label>
+      <label for="zkern">Kerndämmung im Hohlraum<select id="zkern"><option value="unb" selected>unbekannt, baujahrtypisch (Tabelle)</option><option value="nein">nein, keine Kerndämmung</option><option value="ja">ja, Hohlraum gedämmt (Stärke unten)</option></select></label>
       <div class="row" id="zkrow" hidden>
         <label for="zkds">Art der Kerndämmung<select id="zkds"><option value="kern" selected>Einblasdämmung, Art unbekannt (Granulat, Flocken)</option><option value="mw">Mineralwolle (Platten oder Einblaswolle)</option><option value="eps">EPS weiß (Platten oder Granulat)</option><option value="epsg">EPS grau (Graphit, Neopor)</option><option value="perl">Perlite (Einblas)</option><option value="pur">PUR oder PIR (Platten, Ortschaum)</option></select></label>
         <label for="zkw">Wärmeleitgruppe (WLG)<select id="zkw"><option value="0" selected>unbekannt, typischer Wert</option><option value="32">WLG 032</option><option value="34">WLG 034</option><option value="35">WLG 035</option><option value="36">WLG 036</option><option value="38">WLG 038</option><option value="40">WLG 040</option><option value="45">WLG 045</option><option value="50">WLG 050</option></select></label>
       </div>
-      <label for="zkd" id="zkdl" hidden>Stärke der Kerndämmung<select id="zkd"><option value="0" selected>füllt den Hohlraum ganz</option><option value="2">2 cm</option><option value="3">3 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option></select></label>
-      <label for="zbel">Luftschicht (der Rest des Hohlraums)<select id="zbel"><option value="" selected>unbekannt, ruhend gerechnet</option><option value="ruhend">ruhend: geschlossen, nur Entwässerungsöffnungen</option><option value="schwach">schwach belüftet: kleine Öffnungen, z. B. offene Stoßfugen unten</option><option value="stark">stark belüftet: große Öffnungen oben und unten</option></select></label>
+      <label for="zkd" id="zkdl" hidden>Stärke der Kerndämmung<select id="zkd"><option value="0" selected>unbekannt, 4 cm angenommen</option><option value="2">2 cm</option><option value="3">3 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="14">14 cm</option><option value="16">16 cm</option></select></label>
+      <label for="zlu" id="zlul">Luftschicht (Abstand zwischen Dämmung und Verblender)<select id="zlu"><option value="" selected>unbekannt (mit Kerndämmung keine, sonst 4 cm angenommen)</option><option value="0">keine, Hohlraum ganz gefüllt</option><option value="1">1 cm</option><option value="2">2 cm</option><option value="3">3 cm</option><option value="4">4 cm</option><option value="5">5 cm</option><option value="6">6 cm</option><option value="8">8 cm</option><option value="10">10 cm</option></select></label>
+      <label for="zbel" id="zbell">Belüftung der Luftschicht<select id="zbel"><option value="" selected>unbekannt, ruhend gerechnet</option><option value="ruhend">ruhend: geschlossen, nur Entwässerungsöffnungen</option><option value="schwach">schwach belüftet: kleine Öffnungen, z. B. offene Stoßfugen unten</option><option value="stark">stark belüftet: große Öffnungen oben und unten</option></select></label>
       <label for="zverb">Verblender, Außenschale<select id="zverb"><option value="unb" selected>unbekannt, Klinker angenommen</option><option value="klinker">Klinker, Vormauerziegel (voll, 11,5 cm)</option><option value="vhlz">Verblendziegel, gelocht (11,5 cm)</option><option value="ks">Kalksandstein-Verblender (11,5 cm)</option><option value="beton">Betonstein, Betonwerkstein (11,5 cm)</option><option value="natur">Naturstein-Vorsatzschale (ca. 10 cm)</option></select></label>
       <span class="hint" id="zwhint"></span>
     </div>
@@ -1045,12 +1045,15 @@ var ZTR=[0.30,0.35,0.40,0.50,0.60,0.70];
 var ZT={voll:[0.81,24,'Vollziegel, Mauerziegel'],hlz:[0.50,24,'Hochlochziegel'],ks:[0.99,17.5,'Kalksandstein, Vollstein'],ksl:[0.70,17.5,'Kalksandstein, Loch- oder Hohlblockstein'],poren:[0.16,17.5,'Porenbeton'],leicht:[0.45,24,'Hohlblockstein, Bims, Leichtbeton'],beton:[2.1,20,'Beton, Stahlbeton'],schlacke:[0.70,24,'Schlacken- oder Hüttenstein'],bruch:[1.7,40,'Feldstein, Bruchstein'],hrb:[0.0535,14,'Holzrahmen mit Gefachdämmung']};
 function airR(w){return w<0.2?0:w<0.6?0.11:w<0.85?0.13:w<1.25?0.15:w<2?0.17:0.18}
 function zweiExp(o){return o.wTyp==='zwei'&&!!o.zw&&!!o.zw.kern&&o.zw.kern!=='unb'}
-function zweiW(z){return (+z.lbr>0)?+z.lbr:4}
-function zweiDk(z){var w=zweiW(z);return z.kern==='ja'?Math.min((+z.d>0?+z.d:w),w):0}
+// Eingabe: Stärke Kerndämmung (z.d) und Luftschicht (z.luft, leer = unbekannt). Der Hohlraum ergibt sich als Summe.
+// Unbekannt: Kern 4 cm; Luftschicht ohne Kerndämmung 4 cm, mit Kerndämmung keine.
+function zweiDk(z){return z.kern==='ja'?(+z.d>0?+z.d:4):0}
+function zweiL(z){var l=z.luft;if(l===''||l==null) return z.kern==='ja'?0:4;return Math.max(0,+l||0)}
+function zweiW(z){return zweiDk(z)+zweiL(z)}
 function zweiRk(z){var dk=zweiDk(z);return dk>0?(dk/100)/lamKnown({ds:z.ds,wlg:z.wlg,bj:0}):0}
 function zweiSt(z){if(z.kern!=='ja') return 0;var rk=zweiRk(z);return rk>=1.6?2:(rk>=0.4?1:0)}
 function zweiR(o,z){
-  var v=ZV[z.verb]||ZV.klinker,w=zweiW(z),dk=zweiDk(z),rk=zweiRk(z),rest=w-dk,ra=airR(rest),rt=ZTR[o.band]||0.4,rv=v[0]/v[1];
+  var v=ZV[z.verb]||ZV.klinker,w=zweiW(z),dk=zweiDk(z),rk=zweiRk(z),rest=zweiL(z),ra=airR(rest),rt=ZTR[o.band]||0.4,rv=v[0]/v[1];
   var fv={schwach:0.5,stark:1}[z.bel]||0;if(rest<0.2) fv=0;
   var tn='',td=0;
   if(ZT[z.tm]){var t=ZT[z.tm];td=(+z.td>0)?+z.td:t[1];rt=0.02+(td/100)/t[0];tn=t[2]}
@@ -1558,7 +1561,7 @@ function yearMean(pairs,g){
 }
 function verbMean(){return yearMean([['verb','vj1','kf1'],['verb2','vj2','kf2'],['verb3','vj3','kf3']],geoGet())}
 function hhMean(){return yearMean([['sv1','sj1'],['sv2','sj2'],['sv3','sj3']])}
-function zwRead(){return {tm:$('ztm').value,td:+$('ztd').value||0,verb:$('zverb').value,lbr:+$('zlbr').value||0,bel:$('zbel').value,kern:$('zkern').value,ds:$('zkds').value,wlg:+$('zkw').value||0,d:+$('zkd').value||0}}
+function zwRead(){return {tm:$('ztm').value,td:+$('ztd').value||0,verb:$('zverb').value,luft:$('zlu').value,bel:$('zbel').value,kern:$('zkern').value,ds:$('zkds').value,wlg:+$('zkw').value||0,d:+$('zkd').value||0}}
 function wandSt(){if($('wtyp').value==='zwei'){var z=zwRead();if(z.kern!=='unb') return CALC.zweiSt(z)}return +$('wand').value}
 function read(){
   var g=geoGet();
@@ -2421,13 +2424,14 @@ function syncZwei(o){
   var on=(o.wTyp==='zwei'),k=$('zkern').value;
   $('zwbox').hidden=!on;if(!on) return;
   $('zkrow').hidden=(k!=='ja');$('zkdl').hidden=(k!=='ja');
+  var lv=(k==='unb')?0:CALC.zweiR(o,o.zw).rest;$('zbell').hidden=!(lv>=0.2);
   $('wandl').hidden=(k!=='unb');
   var h='';
   if(CALC.zweiExp(o)){
     var r=CALC.zweiR(o,o.zw),f=function(x){return fmt(x,2)};
     var BL={'':'ruhend (angenommen)',ruhend:'ruhend',schwach:'schwach belüftet',stark:'stark belüftet'};
-    h='Aufbau von innen nach außen, R in m²K/W: innen 0,13 · Putz und Grundmauerwerk '+f(r.rt)+(r.tn?' ('+r.tn+' '+String(r.td).replace('.',',')+' cm)':' (nach Baujahr angenommen)')+(r.rk>0?' · Kerndämmung '+f(r.rk)+' ('+fmt(r.dk,0)+' cm)':'')+(r.rest>=0.2?' · Luftschicht '+fmt(r.rest,0)+' cm, '+BL[o.zw.bel||'']+' '+f(r.ra):'')+' · '+r.name+' '+f(r.rv)+(r.fv>0?' · bei Belüftung zählen Luftschicht und Verblender nur anteilig':'')+' · außen 0,04. Ergibt U ca. '+f(R_zw(o))+' W/m²K.';
-  }else h='Ohne Angabe zur Kerndämmung gilt der baujahrtypische Wert für zweischalige Wände. Belüftung, Hohlraum und Verblender wirken erst, wenn die Kerndämmung mit ja oder nein beantwortet ist.';
+    h='Aufbau von innen nach außen, R in m²K/W: innen 0,13 · Putz und Grundmauerwerk '+f(r.rt)+(r.tn?' ('+r.tn+' '+String(r.td).replace('.',',')+' cm)':' (nach Baujahr angenommen)')+(r.rk>0?' · Kerndämmung '+f(r.rk)+' ('+fmt(r.dk,0)+' cm)':'')+(r.rest>=0.2?' · Luftschicht '+fmt(r.rest,0)+' cm, '+BL[o.zw.bel||'']+' '+f(r.ra):'')+' · '+r.name+' '+f(r.rv)+(r.fv>0?' · bei Belüftung zählen Luftschicht und Verblender nur anteilig':'')+' · außen 0,04. Hohlraum gesamt '+fmt(r.w,0)+' cm. Ergibt U ca. '+f(R_zw(o))+' W/m²K.';
+  }else h='Ohne Angabe zur Kerndämmung gilt der baujahrtypische Wert für zweischalige Wände. Belüftung, Luftschicht und Verblender wirken erst, wenn die Kerndämmung mit ja oder nein beantwortet ist.';
   var hh=$('zwhint');if(hh) hh.textContent=h;
 }
 function R_zw(o){return CALC.zweiU(o,false)}
@@ -3575,7 +3579,7 @@ function initHome(){
 }
 function init(){
   ['wf','fzve','fsumme','fsumme2','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','ztm','ztd','zverb','zlbr','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -3649,7 +3653,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-16 18:42',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-16 18:55',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

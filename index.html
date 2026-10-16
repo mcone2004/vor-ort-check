@@ -319,6 +319,17 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
 .row[hidden]{display:none}
 
 
+
+/* Datenqualität und Eignung offen */
+.verdict.r0{background:var(--surface);color:var(--ink);border:2px dashed var(--muted)}.verdict.r0 h2{color:var(--ink)}
+.mbar.r0{background:var(--surface);color:var(--ink);border-top:2px dashed var(--muted)}
+.sc.r0{border-top:4px dashed var(--muted)}
+.dq h2{display:flex;align-items:center;gap:.55rem}.dqd{flex:none;width:.9rem;height:.9rem;border-radius:50%;border:1px solid rgba(0,0,0,.3)}.dqd.dq-g{background:#5E8F16}.dqd.dq-y{background:#E0A030}.dqd.dq-r{background:#B03A2E}
+.dql{list-style:none;margin:.5rem 0;padding:0;display:grid;gap:.25rem;font-size:.9rem}.dql li{display:flex;gap:.7rem;align-items:baseline}
+.dqs{flex:none;min-width:5.8rem;font-weight:700;font-size:.74rem;text-transform:uppercase;letter-spacing:.03em}
+.dql .dq-ok .dqs{color:var(--green)}.dql .dq-ann .dqs{color:#9A6A10}.dql .dq-fehlt .dqs{color:#B03A2E}
+.rep-dq{margin:.3rem 0;font-size:.9em;border-left:3px solid #C1C1C1;padding-left:.6rem}
+
 /* Schichtaufbau der Außenwand */
 @media (min-width:700px){.bt-wand{display:grid;grid-template-columns:minmax(0,1fr) 13.5rem;column-gap:1rem;align-items:start}.bt-wand>*{grid-column:1}.bt-wand>.bt-h{grid-column:1/-1}.bt-wand>.wsk{grid-column:2;grid-row:2 / span 14;position:sticky;top:.6rem}}
 .wsk{margin:0;display:grid;gap:.35rem;padding:.5rem .6rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
@@ -864,7 +875,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
       <li>Lüftung: Eine Anlage deckt etwa 60 % des Luftwechsels, Wärmerückgewinnung wirkt in der Praxis mit 85 % des Nennwerts. Abluft ohne Wärmerückgewinnung pauschal minus 10 %. Hilfsenergie der Ventilatoren und die Dichtheit der Hülle sind nicht gerechnet.</li>
       <li>Außenwand: Original-U-Wert je Bauart und Baujahrband als Schätzwert (zum Beispiel Vollziegel 1949 bis 1977 etwa 1,4, Hochlochziegel 1,3, Holzrahmenbau etwa 0,6, Fachwerk etwa 1,7). Nachdämmung als zusätzlicher Wärmedurchlasswiderstand, je Bauart begrenzt (Zweischalig nur Kerndämmung, Fachwerk nur innen, Porenbeton kaum sinnvoll). U-Wert nach Dämmung nie unter 0,14. Streuung innerhalb einer Bauart groß, Wandaufbau und Dicke bitte vor Ort prüfen.</li>
       <li>Wandstärke: Bei Vollziegel, Hochlochziegel, Porenbeton, Blockbau und Holzrahmenbau skaliert sie den Wärmedurchlasswiderstand des Wandkerns gegenüber einer typischen Stärke (Bezug: Vollziegel 36,5 cm, Hochlochziegel 30 cm, Porenbeton 36,5 cm, Blockbau 16 cm, Holzrahmenbau 12 cm Gefach). Putz, Übergangswiderstände und beim Holzrahmenbau die Beplankung bleiben fest. Bei zweischalig, Fachwerk und Plattenbau bestimmt die Stärke den U-Wert nicht, dort entfällt die Auswahl.</li>
-      <li>Heizlast aus Heizwärme mit 1.700 Volllaststunden. Keine Heizlastberechnung nach DIN EN 12831.</li>
+      <li>Heizlastabschätzung aus der Heizwärme mit 1.700 Volllaststunden, für alle Gebäude gleich. Keine Heizlastberechnung nach DIN EN 12831, keine verbindliche Wärmepumpenleistung.</li>
       <li>Vorlauftemperatur aus dem Verhältnis von heutiger Heizlast zur Auslegung der Heizkörper im Originalzustand. Bei gemessenem Vorlauf wird das Modell darauf verschoben.</li>
       <li>Jahresarbeitszahl als Näherung für Luft-Wasser-Wärmepumpen, sinkt mit steigendem Vorlauf. Warmwasser pauschal 12,5 kWh/m²a.</li>
       <li>1 Liter Öl und 1 m³ Gas gelten als 10 kWh, 1 kg Pellets als 4,8 kWh.</li>
@@ -1520,7 +1531,7 @@ function lastParts(R){
   return {rows:rows,gew:kp.gew,sum:sum,tot:R.ist.kw};
 }
 function hlText(R,L){
-  var t='Die Heizlast von etwa '+fmt(L.tot,1)+' kW ist die Summe der Wärmeverluste: '+fmt(L.sum,1)+' kW gehen über Bauteile und Lüftung verloren, '+fmt(-L.gew,1)+' kW decken Sonne, Personen und Geräte ab.';
+  var t='Überschlägig gehen etwa '+fmt(L.sum,1)+' kW über Bauteile und Lüftung verloren. Im Mittel decken Sonne, Personen und Geräte davon '+fmt(-L.gew,1)+' kW ab. Daraus ergibt sich die Heizlastabschätzung von etwa '+fmt(L.tot,1)+' kW. Sie ist aus der Heizwärme abgeleitet und keine Norm-Heizlast.';
   t+=' Am meisten trägt '+L.rows[0][0]+' bei ('+fmt(Math.round(L.rows[0][2]*100))+' %).';
   if(R.anchored) t+=' Die Anteile sind aus den Bauteilen berechnet und auf den Verbrauch skaliert.';
   return t;
@@ -1686,6 +1697,51 @@ function confMissing(){
   var set={};t.split(',').forEach(function(x){if(x) set[x]=1});
   return CONF.filter(function(c){return !(c[0]==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))&&!(c[0]==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))&&!set[c[0]]}).map(function(c){return c[1]});
 }
+
+// ---- Datenqualität: wie vollständig und belastbar sind die Eingaben? Keine statistische Genauigkeit, nur eine offene Bewertung der Datengrundlage ----
+function dqEval(o){
+  var t=$('touched')?$('touched').value:'',all=(t==='*'),set={};t.split(',').forEach(function(x){if(x) set[x]=1});
+  var tc=function(id){return all||!!set[id]};
+  var it=[],sc=0,mx=0;
+  function add(n,st,txt,w,part){it.push({n:n,st:st,t:txt});mx+=w;sc+=w*(part!=null?part:(st==='ok'?1:(st==='ann'?0.3:0)))}
+  var wfIn=numG('wf')>0&&tc('wf');
+  add('Wohnfläche',wfIn?'ok':'fehlt',wfIn?'angegeben':'nicht angegeben',2);
+  var ofn=CALC.ofenTr(o);
+  if(ofn) add('Verbrauch','ann','Einzelofen: der Verbrauch dient nur zum Abgleich, gerechnet wird aus den Bauteilen',3,0.5);
+  else if(o.verb>0&&tc('verb')&&o.verbN>=2) add('Verbrauch','ok',o.verbN+' Jahre, Mittelwert',3);
+  else if(o.verb>0&&tc('verb')) add('Verbrauch','ann','nur ein Jahr, mehrere Jahre sichern den Wert',3,0.65);
+  else if(o.verb>0) add('Verbrauch','fehlt','nicht eingegeben, gerechnet wird mit dem voreingestellten Wert',3);
+  else add('Verbrauch','fehlt','keine Verbrauchsdaten, gerechnet wird nur aus den Bauteilen',3);
+  var wOk=tc('wtyp')&&o.wTyp!=='unb'&&(tc('wand')||(o.wTyp==='zwei'&&CALC.zweiExp(o)));
+  add('Außenwand',wOk?'ok':'ann',wOk?'Bauart und Dämmzustand angegeben':(o.wTyp==='unb'?'Bauart unbekannt, baujahrtypischer Wert':(o.wTyp==='zwei'&&!CALC.zweiExp(o)&&tc('wtyp')?'Kerndämmung unbekannt, baujahrtypischer Wert':'Standardwert, nicht abgefragt')),2);
+  var dOk=tc('dach')&&o.dform!=='';
+  add('Dach',dOk?'ok':'ann',dOk?'Dachform und Dämmzustand angegeben':(o.dform===''?'Dachform nicht gewählt':'Dämmzustand nicht abgefragt'),2);
+  add('Fenster',tc('fenster')?'ok':'ann',tc('fenster')?'Bauart angegeben':'Standardwert, nicht abgefragt',1);
+  add('Keller und Boden',tc('kshare')?'ok':'ann',tc('kshare')?'Unterkellerung angegeben':'Standardwert, nicht abgefragt',1);
+  var an=[o.aW,o.aF,o.aD,o.aK].filter(function(v){return v>0}).length;
+  add('Bauteilflächen',an>=3?'ok':'ann',an>=3?'aufgemessen':(an>0?'teilweise eingegeben, Rest geschätzt':'aus der Wohnfläche geschätzt'),1,an>=3?1:(an>0?0.6:0.3));
+  var hOk=tc('traeger')&&(tc('hz_alter')||o.tr==='holz'||o.tr==='kohle');
+  add('Heizung',hOk?'ok':'ann',hOk?'Energieträger und Alter angegeben':'Standardwert, nicht abgefragt',1);
+  add('Vorlauftemperatur',o.vlm!=null?'ok':'ann',o.vlm!=null?'gemessen, '+o.vlm+' °C':'nicht gemessen, Modellwert',1);
+  if(!(o.hkKeine||o.hk==='fbh')) add('Heizkörper',(tc('hk')||tc('hktyp'))?'ok':'ann',(tc('hk')||tc('hktyp'))?'Bauart angegeben':'Standardwert, nicht abgefragt',0.5);
+  add('Standort und Klima',o.geo?'ok':'ann',o.geo?'Gradtage und Strahlung vom Standort':'Vorgabewerte, Adresse nicht gefunden',1);
+  add('Warmwasser',o.wwP>0?'ok':'ann',o.wwP>0?'nach Personenzahl':'Pauschale',0.5);
+  add('Energiepreis',tc('p_alt')?'ok':'ann',tc('p_alt')?'angegeben':'Vorgabepreis',0.5);
+  var pc=mx>0?sc/mx:0,lv=pc>=0.75?'g':(pc>=0.40?'y':'r');
+  var fehl=it.filter(function(x){return x.st==='fehlt'});
+  var anm=it.filter(function(x){return x.st==='ann'});
+  var weder=(!(o.verb>0&&tc('verb'))||ofn)&&!wOk&&!dOk;
+  if(!wfIn||weder) lv='r';
+  var why=!wfIn?'Wohnfläche fehlt':(weder?'weder verwertbarer Verbrauch noch Angaben zu Außenwand und Dach':'');
+  var txt={g:'Wesentliche Angaben sind vorhanden.',y:'Einige wichtige Angaben beruhen auf Annahmen.',r:'Für eine sinnvolle Ersteinschätzung fehlen wesentliche Daten.'}[lv];
+  return {lvl:lv,pct:pc,items:it,txt:txt,why:why,name:{g:'Grün',y:'Gelb',r:'Rot'}[lv],nAnn:anm.length,nFehl:fehl.length};
+}
+function dqHtml(d){
+  var lab={ok:'angegeben',ann:'angenommen',fehlt:'fehlt'};
+  return '<section class="panel dq"><h2><span class="dqd dq-'+d.lvl+'"></span>Datenqualität: '+d.name+'</h2><p>'+esc(d.txt)+(d.why?' Grund: '+esc(d.why)+'.':'')+(d.lvl!=='g'?' Je mehr davon vor Ort erfasst wird, desto belastbarer wird das Ergebnis.':'')+'</p><ul class="dql">'+
+    d.items.map(function(x){return '<li class="dq-'+x.st+'"><span class="dqs">'+lab[x.st]+'</span><span><b>'+esc(x.n)+':</b> '+esc(x.t)+'</span></li>'}).join('')+'</ul><p class="sub">Das ist eine offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.</p></section>';
+}
+function dqRate(d){return {k:0,t:'Weitere Prüfung erforderlich',s:'Die Datenlage reicht für eine Eignungsaussage nicht aus'+(d.why?' ('+d.why+')':'')+'.'}}
 var TM={verb2:'verb',verb3:'verb'};
 function onTouch(e){
   var id=e.target&&e.target.id;if(!id) return;id=TM[id]||id;
@@ -1750,17 +1806,18 @@ function srcRows(X){
     var A=R.areas,U=R.uIst||{};
     base='Aus den Bauteilen: Wärmeverluste über Außenwand'+(U.wand?' (U '+fmt(U.wand,2)+')':'')+', Fenster'+(U.fenster?' (Uw '+fmt(U.fenster,2)+')':'')+', Dach'+(U.dach?' (U '+fmt(U.dach,2)+')':'')+' und Boden bzw. Keller, dazu Wärmebrücken und Lüftung, abzüglich solarer und innerer Gewinne.'+(A?' Flächen: Wand '+r0(A.use.w)+', Fenster '+r0(A.use.f)+', Dach '+r0(A.use.d)+', Boden '+r0(A.use.k)+' m²'+(A.n<4?' (nicht eingegebene Flächen geschätzt)':'')+'.':'')+(R.qVerb!=null?' Der Verbrauch ergäbe '+fmt(R.qVerb)+' kWh/m²a.':'');
   }
+  if(X.dq) rows.push(['Datenqualität: '+X.dq.name,X.dq.items.map(function(x){return x.n+' ('+({ok:'angegeben',ann:'angenommen',fehlt:'fehlt'})[x.st]+': '+x.t+')'}).join('; ')+'. Offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.']);
   rows.push(['Heizwärme '+fmt(I.qh)+' kWh/m²a',base]);
   var tab=(CALC.ETA[o.tr]||[]).map(function(x){return Math.round(x*100)}).join(' / ');
   if(CALC.ofenTr(o)) rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+OFN[o.ofen]+' (Kachelgrundofen 80, Kachelofen mit Heizeinsatz 75, Kaminofen 70, offener Kamin 30 %). Ein Schätzwert. Bei Einzelöfen ist der Energieeinsatz unten der Bedarf bei Vollbeheizung, nicht der tatsächliche Holz- oder Kohleverbrauch.']);
   else rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+(EL[o.tr]||o.tr)+', Anlage '+HA[o.ha]+'. Richtwerte nach Alter der Anlage (vor 1995 / 1995 bis 2005 / 2006 bis 2015 / ab 2016): '+tab+' %. Ein Schätzwert, die tatsächliche Anlage kann abweichen.']);
   rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+(o.wwArt==='el'?'':' + '+fmt(R.ww,1)+' Warmwasser')+') kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end+I.stSav)+' kWh'+(I.stSav>0?', abzüglich '+r0(I.stSav)+' kWh, die die vorhandene Solarthermie liefert, = '+r0(I.end)+' kWh im Jahr.':' im Jahr.')+(mode==='verbrauch'?(o.kf!==1?' Das ist der eingetragene Verbrauch, witterungsbereinigt.':' Das entspricht dem eingetragenen Verbrauch.'):'')]);
-  rows.push(['Heizlast '+fmt(I.kw,1)+' kW',fmt(I.qh)+' kWh/m²a × '+r0(wf)+' m² ÷ 1.700 Volllaststunden. Näherung aus dem Verbrauch, keine Heizlastberechnung nach DIN EN 12831.']);
+  rows.push(['Heizlastabschätzung '+fmt(I.kw,1)+' kW',fmt(I.qh)+' kWh/m²a × '+r0(wf)+' m² ÷ 1.700 Volllaststunden (Annahme für alle Gebäude gleich). Das ist ein Leistungswert aus der Jahresheizwärme, keine Norm-Heizlast. Diese ergibt erst die Berechnung nach DIN EN 12831, aus ihr darf keine verbindliche Wärmepumpenleistung abgeleitet werden.']);
   var anf=I.eA>0?I.end/I.eA/wf:1.2;
   rows.push(['Energieklasse '+I.klasse,r0(I.end)+' kWh ÷ ('+r0(wf)+' m² × '+fmt(anf,2)+' Gebäudenutzfläche) = '+r0(I.eA)+' kWh/m²a, eingeordnet in die Skala des Energieausweises (D: 100 bis unter 130). Orientierung, kein Energieausweis.']);
   rows.push(['Heizkosten '+eur(I.cost)+'/a',r0(I.end)+' kWh × '+fmt(o.pAlt,2)+' €/kWh bisheriger Preis'+(I.wwEl>0?', dazu Warmwasserstrom '+r0(I.wwEl)+' kWh × Haushaltsstrompreis = '+eur(I.wwCost):'')+(I.pvBen>0?', abzüglich Vorteil der vorhandenen PV von '+eur(I.pvBen)+' (Direktstrom-Heizung)':'')+'. Ohne Grundpreis, CO₂-Preisentwicklung und Wartung.']);
   rows.push(['Wärmepumpe: Vorlauf '+Math.round(s1.vl)+' °C','Aus dem Verhältnis der heutigen Heizlast zu der, für die die Heizkörper ausgelegt wurden (Baujahr, Heizkörpertyp). Je geringer die Last, desto niedriger der nötige Vorlauf.'+(o.vlm!=null?' Angepasst an den gemessenen Vorlauf von '+o.vlm+' °C.':' Kein Vorlauf gemessen, daher Modellwert.')]);
-  rows.push(['Jahresarbeitszahl '+fmt(s1.jaz,1),'Näherung: 4,0 − 0,052 × (Vorlauf − 35 °C) = '+fmt(4.0-0.052*(s1.vl-35),2)+', begrenzt auf 2,0 bis 4,6. Je höher der Vorlauf, desto weniger Wärme je kWh Strom.']);
+  rows.push(['Jahresarbeitszahl '+fmt(s1.jaz,1)+' (geschätzt)','Geschätzt unter angenommenen Betriebsbedingungen: 4,0 − 0,052 × (Vorlauf − 35 °C) = '+fmt(4.0-0.052*(s1.vl-35),2)+', begrenzt auf 2,0 bis 4,6. Je höher der Vorlauf, desto weniger Wärme je kWh Strom. Wärmequelle, Klimaregion, Warmwasser, Hilfsstrom und Abtauverluste sind nicht einzeln abgebildet. Der Wert ist nicht garantiert.']);
   rows.push(['Strom '+fmt(s1.strom/1000,1)+' MWh/a, Kosten '+eur(s1.cost)+'/a','('+fmt(s1.qh)+' + '+fmt(R.ww,1)+') kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(s1.jaz,1)+' = '+r0(s1.strom+s1.stSav)+' kWh'+(s1.stSav>0?', abzüglich '+r0(s1.stSav)+' kWh durch Solarthermie ('+r0(s1.stN)+' kWh Wärme ÷ JAZ) = '+r0(s1.strom)+' kWh':'')+' × '+fmt(o.pWp,2)+' €/kWh Wärmepumpenstrom = '+eur(s1.gross)+(s1.pv?', abzüglich Vorteil der Photovoltaik '+eur(s1.pvBen)+' ('+r0(s1.pv.covE)+' kWh Eigenverbrauch × (Strompreis − Einspeisevergütung '+fmt(s1.pv.pe,2)+' €)'+(s1.pv.H>0?', gemindert um den Haushaltsstrom, der dadurch weniger PV-Strom bekommt':'')+')':'')+'.']);
   var sv=I.cost-s1.cost;
   rows.push(['Ersparnis '+(sv>=0?eur(sv):'−'+eur(-sv))+'/a','Heizkosten Bestand ('+eur(I.cost)+') minus Stromkosten Wärmepumpe ('+eur(s1.cost)+').'+(o.inv1>0?' Amortisation: Investition '+eur(o.inv1)+' ÷ Ersparnis.':'')]);
@@ -1859,7 +1916,8 @@ function fsRender(o,R){
   if(h!==box._h){box._h=h;box.innerHTML=h}
 }
 function render(){
-  var o=read(),R=CALC.compute(o),S=R.S,I=R.ist;
+  var o=read(),R=CALC.compute(o),S=R.S,I=R.ist,dqv=dqEval(o);
+  if(dqv.lvl==='r'){S.forEach(function(s){s.rate=dqRate(dqv)});if(R.cv) R.cv.rate=dqRate(dqv)}
   drawSchnitt(o,R.uIst);
   (function(){var A=R.areas;[['aw','w'],['af','f'],['ad','d'],['ak','k']].forEach(function(p){$(p[0]).placeholder='geschätzt ca. '+Math.round(A.est[p[1]])+' m²'})})();
   (function(){
@@ -1898,13 +1956,15 @@ function render(){
   var scale='<div class="cscale" role="img" aria-label="Energieklasse heute '+I.klasse+', mit Wärmepumpe '+s1.klasse+', mit Wärmepumpe und kompletter Hülle '+s3.klasse+'">'+
     ORD.map(function(k){var m=mk[k];return '<div class="cc'+(m?' on':'')+'"><b>'+k+'</b><small>'+(m?m.join(' '):'')+'</small></div>'}).join('')+'</div>';
   var top='<div class="verdict r'+rt.k+'"><div class="vtop"><div><p class="eyebrow">Wärmepumpe ohne Sanierung</p><h2>'+rt.t+'</h2><p class="vsub">'+rt.s+'</p></div>'+
-    '<ul class="kpi"><li><span>Heizlast, ca.</span><b>'+fmt(s1.kw,1)+' kW</b></li><li><span>Vorlauf nötig, ca.</span><b>'+Math.round(s1.vl)+' °C</b>'+gauge(s1.vl)+'</li><li><span>Jahresarbeitszahl, ca.</span><b>'+fmt(s1.jaz,1)+'</b></li></ul></div>'+
+    '<ul class="kpi"><li><span>Heizlastabschätzung, ca.</span><b>'+fmt(s1.kw,1)+' kW</b></li><li><span>Vorlauf nötig, ca.</span><b>'+Math.round(s1.vl)+' °C</b>'+gauge(s1.vl)+'</li><li><span>Jahresarbeitszahl, geschätzt</span><b>'+fmt(s1.jaz,1)+'</b></li></ul></div>'+
     '<div class="vcls"><p class="eyebrow">Energieklasse, ca.</p>'+scale+'</div>'+
     '<p class="vfoot">'+basisTxt+' Skala: heute = Bestand, WP = Wärmepumpe ohne Sanierung, V3 = Wärmepumpe mit kompletter Hülle.</p></div>';
 
   // 2 Empfehlung
   var t;
-  if(rt.k<=2 && sav1>0){
+  if(rt.k===0){
+    t='Für eine Aussage zur Wärmepumpe fehlen wesentliche Angaben'+(dqv.why?' ('+dqv.why+')':'')+'. Die Zahlen unten sind nur ein Rechenstand aus Standardwerten. Zuerst die Datenlage verbessern, siehe Datenqualität.';
+  }else if(rt.k<=2 && sav1>0){
     t='Die Wärmepumpe läuft im Bestand mit einem Vorlauf von etwa '+Math.round(s1.vl)+' °C und spart rechnerisch '+eur(sav1)+' pro Jahr gegenüber der bisherigen Heizung. '+
       (add2>50?'Eine Dämmung von '+dk+' bringt davon zusätzlich '+eur(add2)+(add3>add2+50?', die komplette Hülle '+eur(add3):'')+' pro Jahr. ':
        add3>50?'Die komplette Hülle bringt zusätzlich '+eur(add3)+' pro Jahr. ':'Die Hülle ist weitgehend auf aktuellem Stand, weitere Dämmung bringt kaum noch etwas. ')+
@@ -1936,14 +1996,14 @@ function render(){
   var sc='<section><h2>Varianten im Vergleich</h2><div class="grid">';
   var ofn=CALC.ofenTr(o),ofReal=ofn?R.ofen.real:0,ofCost=ofReal*o.pAlt+I.wwCost;
   var istCardH=card(ofn?'Heizung heute (Einzelöfen)':'Bestandsheizung weiter',ofn?TRN[o.tr]+', '+OFN[o.ofen]+', Nutzungsgrad ca. '+Math.round(I.eta*100)+' %':TRN[o.tr]+', Nutzungsgrad ca. '+Math.round(I.eta*100)+' %',(ofn?[
-    ['Heizwärme (Vollbeheizung)',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlast (Vollbeheizung)',fmt(I.kw,1)+' kW'],['Energieeinsatz (Vollbeheizung)',fmt(I.end/1000,1)+' MWh/a'],['Tatsächlich verbrannt',ofReal>0?fmt(Math.round(ofReal/10)*10)+' kWh/a, etwa '+Math.round(ofReal/I.end*100)+' % der Vollbeheizung'+(o.ofa>0?' (angegebener beheizter Anteil '+o.ofa+' %)':''):'nicht eingetragen'],['Strom der Heizungsanlage, ca.','–']]:[
-    ['Heizwärme',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlast',fmt(I.kw,1)+' kW'],['Energieeinsatz',fmt(I.end/1000,1)+' MWh/a'],['Strom der Heizungsanlage, ca.',(R.hilf.tot>0?fmt(Math.round(R.hilf.tot/10)*10)+' kWh/a':'–')+' (Brenner '+fmt(Math.round(R.hilf.brenner/10)*10)+', Pumpen '+fmt(Math.round((R.hilf.pumpe+R.hilf.zirk)/10)*10)+')']]).concat(solRowsIst(o,I),I.wwEl>0?[['Warmwasser elektrisch',r10g(I.wwEl)+' kWh Strom, '+eur(I.wwCost)+'/a (in den Heizkosten)']]:[],ofn?[['Heizkosten tatsächlich'+(ofReal>0?'':' (nicht eingetragen)'),ofReal>0?eur(ofCost)+'/a':'–'],['Heizkosten bei Vollbeheizung',eur(I.cost)+'/a']]:[['Heizkosten',eur(I.cost)+'/a']],(F.tot&&!ofn)?[['Gesamtkosten 20 Jahre',eur(F.tot.bestand)+' (ohne Kesselersatz)']]:[]),'base');
+    ['Heizwärme (Vollbeheizung)',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlastabschätzung (Vollbeheizung)',fmt(I.kw,1)+' kW'],['Energieeinsatz (Vollbeheizung)',fmt(I.end/1000,1)+' MWh/a'],['Tatsächlich verbrannt',ofReal>0?fmt(Math.round(ofReal/10)*10)+' kWh/a, etwa '+Math.round(ofReal/I.end*100)+' % der Vollbeheizung'+(o.ofa>0?' (angegebener beheizter Anteil '+o.ofa+' %)':''):'nicht eingetragen'],['Strom der Heizungsanlage, ca.','–']]:[
+    ['Heizwärme',fmt(I.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(I.klasse,I.eA)],['Heizlastabschätzung',fmt(I.kw,1)+' kW'],['Energieeinsatz',fmt(I.end/1000,1)+' MWh/a'],['Strom der Heizungsanlage, ca.',(R.hilf.tot>0?fmt(Math.round(R.hilf.tot/10)*10)+' kWh/a':'–')+' (Brenner '+fmt(Math.round(R.hilf.brenner/10)*10)+', Pumpen '+fmt(Math.round((R.hilf.pumpe+R.hilf.zirk)/10)*10)+')']]).concat(solRowsIst(o,I),I.wwEl>0?[['Warmwasser elektrisch',r10g(I.wwEl)+' kWh Strom, '+eur(I.wwCost)+'/a (in den Heizkosten)']]:[],ofn?[['Heizkosten tatsächlich'+(ofReal>0?'':' (nicht eingetragen)'),ofReal>0?eur(ofCost)+'/a':'–'],['Heizkosten bei Vollbeheizung',eur(I.cost)+'/a']]:[['Heizkosten',eur(I.cost)+'/a']],(F.tot&&!ofn)?[['Gesamtkosten 20 Jahre',eur(F.tot.bestand)+' (ohne Kesselersatz)']]:[]),'base');
   sc+=istCardH;
   var items=[[s1,'Heizkörper und Hülle bleiben',0,0,0],[s2,dk+' gedämmt',o.inv2,add2,1],[s3,'Wand, Dach, Fenster'+(cu?', Kellerdecke':'')+' auf aktuellem Stand',o.inv3,add3,2]].concat(S[3]?[[S[3],'Alle '+HKN[o.hkTyp]+' gegen Typ 33, gleiche Baugröße',o.inv4,s1.cost-S[3].cost,3]]:[]);
   if(R.cv) items.push([R.cv,'Angekreuzte Maßnahmen: '+R.cv.parts.join(', '),o.inv8,s1.cost-R.cv.cost,'cv']);
   items.forEach(function(a){
     var s=a[0],key=a[4],fv=(key==='cv')?F.cv:F.v[key],fund=F.has&&fv?fv.fund:0;
-    var rows=[['Heizwärme',fmt(s.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(s.klasse,s.eA)],['Heizlast',fmt(s.kw,1)+' kW'],['Vorlauf',Math.round(s.vl)+' °C'+gauge(s.vl)],['Jahresarbeitszahl',fmt(s.jaz,1)],['Strom',fmt(s.strom/1000,1)+' MWh/a']].concat(solRowsVar(o,s),[['Heizkosten'+((s.stN>0||s.pv)?' (mit Solar)':''),eur(s.cost)+'/a']]);
+    var rows=[['Heizwärme',fmt(s.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(s.klasse,s.eA)],['Heizlastabschätzung',fmt(s.kw,1)+' kW'],['Vorlauf',Math.round(s.vl)+' °C'+gauge(s.vl)],['Jahresarbeitszahl',fmt(s.jaz,1)],['Strom',fmt(s.strom/1000,1)+' MWh/a']].concat(solRowsVar(o,s),[['Heizkosten'+((s.stN>0||s.pv)?' (mit Solar)':''),eur(s.cost)+'/a']]);
     if(key===0){
       rows.push(['Ersparnis zur Bestandsheizung',(sav1>=0?eur(sav1):'−'+eur(-sav1))+'/a']);
       if(fund>0) rows.push(['Förderung KfW, ca.',eur(fund)+' ('+fmt(Math.round(fv.rate))+' %)']);
@@ -1962,13 +2022,13 @@ function render(){
     sc+=card((key==='cv'?'Eigene Variante':'Variante '+(key+1))+': '+s.name.replace('Wärmepumpe','WP'),a[1],rows,'r'+s.rate.k);
   });
   sc+='</div></section>';
-  var srcp='<section class="panel"><details class="src"'+(srcOpen?' open':'')+'><summary>Woher kommen die Zahlen?</summary>'+srcHtml({o:o,R:R,S:S,I:I,F:F})+'</details></section>';
+  var srcp='<section class="panel"><details class="src"'+(srcOpen?' open':'')+'><summary>Woher kommen die Zahlen?</summary>'+srcHtml({dq:dqv,o:o,R:R,S:S,I:I,F:F})+'</details></section>';
 
   // 4 Hebel
   var LP=lastParts(R),lp='';
   if(LP){
     var lmx=LP.rows[0][1];
-    lp='<section class="panel"><h2>Woher kommt die Heizlast?</h2><p>'+esc(hlText(R,LP))+'</p><ul class="bars">'+LP.rows.map(function(r){return '<li><div class="lbl"><span>'+r[0]+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="bar"><i style="width:'+(r[1]/lmx*100)+'%"></i></div></li>'}).join('')+'</ul><p class="sub">Heizlast ohne Warmwasser und ohne Reserve, Näherung aus Bauteilen und Verbrauch. Die Gerätegröße kommt erst aus der Heizlastberechnung nach DIN EN 12831.</p></section>';
+    lp='<section class="panel"><h2>Wo entstehen die größten Wärmeverluste?</h2><p>'+esc(hlText(R,LP))+'</p><ul class="bars">'+LP.rows.map(function(r){return '<li><div class="lbl"><span>'+r[0]+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="bar"><i style="width:'+(r[1]/lmx*100)+'%"></i></div></li>'}).join('')+'</ul><p class="sub">Überschlägige Verteilung der Transmissions- und Lüftungswärmeverluste. Sie zeigt energetische Schwachstellen und ersetzt keine Norm-Heizlastberechnung. Die Gerätegröße ergibt erst die Berechnung nach DIN EN 12831.</p></section>';
   }
   var hb='<section class="panel"><h2>Was senkt die Heizlast?</h2>';
   if(!R.hebel.length) hb+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
@@ -2054,17 +2114,17 @@ function render(){
   var ORD2=ORD,mk2={};mk2[I.klasse]=1;
   var scaleI='<div class="cscale" role="img" aria-label="Energieklasse heute '+I.klasse+'">'+ORD2.map(function(k){return '<div class="cc'+(mk2[k]?' on':'')+'"><b>'+k+'</b><small>'+(mk2[k]?'heute':'')+'</small></div>'}).join('')+'</div>';
   var istTop='<div class="verdict r1"><div class="vtop"><div><p class="eyebrow">Istzustand</p><h2>Heizlast und Heizwärme heute</h2><p class="vsub">Rechnerischer Stand des Gebäudes aus den erfassten Bauteilen, Lüftung, Heizung und Verbrauch. Noch keine Sanierungsmaßnahme eingerechnet.</p></div>'+
-    '<ul class="kpi"><li><span>Heizlast, ca.</span><b>'+fmt(I.kw,1)+' kW</b></li><li><span>Heizwärme, ca.</span><b>'+fmt(I.qh)+' kWh/m²a</b></li><li><span>Heizkosten heute, ca.</span><b>'+eur(ofn&&ofReal>0?ofCost:I.end*o.pAlt+I.wwCost)+'/a</b></li></ul></div>'+
+    '<ul class="kpi"><li><span>Heizlastabschätzung, ca.</span><b>'+fmt(I.kw,1)+' kW</b></li><li><span>Heizwärme, ca.</span><b>'+fmt(I.qh)+' kWh/m²a</b></li><li><span>Heizkosten heute, ca.</span><b>'+eur(ofn&&ofReal>0?ofCost:I.end*o.pAlt+I.wwCost)+'/a</b></li></ul></div>'+
     '<div class="vcls"><p class="eyebrow">Energieklasse heute, ca.</p>'+scaleI+'</div>'+
     '<p class="vfoot">'+basisTxt+'</p></div>';
   var istSec='<section><h2>Heizung heute</h2><div class="grid">'+istCardH+'</div></section>';
-  var outHtml=full?(top+unc+rec+foep+hkp+solp+sc+srcp+lp+hb+bf):(istTop+unc+istSec+lp+bf);
+  var outHtml=full?(top+dqHtml(dqv)+unc+rec+foep+hkp+solp+sc+srcp+lp+hb+bf):(istTop+dqHtml(dqv)+unc+istSec+lp+bf);
   hkxRender(o,R,I);fsRender(o,R);
   if(outHtml!==lastOut){lastOut=outHtml;$('out').innerHTML=outHtml} // unveränderte Ausgabe nicht neu aufbauen, damit aufgeklappte Bereiche stehen bleiben
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
   bar.innerHTML=full?('<span>'+rt.t+'</span><span>Vorlauf '+Math.round(s1.vl)+' °C · '+fmt(s1.kw,1)+' kW · JAZ '+fmt(s1.jaz,1)+'</span>'):('<span>Istzustand</span><span>'+fmt(I.kw,1)+' kW · '+fmt(I.qh)+' kWh/m²a · Klasse '+I.klasse+'</span>');
 
-  lastCtx={o:o,R:R,S:S,I:I,t:t,f:f,dk:dk,cu:cu,sav1:sav1,add2:add2,add3:add3,basis:basisTxt,pl:pl,F:F};
+  lastCtx={dq:dqv,o:o,R:R,S:S,I:I,t:t,f:f,dk:dk,cu:cu,sav1:sav1,add2:add2,add3:add3,basis:basisTxt,pl:pl,F:F};
   lastText=['Vor-Ort-Check: '+(o.obj||'Objekt'),
    'Wohnfläche '+o.wf+' m², Heizwärme ca. '+fmt(I.qh)+' kWh/m²a, Heizlast ca. '+fmt(s1.kw,1)+' kW',
    'WP ohne Sanierung: '+rt.t+', Vorlauf ca. '+Math.round(s1.vl)+' °C, JAZ ca. '+fmt(s1.jaz,1),
@@ -3342,7 +3402,7 @@ function initNet(){
 }
 
 // ---- Kundenergebnis: Bildschirmansicht und Druck (A4). Seite 2 ist intern (Eingaben, Annahmen). ----
-var RCOL={1:'#5E8F16',2:'#A8C24A',3:'#E0A030',4:'#B03A2E'};
+var RCOL={0:'#6B7075',1:'#5E8F16',2:'#A8C24A',3:'#E0A030',4:'#B03A2E'};
 function rcls(k,eA){
   var t=(k==='A+'||k==='A'||k==='B')?1:(k==='C'||k==='D')?2:(k==='E'||k==='F')?3:4;
   return '<span class="rep-cls c'+t+'">'+k+'</span>'+fmt(eA)+' kWh/m²a';
@@ -3395,7 +3455,8 @@ function buildReport(internal,snap){
   var h='<div class="rep-page"><div class="rep-head"><img class="rep-logo" src="logo.jpg" alt="Energieberatung Lange UG (haftungsbeschränkt), Am Soll 12, 17498 Weitenhagen" onerror="this.remove()"><div class="rep-title"><h1>Ergebnis der Erstberatung</h1><p style="color:#555;margin:0">Vor-Ort-Check Sanierung</p>';
   h+='<dl class="rep-meta"><dt>Kunde</dt><dd>'+(nm?esc(nm):'&nbsp;')+'</dd><dt>Objekt</dt><dd>'+esc(ad||o.obj||'')+(ol?' ('+esc(ol)+')':'')+'</dd>'+(snap?(datB?'<dt>Datum</dt><dd>'+datB+'</dd><dt>Stand</dt><dd>'+dateTime+'</dd>':'<dt>Stand</dt><dd>'+dateTime+'</dd>'):'<dt>Datum</dt><dd>'+dateRep+'</dd>')+'</dl></div></div>';
   h+='<h2>Ergebnis für die Wärmepumpe im Bestand</h2>';
-  h+='<div class="rep-verdict" style="--rc:'+RCOL[rt.k]+'"><div><strong>'+esc(rt.t)+'</strong><span>'+esc(rt.s)+'</span></div><div class="rep-kpi"><div><small>Heizlast, ca.</small><b>'+fmt(s1.kw,1)+' kW</b></div><div><small>Vorlauf nötig, ca.</small><b>'+Math.round(s1.vl)+' °C</b></div><div><small>Jahresarbeitszahl, ca.</small><b>'+fmt(s1.jaz,1)+'</b></div></div></div>';
+  h+='<div class="rep-verdict" style="--rc:'+RCOL[rt.k]+'"><div><strong>'+esc(rt.t)+'</strong><span>'+esc(rt.s)+'</span></div><div class="rep-kpi"><div><small>Heizlastabschätzung, ca.</small><b>'+fmt(s1.kw,1)+' kW</b></div><div><small>Vorlauf nötig, ca.</small><b>'+Math.round(s1.vl)+' °C</b></div><div><small>Jahresarbeitszahl, geschätzt</small><b>'+fmt(s1.jaz,1)+'</b></div></div></div>';
+  if(X.dq) h+='<p class="rep-dq"><b>Datenqualität: '+X.dq.name+'.</b> '+esc(X.dq.txt)+(X.dq.nAnn?' '+X.dq.nAnn+' Angaben beruhen auf Annahmen'+(internal?', siehe interne Seite.':'.'):'')+'</p>';
   h+='<p>'+esc(X.t)+'</p>';
   // Varianten
   var cols=[{n:'Bestand',s:null}];
@@ -3410,7 +3471,7 @@ function buildReport(internal,snap){
   h+='<h2>Varianten im Vergleich</h2><table><thead><tr><th></th>'+cols.map(function(c){return '<th>'+esc(c.n)+'</th>'}).join('')+'</tr></thead><tbody>';
   h+=row('Heizwärme',function(c){return fmt((c.s||I).qh)+' kWh/m²a'});
   h+=row('Energieklasse, ca.',function(c){var s=c.s||I;return rcls(s.klasse,s.eA)});
-  h+=row('Heizlast',function(c){return fmt((c.s||I).kw,1)+' kW'});
+  h+=row('Heizlastabschätzung',function(c){return fmt((c.s||I).kw,1)+' kW'});
   h+=row('Vorlauf',function(c){return c.s?Math.round(c.s.vl)+' °C':'–'});
   h+=row('Jahresarbeitszahl',function(c){return c.s?fmt(c.s.jaz,1):'–'});
   h+=row('Energieeinsatz',function(c){return c.s?fmt(c.s.strom/1000,1)+' MWh/a Strom':fmt(I.end/1000,1)+' MWh/a'});
@@ -3436,7 +3497,7 @@ function buildReport(internal,snap){
   if(Fx&&Fx.fb&&Fx.fb.ok&&!Fx.fb.mfh) h+='<h2>Förderung, Schätzung</h2>'+foerdLines(o,Fx).map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Maßnahmen
   var LPr=lastParts(R);
-  if(LPr){var lmr=LPr.rows[0][1];h+='<h2>Woher kommt die Heizlast?</h2><div class="rep-sn">'+schnittSvg(o,R.uIst,{ink:'#20252A',bg:'#fff'})+'<ul class="sn-leg">'+schnittLeg(o,R.uIst)+'</ul></div><p>'+esc(hlText(R,LPr))+'</p>'+LPr.rows.map(function(r){return '<div class="rep-two"><span>'+esc(r[0])+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="rep-bar"><i style="width:'+(r[1]/lmr*100)+'%"></i></div>'}).join('')}
+  if(LPr){var lmr=LPr.rows[0][1];h+='<h2>Wo entstehen die größten Wärmeverluste?</h2><div class="rep-sn">'+schnittSvg(o,R.uIst,{ink:'#20252A',bg:'#fff'})+'<ul class="sn-leg">'+schnittLeg(o,R.uIst)+'</ul></div><p>'+esc(hlText(R,LPr))+'</p>'+LPr.rows.map(function(r){return '<div class="rep-two"><span>'+esc(r[0])+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="rep-bar"><i style="width:'+(r[1]/lmr*100)+'%"></i></div>'}).join('')}
   var bl=bauteilLis(o);if(bl) h+='<h2>Vorhandene Dämmung, wie angegeben</h2><ul>'+bl+'</ul>';
   h+='<h2>Was senkt die Heizlast? Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
@@ -3444,8 +3505,8 @@ function buildReport(internal,snap){
   var sl2=solarLines(R);if(sl2.length) h+='<h2>Solar und Strom</h2>'+sl2.map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Hinweise
   h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
-  h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Keine Heizlastberechnung nach DIN EN 12831. '+(fh?'Die Förderung ist eine Schätzung, verbindlich sind nur Zusage und Bescheid. ':'Förderung ist nicht eingerechnet. ')+(Fx&&Fx.tot?'Wartung und Preissteigerung gehen nur in die Gesamtkosten ein. ':'Wartung und Preisentwicklung sind nicht eingerechnet. ')+'Grundpreise sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
-  h+='<div class="rep-page"><h1>So kommen die Zahlen zustande</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+'</p>'+srcHtml({o:o,R:R,S:S,I:I,F:X.F})+'<p class="rep-foot">Alle Werte sind Näherungen aus den Angaben beim Termin.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
+  h+='<p class="rep-foot">Grobe Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch, Genauigkeit etwa ±25 %. Die Heizlastabschätzung ist keine Heizlastberechnung nach DIN EN 12831. '+(fh?'Die Förderung ist eine Schätzung, verbindlich sind nur Zusage und Bescheid. ':'Förderung ist nicht eingerechnet. ')+(Fx&&Fx.tot?'Wartung und Preissteigerung gehen nur in die Gesamtkosten ein. ':'Wartung und Preisentwicklung sind nicht eingerechnet. ')+'Grundpreise sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
+  h+='<div class="rep-page"><h1>So kommen die Zahlen zustande</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+'</p>'+srcHtml({dq:X.dq,o:o,R:R,S:S,I:I,F:X.F})+'<p class="rep-foot">Alle Werte sind Näherungen aus den Angaben beim Termin.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
   if(internal){
     h+='<div class="rep-page"><h1>Intern: Eingaben und Annahmen</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+' · '+(snap?'gespeicherte Auswertung vom '+dateTime:dateRep)+'</p>';
     if(nt) h+='<h2>Notiz</h2><p>'+esc(nt)+'</p>';
@@ -3740,7 +3801,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-16 19:13',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-16 19:45',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

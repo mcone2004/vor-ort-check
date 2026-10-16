@@ -510,6 +510,8 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     </div>
     <span class="hint" id="bjhint"></span>
     <label for="wf">Beheizte Wohnfläche in m², mit beheiztem Keller<input id="wf" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" value="140"></label>
+<label for="tne">Norm-Außentemperatur, °C (für die Heizlast-Gegenprobe)<input id="tne" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" placeholder="−12 (Annahme)"></label>
+    <span class="hint">Wert für den Standort aus der Tabelle zur Heizlastberechnung (DIN/TS 12831-1, Beiblatt 1) eintragen. Leer: gerechnet wird mit −12 °C als Annahme. Typisch sind −10 bis −16 °C.</span>
   </fieldset>
 
   <fieldset data-tab="huelle"><legend>Gebäudehülle</legend>
@@ -817,6 +819,9 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     <div class="row">
       <label for="fkgb">Alte Heizung für den Klimabonus<select id="fkgb"><option value="" selected>automatisch aus dem Ist-Zustand</option><option value="ja">berechtigt</option><option value="nein">nicht berechtigt</option></select></label>
       <label for="fdatum">Antragsdatum, leer = heute<input id="fdatum" type="date"></label>
+    </div>
+    <div class="row">
+      <label for="fszen">Anträge ab 2027 als unverbindliches Szenario rechnen<select id="fszen"><option value="nein" selected>nein, kein Zuschuss ausweisen</option><option value="ja">ja, Szenario nach Presseberichten</option></select></label>
     </div>
     <div id="fsx" aria-live="polite"></div>
   </fieldset>
@@ -1235,6 +1240,19 @@ function qhParts(o,u){
   var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
   return {wand:a.w*u.wand*gt,fenster:a.f*u.fenster*gt,dach:a.d*u.dach*dfm(o).fx*gt,keller:kellerTerm(o,u.kst)*gt,wb:0.08*(a.w+a.f+a.d+a.k)*gt,lueft:QV[o.band]*lvf(o)+u.leak,gew:-GEW};
 }
+// Gegenprobe zur Heizlastabschätzung: Wärmeverlust bei Norm-Außentemperatur aus denselben Bauteilflächen und U-Werten.
+// Transmission (inkl. Wärmebrücken-Pauschale) und Lüftung als Leitwert in W/(m²WF·K), mal (20 °C − Norm-Außentemperatur).
+// Der Lüftungsleitwert ist der Jahreswert QV geteilt durch den Gradtagfaktor, also keine eigene Luftwechselrechnung.
+// Ohne Gewinne, ohne Aufheizzuschlag, ohne Warmwasser. Überschlag, keine Berechnung nach DIN EN 12831.
+function hlNorm(o,u){
+  var A=AR(o).use,gt=(o.gt>0?o.gt:GT);
+  var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
+  var htw=a.w*u.wand,htf=a.f*u.fenster,htd=a.d*u.dach*dfm(o).fx,htk=kellerTerm(o,u.kst),htb=0.08*(a.w+a.f+a.d+a.k);
+  var ht=htw+htf+htd+htk+htb,hv=(QV[o.band]*lvf(o)+u.leak)/gt;
+  var te=(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12,ti=20;
+  return {ht:ht,hv:hv,HT:ht*o.wf,HV:hv*o.wf,H:(ht+hv)*o.wf,ti:ti,te:te,teAnn:!(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30),kw:(ht+hv)*(ti-te)*o.wf/1000,
+    parts:{wand:htw,fenster:htf,dach:htd,keller:htk,wb:htb,lueft:hv}};
+}
 function vlModel(o,qNow,qOrigW,qNowW,fm){
   if(o.hk==='fbh') return 24+0.30*qNowW; // ungekappt, damit ein gemessener Vorlauf sauber verschoben werden kann
   var f=((o.hk==='hk_neu')?1.6:1.15)*(fm||1);
@@ -1325,6 +1343,9 @@ function kfwRate(o,today,f){
   var st=kfwStufe(today),r={stufe:st,basis:wpBasis(today,o.fHerk),kgb:0,eink:0,max:f.max};
   if(f.selbst){r.kgb=f.kgbOk?st.kgb:0;r.eink=f.eink}
   r.sum=r.basis+r.kgb+r.eink;r.rate=Math.min(r.max,r.sum);
+  // Ab 2027 sind die Konditionen nicht amtlich bestätigt: ohne ausdrückliche Wahl des Szenarios kein Satz und kein Zuschuss
+  r.unb=(today>=FOERD.wp27.ab&&o.fScen!=='ja');
+  if(r.unb) r.rate=0;
   return r;
 }
 function foerdBasis(o){
@@ -1347,7 +1368,7 @@ function foerdBasis(o){
     }
   }
   var r=kfwRate(o,today,f);
-  f.stufe=r.stufe;f.basis=r.basis;f.kgb=r.kgb;f.rate=r.rate;f.sum=r.sum;
+  f.stufe=r.stufe;f.basis=r.basis;f.kgb=r.kgb;f.rate=r.rate;f.sum=r.sum;f.unb=r.unb;f.scen=(f.spaet&&o.fScen==='ja');
   return f;
 }
 // Klimatreppe: Satz und Zuschuss für die Summe sum je Antragsstufe, ab der Stufe, die heute gilt
@@ -1358,7 +1379,7 @@ function kfwTreppe(o,sum){
   var rows=[];
   for(var i=cur;i<ds.length;i++){
     var r=kfwRate(o,ds[i],f),cost=Math.min(sum,r.stufe.kosten),r0=kfwRate(Object.assign({},o,{fHerk:'nein'}),ds[i],f);
-    rows.push({eur0:cost*r0.rate/100,rate0:r0.rate,ab:ds[i],bis:ds[i+1]?dayBefore(ds[i+1]):null,cur:i===cur,basis:r.basis,kgb:r.kgb,eink:r.eink,sum:r.sum,max:r.max,rate:r.rate,kosten:r.stufe.kosten,cost:cost,eur:cost*r.rate/100});
+    rows.push({unb:r.unb,eur0:cost*r0.rate/100,rate0:r0.rate,ab:ds[i],bis:ds[i+1]?dayBefore(ds[i+1]):null,cur:i===cur,basis:r.basis,kgb:r.kgb,eink:r.eink,sum:r.sum,max:r.max,rate:r.rate,kosten:r.stufe.kosten,cost:cost,eur:cost*r.rate/100});
   }
   return {rows:rows,f:f};
 }
@@ -1369,7 +1390,8 @@ function kfwEinkTab(o,sum){
   [[30,'bis '+fmtN(30+sh)+' €'],[40,fmtN(30+sh+0.001)+' bis '+fmtN(40+sh)+' €'],[50,fmtN(40+sh+0.001)+' bis '+fmtN(50+sh)+' €'],[999,'über '+fmtN(50+sh)+' €']].forEach(function(g,i){
     var e=0,eff=g[0];FOERD.eink.forEach(function(r){if(eff<=r[0]&&e===0) e=r[1]});
     var kg=f.kgbOk?st.kgb:0,mx=(eff<=30)?80:70,b=wpBasis(f.today,o.fHerk),rate=Math.min(mx,b+kg+e);
-    out.push({label:g[1],eink:e,rate:rate,eur:cost*rate/100});
+    if(f.unb) rate=0;
+    out.push({label:g[1],eink:e,rate:rate,eur:cost*rate/100,unb:f.unb});
   });
   return out;
 }
@@ -1377,7 +1399,7 @@ function fmtN(k){var v=Math.round(k*1000);return String(v).replace(/\B(?=(\d{3})
 // KfW 458 für die Wärmepumpe: Kosten bis zur Grenze der ersten Wohneinheit
 function kfwFoerd(o,inv){
   var f=foerdBasis(o);
-  if(!f.ok||f.mfh||f.netz||!(inv>0)) return {eur:0,rate:f.rate,cost:0,f:f};
+  if(!f.ok||f.mfh||f.netz||!(inv>0)||f.unb) return {eur:0,rate:f.rate,cost:0,f:f,unb:f.unb};
   var cost=Math.min(inv,f.stufe.kosten);
   return {eur:cost*f.rate/100,rate:f.rate,cost:cost,f:f};
 }
@@ -1507,7 +1529,8 @@ function compute(o){
   hebel.sort(function(a,b){return b.d-a.d});
   var pp=qhParts(o,uIst),kwP={};
   Object.keys(pp).forEach(function(k){kwP[k]=pp[k]*sc*o.wf/VBH});
-  return {ofen:ofenTr(o)?{eta:eta,real:(o.verb>0)?o.verb*KWH[o.einh]:0,anteil:(qVerb!=null&&qBT>0)?qVerb/qBT:null}:null,hilf:hilfsE(o,ist.end),uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uFenB:uIst.fbase,uWand:uIst.wand,vlIst:S[0].vl};
+  var hl=hlNorm(o,uIst);hl.verb=(qVerb!=null)?qVerb*o.wf/VBH:null;hl.dev=(hl.verb>0)?hl.kw/hl.verb-1:null;hl.ist=ist.kw;
+  return {hl:hl,ofen:ofenTr(o)?{eta:eta,real:(o.verb>0)?o.verb*KWH[o.einh]:0,anteil:(qVerb!=null&&qBT>0)?qVerb/qBT:null}:null,hilf:hilfsE(o,ist.end),uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uFenB:uIst.fbase,uWand:uIst.wand,vlIst:S[0].vl};
 }
 return {ZT:ZT,zweiExp:zweiExp,zweiSt:zweiSt,zweiR:zweiR,zweiU:zweiU,ZV:ZV,kfwTreppe:kfwTreppe,kfwEinkTab:kfwEinkTab,wpBasis:wpBasis,ofenTr:ofenTr,OFEN_ETA:OFEN_ETA,hilfsE:hilfsE,shutU:shutU,SHUT:SHUT,shutF:shutF,lvf:lvf,typU:typU,REG:REG,kLevel:kLevel,kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
@@ -1538,6 +1561,28 @@ function hlText(R,L){
   t+=' Am meisten trägt '+L.rows[0][0]+' bei ('+fmt(Math.round(L.rows[0][2]*100))+' %).';
   if(R.anchored) t+=' Die Anteile sind aus den Bauteilen berechnet und auf den Verbrauch skaliert.';
   return t;
+}
+// Gegenprobe der Heizlastabschätzung: Bauteile bei Norm-Außentemperatur gegen Verbrauch ÷ 1.700 h. Schwellen 25 % und 40 % sind Annahmen.
+function hlProbe(R){
+  var H=R.hl;if(!H) return null;
+  var te=String(Math.round(H.te)).replace('-','−')+' °C'+(H.teAnn?' (Annahme)':'');
+  var lvl=null,bew;
+  if(H.dev==null) bew='Kein Verbrauch eingetragen: Ein Vergleich ist nicht möglich. Die Heizlastabschätzung beruht allein auf den Bauteilen.';
+  else{
+    var ad=Math.abs(H.dev);lvl=ad<=0.25?'ok':(ad<=0.40?'abw':'stark');
+    var dir=H.dev>0?'Die Bauteile ergeben mehr Leistung als der Verbrauch hergibt. Mögliche Ursachen: Dämmung oder Flächen zu ungünstig erfasst, nicht alle Räume beheizt, Verbrauch zu niedrig angegeben.':'Der Verbrauch ergibt mehr Leistung als die Bauteile. Mögliche Ursachen: Dämmung oder Flächen zu günstig erfasst, Undichtheiten, Zusatzverbraucher, höhere Raumtemperaturen.';
+    bew=(lvl==='ok'?'Beide Wege liegen nahe beieinander ('+(H.dev>0?'+':'−')+fmt(Math.round(ad*100))+' %).':(lvl==='abw'?'Abweichung von '+(H.dev>0?'+':'−')+fmt(Math.round(ad*100))+' %. ':'Deutliche Abweichung von '+(H.dev>0?'+':'−')+fmt(Math.round(ad*100))+' %. ')+dir+' Vor einer Aussage zur Geräteleistung die Eingaben prüfen.');
+  }
+  return {H:H,te:te,lvl:lvl,bew:bew};
+}
+function hlProbeHtml(R){
+  var P=hlProbe(R);if(!P) return '';var H=P.H;
+  return '<section class="panel"><h2>Gegenprobe zur Heizlastabschätzung</h2><table><tbody>'+
+    '<tr><td>Aus den Bauteilen bei '+P.te+'</td><td><b>'+fmt(H.kw,1)+' kW</b></td></tr>'+
+    '<tr><td>Aus dem Verbrauch (Heizwärme ÷ 1.700 h)</td><td><b>'+(H.verb!=null?fmt(H.verb,1)+' kW':'–')+'</b></td></tr>'+
+    '<tr><td>In der App verwendet (Heizlastabschätzung)</td><td>'+fmt(H.ist,1)+' kW</td></tr></tbody></table>'+
+    '<p'+(P.lvl&&P.lvl!=='ok'?' class="warnp"':'')+'>'+esc(P.bew)+'</p>'+
+    '<p class="sub">Bauteilweg: Wärmeverlustleitwert '+fmt(Math.round(H.H))+' W/K (Bauteile und Wärmebrücken '+fmt(Math.round(H.HT))+' W/K, Lüftung '+fmt(Math.round(H.HV))+' W/K) × '+fmt(H.ti-H.te)+' K Temperaturdifferenz. Ohne Gewinne, ohne Aufheizzuschlag. Der Lüftungsanteil ist aus dem Jahreswert abgeleitet, nicht aus einem Luftwechsel gerechnet. '+(H.teAnn?'Die Norm-Außentemperatur ist eine Annahme: Wert für den Standort unter Objekt eintragen. ':'')+'Keine Berechnung nach DIN EN 12831 und keine Grundlage für die Geräteauslegung.</p></section>';
 }
 var HKN={g:'Gliederheizkörper',10:'Typ 10',11:'Typ 11',21:'Typ 21',22:'Typ 22',33:'Typ 33'};
 var TRN={oel:'Öl',gas:'Gas',pellets:'Pellets',fern:'Fernwärme',strom:'Strom (Direkt/Speicher)',holz:'Holz, Einzelofen',kohle:'Kohle, Briketts, Einzelofen'};
@@ -1601,7 +1646,7 @@ function read(){
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4'),inv5:numG('inv5'),inv6:numG('inv6'),inv7:numG('inv7'),inv8:numG('inv8'),
-    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
+    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fScen:$('fszen').value,tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
     rbOrt:$('rb_ort').value,rbNachb:$('rb_nachb').value,rbPlatz:$('rb_platz').value,rbStrom:$('rb_strom').value,rbTank:$('rb_tank').value,rbNetz:$('rb_netz').value,rbDenk:$('rb_denk').value,rbNote:$('rb_note').value.trim(),
     cvDach:$('cv_dach').checked,cvKeller:$('cv_keller').checked,cvWand:$('cv_wand').checked,cvFen:$('cv_fen').checked,cvHk:$('cv_hk').checked,
     kPa:(function(){var v=parseFloat(String($('k_pa').value).replace(',','.'));return isNaN(v)?4:v})(),kPs:(function(){var v=parseFloat(String($('k_ps').value).replace(',','.'));return isNaN(v)?2:v})(),kWb:numG('k_wb'),kWw:numG('k_ww')
@@ -1677,7 +1722,7 @@ function foerdLines(o,F){
   }
   var inv=[[F.v[1],'V2'],[F.v[2],'V3'],[F.v[3],'V4'],[F.cv,'Eigene Variante']].filter(function(x){return x[0]&&x[0].inv>0&&x[0].fund>0}).map(function(x){return x[1]+' etwa '+r0(x[0].fund)+' €'});
   out.push('Hülle und Heizkörpertausch (BAFA): 15 %'+(o.fIsfp==='ja'?' plus 5 % iSFP-Bonus auf den Teil über 30.000 €':'')+' auf förderfähige Kosten bis '+(o.fIsfp==='ja'?'60.000':'30.000')+' €'+(inv.length?': '+inv.join(', '):'')+'. Der Heizkörpertausch ist als Heizungsoptimierung angenommen, bitte prüfen.');
-  out.push('Stand der Konditionen: '+CALC.FOERD.stand+' (Förderung ab 21.07.2026). Grundlage: '+CALC.FOERD.quelle+'. Änderungen ab 2027 sind dort nicht enthalten. Sie sind nur aus Presseberichten bekannt, nicht amtlich bestätigt und nicht Grundlage der Zahlen für ein Antragsdatum vor 2027.'+(fb.today<CALC.FOERD.wp27.ab?' Angekündigt ist für Q1 2027 eine geringere Grundförderung für Wärmepumpen, mit einem Bonus bei EU-Ursprung. Die genauen Bedingungen sind offen (siehe Förderrechner).':' Das Antragsdatum liegt im Jahr 2027 oder später: Die Grundförderung beruht auf noch nicht amtlich bestätigten Angaben und ist vorläufig.')+' Antrag vor der Beauftragung stellen. Verbindlich sind nur Zusage und Bescheid.');
+  out.push('Stand der Konditionen: '+CALC.FOERD.stand+' (Förderung ab 21.07.2026). Grundlage: '+CALC.FOERD.quelle+'. Änderungen ab 2027 sind dort nicht enthalten. Sie sind nur aus Presseberichten bekannt, nicht amtlich bestätigt und nicht Grundlage der Zahlen für ein Antragsdatum vor 2027.'+(fb.today<CALC.FOERD.wp27.ab?' Angekündigt ist für Q1 2027 eine geringere Grundförderung für Wärmepumpen, mit einem Bonus bei EU-Ursprung. Die genauen Bedingungen sind offen (siehe Förderrechner).':' Das Antragsdatum liegt im Jahr 2027 oder später: '+(fb.unb?'Für die Wärmepumpe ist keine Förderung angesetzt, weil die Konditionen nicht amtlich bestätigt sind.':'Gerechnet ist ein unverbindliches Szenario nach Presseberichten, kein bestätigter Zuschuss.'))+' Antrag vor der Beauftragung stellen. Verbindlich sind nur Zusage und Bescheid.');
   return out;
 }
 function rbLines(o){
@@ -1835,6 +1880,7 @@ function srcRows(X){
   else rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+(EL[o.tr]||o.tr)+', Anlage '+HA[o.ha]+'. Richtwerte nach Alter der Anlage (vor 1995 / 1995 bis 2005 / 2006 bis 2015 / ab 2016): '+tab+' %. Ein Schätzwert, die tatsächliche Anlage kann abweichen.']);
   rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+(o.wwArt==='el'?'':' + '+fmt(R.ww,1)+' Warmwasser')+') kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end+I.stSav)+' kWh'+(I.stSav>0?', abzüglich '+r0(I.stSav)+' kWh, die die vorhandene Solarthermie liefert, = '+r0(I.end)+' kWh im Jahr.':' im Jahr.')+(mode==='verbrauch'?(o.kf!==1?' Das ist der eingetragene Verbrauch, witterungsbereinigt.':' Das entspricht dem eingetragenen Verbrauch.'):'')]);
   rows.push(['Heizlastabschätzung '+fmt(I.kw,1)+' kW',fmt(I.qh)+' kWh/m²a × '+r0(wf)+' m² ÷ 1.700 Volllaststunden (Annahme für alle Gebäude gleich). Das ist ein Leistungswert aus der Jahresheizwärme, keine Norm-Heizlast. Diese ergibt erst die Berechnung nach DIN EN 12831, aus ihr darf keine verbindliche Wärmepumpenleistung abgeleitet werden.']);
+  (function(){var P=hlProbe(R);if(P) rows.push(['Gegenprobe Heizlast: '+fmt(P.H.kw,1)+' kW aus den Bauteilen',fmt(Math.round(P.H.HT))+' W/K Bauteile und Wärmebrücken + '+fmt(Math.round(P.H.HV))+' W/K Lüftung (Jahreswert ÷ Gradtagfaktor) = '+fmt(Math.round(P.H.H))+' W/K, mal '+fmt(P.H.ti-P.H.te)+' K (20 °C innen, außen '+P.te+') = '+fmt(P.H.kw,1)+' kW. Ohne Gewinne und Aufheizzuschlag. '+(P.H.verb!=null?'Aus dem Verbrauch: '+fmt(P.H.verb,1)+' kW. ':'')+P.bew])})();
   var anf=I.eA>0?I.end/I.eA/wf:1.2;
   rows.push(['Energieklasse '+I.klasse,r0(I.end)+' kWh ÷ ('+r0(wf)+' m² × '+fmt(anf,2)+' Gebäudenutzfläche) = '+r0(I.eA)+' kWh/m²a, eingeordnet in die Skala des Energieausweises (D: 100 bis unter 130). Orientierung, kein Energieausweis.']);
   rows.push(['Heizkosten '+eur(I.cost)+'/a',r0(I.end)+' kWh × '+fmt(o.pAlt,2)+' €/kWh bisheriger Preis'+(I.wwEl>0?', dazu Warmwasserstrom '+r0(I.wwEl)+' kWh × Haushaltsstrompreis = '+eur(I.wwCost):'')+(I.pvBen>0?', abzüglich Vorteil der vorhandenen PV von '+eur(I.pvBen)+' (Direktstrom-Heizung)':'')+'. Ohne Grundpreis, CO₂-Preisentwicklung und Wartung.']);
@@ -1901,13 +1947,14 @@ function fsRender(o,R){
   var T=CALC.kfwTreppe(o,inv),f=T.f,rows=T.rows,c=rows[0],h='',FO=CALC.FOERD,hasEU=rows.some(function(r){return Math.abs(r.eur0-r.eur)>1});
   var ab=o.today?'am '+dmy(o.today):'heute ('+dmy(f.today)+')';
   var vorl=(f.today>=FO.wp27.ab);
-  h+='<div class="hk-big"><p>Wärmepumpe für <b>'+eur1(inv)+'</b>'+(ex?' (Beispielsumme, Summe oben eintragen)':'')+', Antrag '+ab+': Zuschuss etwa <b>'+eur1(c.eur)+'</b> ('+fmt(c.rate)+' %), Eigenanteil etwa <b>'+eur1(inv-c.eur)+'</b>.</p></div>';
-  if(vorl) h+='<p class="hint"><b>Vorläufig:</b> Die Grundförderung ab 2027 (15 % plus Wertschöpfungsbonus bei EU-Ursprung) stammt aus Presseberichten. Sie steht weder im KfW-Merkblatt 458 noch auf der BAFA-Seite. Diesen Zuschuss nicht als Förderbedingung nennen.</p>';
+  if(f.unb) h+='<div class="hk-big"><p>Wärmepumpe für <b>'+eur1(inv)+'</b>'+(ex?' (Beispielsumme, Summe oben eintragen)':'')+', Antrag '+ab+': <b>kein Zuschuss ausgewiesen.</b> Die Konditionen ab 2027 sind nicht amtlich bestätigt. Die App rechnet dafür ohne Förderung. Wer trotzdem eine Größenordnung sehen will, wählt oben „Anträge ab 2027 als unverbindliches Szenario rechnen: ja“.</p></div>';
+  else h+='<div class="hk-big"><p>'+(vorl?'<b>Szenario, unverbindlich:</b> ':'')+'Wärmepumpe für <b>'+eur1(inv)+'</b>'+(ex?' (Beispielsumme, Summe oben eintragen)':'')+', Antrag '+ab+': Zuschuss '+(vorl?'im Szenario ':'')+'etwa <b>'+eur1(c.eur)+'</b> ('+fmt(c.rate)+' %), Eigenanteil etwa <b>'+eur1(inv-c.eur)+'</b>.</p></div>';
+  if(vorl&&!f.unb) h+='<p class="hint"><b>Vorläufig:</b> Die Grundförderung ab 2027 (15 % plus Wertschöpfungsbonus bei EU-Ursprung) stammt aus Presseberichten. Sie steht weder im KfW-Merkblatt 458 noch auf der BAFA-Seite. Diesen Zuschuss nicht als Förderbedingung nennen.</p>';
   // Aufbau des Satzes
   var kgTxt=!f.selbst?'nur für selbstnutzende Eigentümer':(f.kgbOk?'alte Heizung berechtigt ('+(o.fKgb==='ja'?'von dir bestätigt':TRN[o.tr])+')':'alte Heizung nicht berechtigt oder nicht geprüft');
   var inTxt=!f.selbst?'nur für selbstnutzende Eigentümer':(f.einkOffen?'Einkommen nicht angegeben, nicht eingerechnet':'zvE '+fmt(+o.fZve>0?o.fZve:({30:30000,40:40000,50:50000,60:60000,99:60001}[o.fEink]||0))+' €'+(o.fKind==='ja'?', minus 10.000 € wegen Kind = '+fmt(f.eff*1000)+' €':'')+(+o.fZve>0?'':' (Obergrenze der Gruppe)'));
   var bsTxt=(f.today>=FO.wp27.ab)?'15 %'+(o.fHerk==='nein'?', ohne EU-Ursprung kein Wertschöpfungsbonus':' + 15 % Wertschöpfungsbonus (EU-Ursprung)')+', vorläufig (Presseberichte, nicht amtlich bestätigt)':'30 % bis Ende 2026';
-  h+='<table><thead><tr><th>Baustein</th><th>Satz</th><th>Grundlage</th></tr></thead><tbody>'+
+  if(!f.unb) h+='<table><thead><tr><th>Baustein</th><th>Satz</th><th>Grundlage</th></tr></thead><tbody>'+
     '<tr><td>Grundförderung</td><td>'+c.basis+' %</td><td>'+esc(bsTxt)+'</td></tr>'+
     '<tr><td>Klimageschwindigkeitsbonus</td><td>'+c.kgb+' %</td><td>'+esc(kgTxt)+'</td></tr>'+
     '<tr><td>Einkommensbonus</td><td>'+c.eink+' %</td><td>'+esc(inTxt)+'</td></tr>'+
@@ -1922,12 +1969,13 @@ function fsRender(o,R){
     var lab=(r===lastR&&r.bis==null)?'ab '+dmy(r.ab):(r.cur?'heute bis '+dmy(r.bis):dmy(r.ab)+' bis '+dmy(r.bis));
     if(show.indexOf(r)===show.length-1&&r.bis==null) lab='ab '+dmy(r.ab);
     var d=r.eur-c.eur;if(r.ab>=FO.wp27.ab) lab+=' *';
+    if(r.unb) return '<tr'+(r.cur?' class="cur"':'')+'><td>'+lab+'</td><td>–</td><td>'+fmt(r.kosten)+' €</td><td>nicht bestätigt</td>'+(hasEU?'<td>–</td>':'')+'<td>–</td></tr>';
     return '<tr'+(r.cur?' class="cur"':'')+'><td>'+lab+'</td><td>'+fmt(r.rate)+' %</td><td>'+fmt(r.kosten)+' €</td><td>'+eur1(r.eur)+'</td>'+(hasEU?'<td>'+eur1(r.eur0)+'</td>':'')+'<td>'+(r.cur?'–':(d>=0?'+':'−')+eur1(Math.abs(d)))+'</td></tr>';
   }).join('')+'</tbody></table>';
-  h+='<p class="hint">Zwischen 01.02.2029 und 01.08.2030 sinken die förderfähigen Kosten alle sechs Monate um 750 € auf 22.000 €, der Klimabonus entfällt ab 01.08.2028. Maßgeblich ist der Tag der Antragstellung bei der KfW, nicht der Einbau. * Zeilen ab 01.01.2027: Die Grundförderung (15 % plus Bonus bei EU-Ursprung) ist vorläufig. Sie stammt aus Presseberichten und ist nicht amtlich bestätigt. Der Stichtag 01.01.2027 ist angenommen, die Quellen nennen nur das Quartal.</p>';
+  h+='<p class="hint">Zwischen 01.02.2029 und 01.08.2030 sinken die förderfähigen Kosten alle sechs Monate um 750 € auf 22.000 €, der Klimabonus entfällt ab 01.08.2028. Maßgeblich ist der Tag der Antragstellung bei der KfW, nicht der Einbau. * Zeilen ab 01.01.2027: Die Grundförderung steht noch nicht fest. Angekündigt sind nach Presseberichten 15 % plus ein Bonus bei EU-Ursprung. Das ist nicht amtlich bestätigt, deshalb steht dort kein Zuschuss. Der Stichtag 01.01.2027 ist angenommen, die Quellen nennen nur das Quartal.</p>';
   // Einkommen
   var o2=Object.assign({},o,{fSelbst:'ja'}),ET=CALC.kfwEinkTab(o2,inv);
-  h+='<h3>Zuschuss je Einkommen, Antrag '+(o.today?'am '+dmy(o.today):'heute')+', selbstnutzend'+(o.fKind==='ja'?', mit Kind':'')+'</h3><table><thead><tr><th>zu versteuerndes Einkommen</th><th>Einkommensbonus</th><th>Satz</th><th>Zuschuss</th></tr></thead><tbody>'+ET.map(function(e){return '<tr><td>'+e.label+'</td><td>'+e.eink+' %</td><td>'+fmt(e.rate)+' %</td><td>'+eur1(e.eur)+'</td></tr>'}).join('')+'</tbody></table>';
+  if(!f.unb) h+='<h3>Zuschuss je Einkommen, Antrag '+(o.today?'am '+dmy(o.today):'heute')+', selbstnutzend'+(o.fKind==='ja'?', mit Kind':'')+'</h3><table><thead><tr><th>zu versteuerndes Einkommen</th><th>Einkommensbonus</th><th>Satz</th><th>Zuschuss</th></tr></thead><tbody>'+ET.map(function(e){return '<tr><td>'+e.label+'</td><td>'+e.eink+' %</td><td>'+fmt(e.rate)+' %</td><td>'+eur1(e.eur)+'</td></tr>'}).join('')+'</tbody></table>';
   // Hülle
   if(o.fSumme2>0){
     var ob=Object.assign({},o,{fSelbst:o.fSelbst||'nein'}),b=CALC.bafaFoerd(ob,o.fSumme2);
@@ -2032,6 +2080,7 @@ function render(){
     if(key===0){
       rows.push(['Ersparnis zur Bestandsheizung',(sav1>=0?eur(sav1):'−'+eur(-sav1))+'/a']);
       if(fund>0) rows.push(['Förderung KfW, ca.',eur(fund)+' ('+fmt(Math.round(fv.rate))+' %)']);
+      else if(F.fb.ok&&F.fb.unb) rows.push(['Förderung KfW','nicht angesetzt: Antrag ab 2027, Konditionen nicht bestätigt']);
       else if(F.fb.ok&&F.fb.netz) rows.push(['Förderung KfW','keine, Wärmenetz']);
       rows.push(['Amortisation WP'+(pl.has?' (ohne Solar)':'')+(fund>0?', ohne Förderung':''),pay(o.inv1,pl.sav)]);
       if(fund>0) rows.push(['Amortisation WP mit Förderung',pay(fv.net,pl.sav)]);
@@ -2055,6 +2104,7 @@ function render(){
     var lmx=LP.rows[0][1];
     lp='<section class="panel"><h2>Wo entstehen die größten Wärmeverluste?</h2><p>'+esc(hlText(R,LP))+'</p><ul class="bars">'+LP.rows.map(function(r){return '<li><div class="lbl"><span>'+r[0]+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="bar"><i style="width:'+(r[1]/lmx*100)+'%"></i></div></li>'}).join('')+'</ul><p class="sub">Überschlägige Verteilung der Transmissions- und Lüftungswärmeverluste. Sie zeigt energetische Schwachstellen und ersetzt keine Norm-Heizlastberechnung. Die Gerätegröße ergibt erst die Berechnung nach DIN EN 12831.</p></section>';
   }
+  lp+=hlProbeHtml(R);
   var hb='<section class="panel"><h2>Was senkt die Heizlast?</h2>';
   if(!R.hebel.length) hb+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
   else{
@@ -3523,6 +3573,7 @@ function buildReport(internal,snap){
   // Maßnahmen
   var LPr=lastParts(R);
   if(LPr){var lmr=LPr.rows[0][1];h+='<h2>Wo entstehen die größten Wärmeverluste?</h2><div class="rep-sn">'+schnittSvg(o,R.uIst,{ink:'#20252A',bg:'#fff'})+'<ul class="sn-leg">'+schnittLeg(o,R.uIst)+'</ul></div><p>'+esc(hlText(R,LPr))+'</p>'+LPr.rows.map(function(r){return '<div class="rep-two"><span>'+esc(r[0])+'</span><span>'+fmt(r[1],1)+' kW · '+fmt(Math.round(r[2]*100))+' %</span></div><div class="rep-bar"><i style="width:'+(r[1]/lmr*100)+'%"></i></div>'}).join('')}
+  (function(){var P=hlProbe(R);if(!P) return;h+='<h2>Gegenprobe zur Heizlastabschätzung</h2><div class="rep-two"><span>Aus den Bauteilen bei '+P.te+'</span><span>'+fmt(P.H.kw,1)+' kW</span></div><div class="rep-two"><span>Aus dem Verbrauch (Heizwärme ÷ 1.700 h)</span><span>'+(P.H.verb!=null?fmt(P.H.verb,1)+' kW':'–')+'</span></div><p>'+esc(P.bew)+(internal?' Der Bauteilweg rechnet ohne Gewinne und Aufheizzuschlag, der Lüftungsanteil ist aus dem Jahreswert abgeleitet. Keine Heizlastberechnung nach DIN EN 12831.':'')+'</p>'})();
   var bl=bauteilLis(o);if(bl) h+='<h2>Vorhandene Dämmung, wie angegeben</h2><ul>'+bl+'</ul>';
   h+='<h2>Was senkt die Heizlast? Wirksamste Maßnahmen einzeln</h2>';
   if(!R.hebel.length) h+='<p>Alle Bauteile sind bereits auf aktuellem Stand.</p>';
@@ -3752,7 +3803,7 @@ function initHome(){
 }
 function init(){
   ['wf','fzve','fsumme','fsumme2','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','fszen','tne','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -3826,7 +3877,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-16 20:45',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-16 21:01',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

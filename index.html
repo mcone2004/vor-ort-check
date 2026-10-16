@@ -1225,7 +1225,7 @@ function typU(o){
 // Wärmeverlust nach unten in W/K je m² Wohnfläche. kShare 0 = kein Keller, 0.5 = teilweise, 1 = komplett.
 // kArt: ub unbeheizt, bh beheizt, kk Kriechkeller. Der nicht unterkellerte Teil ist Bodenplatte.
 function wallFrac(o){var m=o.dkw||{};return m.m==='ja'?1:(m.m==='teil'?((+m.a||50)/100):0)}
-function kellerTerm(o,st){
+function kellerTerm(o,st,fub){ // fub: Temperaturfaktor für die Decke zum unbeheizten Keller (Heizlast), sonst Jahresfaktor 0,6
   var b=o.band,F=AR(o).use.k/o.wf;
   var s=(o.kShare==null)?1:o.kShare, t=o.kArt||'ub';
   // st: Dämmzustand der Kellerdecke (0 bis 3) oder 2 im Szenario „aktueller Stand“. Bodenplatte und Kelleraußenwände kommen aus den eigenen Angaben
@@ -1237,7 +1237,7 @@ function kellerTerm(o,st){
     return imp?Math.min(u,pick(UWE,b,2)):u}
   var part=0;
   if(s>0){
-    if(t==='ub') part=F*s*dkU(o,st,rk)*0.6;
+    if(t==='ub') part=F*s*dkU(o,st,rk)*(fub!=null?fub:0.6);
     else if(t==='kk') part=F*s*pick(UKK,b,st,rk)*0.8;
     else part=F*s*0.75*(boden()+0.7*wand());
   }
@@ -1295,13 +1295,19 @@ function lueftHL(o){
   var erw=(+o.n50>0)||(+o.vol>0)||(nsuQ==='eingegeben');
   return {n:n,ninf:ninf,ninfR:ninfR,nmin:nmin,n50:n50,nQ:nQ,e:e,V:V,vQ:vQ,art:art,nsu:nsu,nsuQ:nsuQ,eta:eta,HV:0.34*n*V,stufe:erw?'Erweitert':'Standard'};
 }
+// Heizlast: Decke zum unbeheizten Keller mit dem Temperaturfaktor bei Auslegung (Kellerluft 10 °C angenommen) statt des Jahresfaktors 0,6.
+// Wärmebrückenzuschlag 0,08 an Bauteilen zu unbeheizten Bereichen mit demselben Temperaturfaktor gewichtet wie das Bauteil.
+var TKELLER=10;
 function hlNorm(o,u){
   var A=AR(o).use,gt=(o.gt>0?o.gt:GT);
   var a={w:A.w/o.wf,f:A.f/o.wf,d:A.d/o.wf,k:A.k/o.wf};
-  var htw=a.w*u.wand,htf=a.f*u.fenster,htd=a.d*u.dach*dfm(o).fx,htk=kellerTerm(o,u.kst),htb=0.08*(a.w+a.f+a.d+a.k);
-  var ht=htw+htf+htd+htk+htb,hvJahr=(QV[o.band]*lvf(o)+u.leak)/gt,lv=lueftHL(o),hv=lv.HV/o.wf;
   var te=(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12,ti=20;
-  return {lv:lv,hvJahr:hvJahr,kwJahr:(ht+hvJahr)*(20-((typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12))*o.wf/1000,ht:ht,hv:hv,HT:ht*o.wf,HV:hv*o.wf,H:(ht+hv)*o.wf,ti:ti,te:te,teAnn:!(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30),kw:(ht+hv)*(ti-te)*o.wf/1000,
+  var fd=(ti-TKELLER)/(ti-te),s=(o.kShare==null)?1:o.kShare,t=o.kArt||'ub',fxD=dfm(o).fx;
+  var fK=(s>0?s*(t==='ub'?fd:(t==='kk'?0.8:0.75)):0)+(1-s); // gleiche Faktoren wie im Bauteilterm
+  var htw=a.w*u.wand,htf=a.f*u.fenster,htd=a.d*u.dach*fxD,htk=kellerTerm(o,u.kst,fd),htb=0.08*(a.w+a.f+a.d*fxD+a.k*fK);
+  var htAlt=htw+htf+htd+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k); // bisheriger Ansatz: Jahresfaktor 0,6, Zuschlag ungewichtet
+  var ht=htw+htf+htd+htk+htb,hvJahr=(QV[o.band]*lvf(o)+u.leak)/gt,lv=lueftHL(o),hv=lv.HV/o.wf;
+  return {kwAlt:(htAlt+hv)*(ti-te)*o.wf/1000,fd:fd,fK:fK,kellerUb:(s>0&&t==='ub'),fxD:fxD,lv:lv,hvJahr:hvJahr,kwJahr:(ht+hvJahr)*(20-((typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12))*o.wf/1000,ht:ht,hv:hv,HT:ht*o.wf,HV:hv*o.wf,H:(ht+hv)*o.wf,ti:ti,te:te,teAnn:!(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30),kw:(ht+hv)*(ti-te)*o.wf/1000,
     parts:{wand:htw,fenster:htf,dach:htd,keller:htk,wb:htb,lueft:hv}};
 }
 function vlModel(o,qNow,qOrigW,qNowW,fm){
@@ -1657,6 +1663,12 @@ function lvTxt(H){
   if(L.nsu!=null&&L.n50>3) t+='Hinweis: Erhöhte Gebäudeundichtheit kann die energetische Wirksamkeit der Wärmerückgewinnung reduzieren. Luftdichtheit und Luftmengenbilanz prüfen. ';
   return t+'Stufe: '+L.stufe+'. Angenommene Werte sind keine Messung.';
 }
+function kTxt(H){
+  var t='Wärmebrückenzuschlag 0,08 W/(m²K), an Bauteilen zu unbeheizten Bereichen mit deren Temperaturfaktor gewichtet.';
+  if(H.kellerUb) t+=' Decke zum unbeheizten Keller mit Temperaturfaktor '+fmt(H.fd,2)+' bei Auslegung (Kellerluft 10 °C angenommen) statt des Jahresfaktors 0,6. Mit dem bisherigen Ansatz (0,6, Zuschlag ungewichtet) wären es '+fmt(H.kwAlt,1)+' kW.';
+  if(H.fxD<1) t+=' Die oberste Geschossdecke rechnet weiter mit dem Jahresfaktor '+fmt(H.fxD,2)+', das ist noch nicht gegen eine Heizlastberechnung geprüft.';
+  return t;
+}
 function hlExt(R){var H=R.hl;if(!H||!(H.ext>0)) return null;var f=function(x){return (x>=0?'+':'−')+fmt(Math.round(Math.abs(x)*100))+' %'};return {kw:H.ext,dB:H.kw/H.ext-1,dV:(H.verb!=null)?H.verb/H.ext-1:null,txt:'Die externe Heizlast nach DIN EN 12831 liegt bei '+fmt(H.ext,1)+' kW. Die Bauteil-Gegenprobe weicht um '+f(H.kw/H.ext-1)+' ab'+((H.verb!=null)?', die verbrauchsbasierte Abschätzung um '+f(H.verb/H.ext-1):'')+'. Die externe Berechnung ist hier maßgeblich; die App-Werte sind Plausibilitätswerte.'}}
 function hlProbeHtml(R){
   var P=hlProbe(R);if(!P) return '';var H=P.H;
@@ -1665,7 +1677,7 @@ function hlProbeHtml(R){
     '<tr><td>Aus dem Verbrauch (Heizwärme ÷ 1.700 h)</td><td><b>'+(H.verb!=null?fmt(H.verb,1)+' kW':'–')+'</b></td></tr>'+
     '<tr><td>In der App verwendet (Heizlastabschätzung)</td><td>'+fmt(H.ist,1)+' kW</td></tr>'+(hlExt(R)?'<tr><td>Extern nach DIN EN 12831 berechnet (eingegeben, Nachweis)</td><td><b>'+fmt(H.ext,1)+' kW</b></td></tr>':'')+'</tbody></table>'+(hlExt(R)?'<p>'+esc(hlExt(R).txt)+'</p>':'')+
     '<p'+(P.lvl&&P.lvl!=='ok'?' class="warnp"':'')+'>'+esc(P.bew)+'</p>'+
-    '<p class="sub">Bauteilweg: Wärmeverlustleitwert '+fmt(Math.round(H.H))+' W/K (Bauteile und Wärmebrücken '+fmt(Math.round(H.HT))+' W/K, Lüftung '+fmt(Math.round(H.HV))+' W/K) × '+fmt(H.ti-H.te)+' K Temperaturdifferenz. Ohne Gewinne, ohne Aufheizzuschlag. '+esc(lvTxt(H))+' Zum Vergleich: Mit dem Lüftungsanteil aus dem Jahreswert des Modells wären es '+fmt(H.kwJahr,1)+' kW. '+(H.teAnn?'Die Norm-Außentemperatur ist eine Annahme: Wert für den Standort unter Objekt eintragen. ':'')+'Keine Berechnung nach DIN EN 12831 und keine Grundlage für die Geräteauslegung.</p></section>';
+    '<p class="sub">Bauteilweg: Wärmeverlustleitwert '+fmt(Math.round(H.H))+' W/K (Bauteile und Wärmebrücken '+fmt(Math.round(H.HT))+' W/K, Lüftung '+fmt(Math.round(H.HV))+' W/K) × '+fmt(H.ti-H.te)+' K Temperaturdifferenz. Ohne Gewinne, ohne Aufheizzuschlag. '+esc(lvTxt(H))+' '+kTxt(H)+' Zum Vergleich: Mit dem Lüftungsanteil aus dem Jahreswert des Modells wären es '+fmt(H.kwJahr,1)+' kW. '+(H.teAnn?'Die Norm-Außentemperatur ist eine Annahme: Wert für den Standort unter Objekt eintragen. ':'')+'Keine Berechnung nach DIN EN 12831 und keine Grundlage für die Geräteauslegung.</p></section>';
 }
 // Vergleich der Wärmequellen: JAZ, Strombedarf und Stromkosten je Variante, bei eingetragener Investition auch die Mehrinvestition
 var WQN={luft:'Luft/Wasser',sole:'Sole/Wasser'};
@@ -2004,7 +2016,7 @@ function srcRows(X){
   else rows.push(['Nutzungsgrad '+Math.round(I.eta*100)+' %','Richtwert für '+(EL[o.tr]||o.tr)+', Anlage '+HA[o.ha]+'. Richtwerte nach Alter der Anlage (vor 1995 / 1995 bis 2005 / 2006 bis 2015 / ab 2016): '+tab+' %. Ein Schätzwert, die tatsächliche Anlage kann abweichen.']);
   rows.push(['Energieeinsatz '+fmt(I.end/1000,1)+' MWh/a','('+fmt(I.qh)+(o.wwArt==='el'?'':' + '+fmt(R.ww,1)+' Warmwasser')+') kWh/m²a × '+r0(wf)+' m² ÷ '+fmt(I.eta,2)+' = '+r0(I.end+I.stSav)+' kWh'+(I.stSav>0?', abzüglich '+r0(I.stSav)+' kWh, die die vorhandene Solarthermie liefert, = '+r0(I.end)+' kWh im Jahr.':' im Jahr.')+(mode==='verbrauch'?(o.kf!==1?' Das ist der eingetragene Verbrauch, witterungsbereinigt.':' Das entspricht dem eingetragenen Verbrauch.'):'')]);
   rows.push(['Heizlastabschätzung '+fmt(I.kw,1)+' kW',fmt(I.qh)+' kWh/m²a × '+r0(wf)+' m² ÷ 1.700 Volllaststunden (Annahme für alle Gebäude gleich). Das ist ein Leistungswert aus der Jahresheizwärme, keine Norm-Heizlast. Diese ergibt erst die Berechnung nach DIN EN 12831, aus ihr darf keine verbindliche Wärmepumpenleistung abgeleitet werden.']);
-  (function(){var P=hlProbe(R);if(P) rows.push(['Gegenprobe Heizlast: '+fmt(P.H.kw,1)+' kW aus den Bauteilen',fmt(Math.round(P.H.HT))+' W/K Bauteile und Wärmebrücken + '+fmt(Math.round(P.H.HV))+' W/K Lüftung = '+fmt(Math.round(P.H.H))+' W/K, mal '+fmt(P.H.ti-P.H.te)+' K (20 °C innen, außen '+P.te+') = '+fmt(P.H.kw,1)+' kW. Ohne Gewinne und Aufheizzuschlag. '+lvTxt(P.H)+' '+(hlExt(R)?hlExt(R).txt+' ':'')+(P.H.verb!=null?'Aus dem Verbrauch: '+fmt(P.H.verb,1)+' kW. ':'')+P.bew])})();
+  (function(){var P=hlProbe(R);if(P) rows.push(['Gegenprobe Heizlast: '+fmt(P.H.kw,1)+' kW aus den Bauteilen',fmt(Math.round(P.H.HT))+' W/K Bauteile und Wärmebrücken + '+fmt(Math.round(P.H.HV))+' W/K Lüftung = '+fmt(Math.round(P.H.H))+' W/K, mal '+fmt(P.H.ti-P.H.te)+' K (20 °C innen, außen '+P.te+') = '+fmt(P.H.kw,1)+' kW. Ohne Gewinne und Aufheizzuschlag. '+kTxt(P.H)+' '+lvTxt(P.H)+' '+(hlExt(R)?hlExt(R).txt+' ':'')+(P.H.verb!=null?'Aus dem Verbrauch: '+fmt(P.H.verb,1)+' kW. ':'')+P.bew])})();
   var anf=I.eA>0?I.end/I.eA/wf:1.2;
   rows.push(['Energieklasse '+I.klasse,r0(I.end)+' kWh ÷ ('+r0(wf)+' m² × '+fmt(anf,2)+' Gebäudenutzfläche) = '+r0(I.eA)+' kWh/m²a, eingeordnet in die Skala des Energieausweises (D: 100 bis unter 130). Orientierung, kein Energieausweis.']);
   rows.push(['Heizkosten '+eur(I.cost)+'/a',r0(I.end)+' kWh × '+fmt(o.pAlt,2)+' €/kWh bisheriger Preis'+(I.wwEl>0?', dazu Warmwasserstrom '+r0(I.wwEl)+' kWh × Haushaltsstrompreis = '+eur(I.wwCost):'')+(I.pvBen>0?', abzüglich Vorteil der vorhandenen PV von '+eur(I.pvBen)+' (Direktstrom-Heizung)':'')+'. Ohne Grundpreis, CO₂-Preisentwicklung und Wartung.']);
@@ -4003,7 +4015,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-16 22:09',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-16 22:22',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

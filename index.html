@@ -679,14 +679,28 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     </div>
     <label for="lwrg" id="lwrgl" hidden>Wärmerückgewinnung, Wirkungsgrad nach Herstellerangabe<select id="lwrg"><option value="0" selected>unbekannt, typischer Wert</option><option value="60">60 %</option><option value="70">70 %</option><option value="75">75 %</option><option value="80">80 %</option><option value="85">85 %</option><option value="90">90 %</option></select></label>
     <span class="hint" id="lvh"></span>
-    <p class="hint"><b>Für die Heizlast-Gegenprobe, alles optional.</b> Ohne Angaben rechnet die App mit einer Annahme nach Baualter und Lüftungsart (Stufe Standard).</p>
+    <p class="hint"><b>Für die Heizlast-Gegenprobe, alles optional.</b> Ohne Angaben: Luftdichtheitsklasse C, normale Abschirmung, Hüllfläche aus den Flächen der App (Stufe Standard).</p>
     <div class="row">
-      <label for="n50">n50-Wert, 1/h (Luftdichtheit)<input id="n50" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="z. B. 3,0"></label>
-      <label for="n50q">Herkunft des n50-Werts<select id="n50q"><option value="" selected>nicht angegeben</option><option value="gem">Blower-Door-Messung</option><option value="schaetz">geschätzt</option></select></label>
+      <label for="ldk">Luftdichtheitsklasse (DIN/TS 12831-1, Tabelle 11)<select id="ldk"><option value="" selected>Standard: C (keine Messung, mittlere Anforderung, 6)</option><option value="A">A: Messung, hohe Anforderung (2)</option><option value="B">B: Messung, mittlere Anforderung (3)</option><option value="C">C: keine Messung, mittlere Anforderung (6)</option><option value="D">D: keine Messung, geringe Anforderung (12)</option><option value="E">E: Wert aus Messung</option></select></label>
+      <label for="abschirm">Abschirmung des Gebäudes<select id="abschirm"><option value="0.03">stark (dichte, ähnlich hohe Bebauung, dichter Baumbestand)</option><option value="0.05" selected>normal (lockere, offene Bebauung)</option><option value="0.07">keine (offene Lage)</option></select></label>
+    </div>
+    <span class="hint">Klasse D nur bei niedrig beheizten Gebäuden, Lagerung oder einem hohen Grad offensichtlicher Undichtigkeiten (Tabelle 11, Fußnote b). Undichte Fensterfugen allein reichen dafür nicht.</span>
+    <div id="lde" hidden>
+      <label for="qenv">q_env,50 aus dem Messprotokoll, m³/(m²h)<input id="qenv" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="z. B. 2,5"></label>
+      <div class="row">
+        <label for="n50">oder n50 aus dem Messprotokoll, 1/h<input id="n50" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="z. B. 3,0"></label>
+        <label for="vn50">Innenvolumen der Messung, m³<input id="vn50" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus dem Protokoll"></label>
+        <label for="aen50">Hüllfläche der Messung, m²<input id="aen50" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="aus dem Protokoll"></label>
+      </div>
+      <span class="hint">n50 wird nur umgerechnet, wenn Volumen und Hüllfläche aus derselben Messung stammen.</span>
+    </div>
+    <div class="row">
+      <label for="zh">Zonenhöhe (tiefster bis höchster beheizter Punkt)<select id="zh"><option value="" selected>nicht angegeben (5 bis 10 m angenommen)</option><option value="5">bis 5 m</option><option value="10">5 bis 10 m</option><option value="20">10 bis 20 m</option><option value="30">über 20 m</option></select></label>
+      <label for="fass">Fassaden der Zone<select id="fass"><option value="mehr" selected>mehr als eine</option><option value="eine">nur eine</option></select></label>
     </div>
     <div class="row">
       <label for="vol">Beheiztes Luftvolumen, m³<input id="vol" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="leer: Wohnfläche × 2,5 m"></label>
-      <label for="abschirm">Abschirmung des Gebäudes<select id="abschirm"><option value="0.03">geschützt (Bebauung, Wald)</option><option value="0.05" selected>mäßig</option><option value="0.07">frei stehend, exponiert</option></select></label>
+      <label for="aenv">Hüllfläche für die Infiltration, m²<input id="aenv" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" placeholder="leer: aus den Flächen der App"></label>
     </div>
     <label for="nzu">Zuluft der Lüftungsanlage, Luftwechsel in 1/h<input id="nzu" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="leer: 0,4 angenommen"></label>
     <label for="hlext">Heizlast nach DIN EN 12831, extern berechnet, kW (Nachweis)<input id="hlext" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="z. B. aus Hottgenroth"></label>
@@ -1273,27 +1287,58 @@ function qhParts(o,u){
 // Transmission (inkl. Wärmebrücken-Pauschale) und Lüftung als Leitwert in W/(m²WF·K), mal (20 °C − Norm-Außentemperatur).
 // Der Lüftungsleitwert ist der Jahreswert QV geteilt durch den Gradtagfaktor, also keine eigene Luftwechselrechnung.
 // Ohne Gewinne, ohne Aufheizzuschlag, ohne Warmwasser. Überschlag, keine Berechnung nach DIN EN 12831.
-// Lüftungswärmeverlust der Gegenprobe, getrennt vom Jahresmodell: HV = 0,34 · n · V in W/K.
-// Infiltration nach dem vereinfachten Verfahren der DIN EN 12831 (Fassung 2003): V̇inf = 2 · V · n50 · e · ε, ε = 1.
-// Gebäudeebene (Gleichzeitigkeit): Infiltration halbiert, Mindestluftwechsel 0,25 1/h für das Gesamtgebäude statt 0,5 1/h je Raum
-// (Standardwert des vereinfachten Verfahrens, nach Jagnow/Wolff, Manuskript Recknagel 2020; die Halbierung der Infiltration ist dort nur angedeutet und bleibt Modellannahme, bis sie am vollständigen Verfahren geprüft ist).
-// Fensterlüftung und Abluft: höherer Wert aus Infiltration und Mindestluftwechsel. Mit Wärmerückgewinnung: Zuluft · (1 − wirksamer Wirkungsgrad) plus Infiltration.
-// Ohne eigene Angaben (Standard) gilt ein n50 nach Baualtersklasse als Orientierung. Alle Standardwerte sind Annahmen, keine Messwerte.
-var N50EST=[7,7,6,4,2.5,1.5];
+// Lüftungswärmeverlust der Gegenprobe nach DIN EN 12831-1:2017 mit DIN/TS 12831-1:2020, vereinfacht auf eine Zone (Gebäude):
+//   V̇inf = q_env,50 · A_env · f_qv (Gl. 28 ohne ALD, f_e = 1). q_env,50 nach Tabelle 11 (Standard Klasse C = 6), f_qv nach Tabelle 13.
+//   A_env: Flächen gegen Außenluft und unbeheizte Bereiche; Bauteile gegen Erdreich entfallen bei Pauschalklassen (4.10.3).
+//   Gebäude: max(V̇inf; 0,5 · 0,5 1/h · V). Vereinfachte Gebäudeabschätzung, nicht identisch mit der raumweisen Summe
+//   Σ max(V̇leak,i; f_i-z · V̇min,i). Am MFH Schönfeld geprüft: raumweise Kette reproduziert Hottgenroth exakt (1.857 W),
+//   diese Gebäudenäherung ergibt bei gleichen Eingaben 1.747 W (−32 W Raumtemperaturen, −78 W Summierung).
+//   Mit Wärmerückgewinnung: Zuluft · (1 − wirksamer Wirkungsgrad) + V̇inf/V. Unausgeglichene Anlagen (f_e) sind nicht abgebildet.
+var LDK={A:2,B:3,C:6,D:12};
+function fqvTab(e,zh,fass){
+  var k=(fass==='eine'||e<=0.03)?'stark':(e>=0.07?'keine':'normal');
+  if(zh>20) return 0.11; if(zh>10) return 0.08;
+  if(zh>5) return k==='keine'?0.07:0.05;
+  return k==='stark'?0.03:(k==='normal'?0.05:0.07);
+}
+function aEnvInf(o){
+  if(+o.aenv>0) return {A:+o.aenv,q:'eingegeben',notes:[]};
+  var AA=AR(o),A=AA.use,m=AA.meas,s=(o.kShare==null)?1:o.kShare,t=o.kArt||'ub',notes=[],k=0,ann=false;
+  if(s>0&&(t==='ub'||t==='kk')) k=A.k*s;
+  if(s>0&&t==='bh'){notes.push('beheizter Keller: Bauteile gegen Erdreich nicht angesetzt');ann=true}
+  if(s<1) notes.push('Bodenplatte gegen Erdreich nicht angesetzt (DIN/TS 12831-1, 4.10.3)');
+  notes.push('angrenzende unbeheizte Gebäudeteile (Garage, Anbau) sind nicht erfasst');
+  var est=!(m.w&&m.f&&m.d&&(k===0||m.k));
+  return {A:A.w+A.f+A.d+k,q:(est||ann)?'angenommen: Flächen der App'+(est?', teilweise aus der Wohnfläche geschätzt':''):'Flächen der App, aufgemessen',notes:notes};
+}
 function lueftHL(o){
-  var V=(+o.vol>0)?+o.vol:o.wf*2.5,vQ=(+o.vol>0)?'eingegeben':'angenommen (Wohnfläche × 2,5 m)';
-  var n50,nQ;
-  if(+o.n50>0){n50=+o.n50;nQ=(o.n50q==='gem')?'gemessen':((o.n50q==='schaetz')?'geschätzt':'eingegeben, Quelle offen')}
-  else{n50=N50EST[o.band]+(+o.fdicht===1?2:0);nQ='angenommen nach Baualter'}
-  var e=(+o.abschirm>0)?+o.abschirm:0.05,ninfR=2*n50*e,ninf=0.5*ninfR,nmin=0.25;
+  var V=(+o.vol>0)?+o.vol:o.wf*2.5,vQ=(+o.vol>0)?'eingegeben':'angenommen: Wohnfläche × 2,5 m';
+  var cls=o.ldk||'',q,qQ,warn=null;
+  if(cls==='E'){
+    if(+o.qenv>0){q=+o.qenv;qQ='Messwert (Klasse E)'}
+    else if(+o.n50>0&&+o.vn50>0&&+o.aen50>0){q=o.n50*o.vn50/o.aen50;qQ='aus n50 · V / A_env der Messung (Klasse E)'}
+    else{q=LDK.C;cls='C';qQ='Klasse C, weil die Messwerte unvollständig sind';warn='Für Klasse E q_env,50 aus dem Messprotokoll eintragen oder n50 zusammen mit Innenvolumen und Hüllfläche der Messung. Ohne diese Angaben rechnet die App mit Klasse C.'}
+  }else if(LDK[cls]){q=LDK[cls];qQ='Klasse '+cls+' nach Tabelle 11, gewählt'}
+  else{cls='C';q=LDK.C;qQ='Klasse C nach Tabelle 11, Standard'}
+  var AE=aEnvInf(o),e=(+o.abschirm>0)?+o.abschirm:0.05,zh=(+o.zh>0)?+o.zh:7.5,zhQ=(+o.zh>0)?'eingegeben':'angenommen',fass=o.fass||'mehr';
+  var fqv=fqvTab(e,zh,fass),Vinf=q*AE.A*fqv,ninf=Vinf/V,nmin=0.25;
   var art=(o.lvor==='ja')?o.lart:'fenster',n,nsu=null,eta=null,nsuQ=null;
   if(art==='dez'||art==='zent'){
     nsu=(+o.nzu>0)?+o.nzu:0.4;nsuQ=(+o.nzu>0)?'eingegeben':'angenommen';
     var et=(+o.lwrg>0)?(+o.lwrg/100):(art==='zent'?0.80:0.70);eta=et*0.85; // bei Auslegungstemperatur geringer wirksam (Annahme)
     n=nsu*(1-eta)+ninf;
   }else n=Math.max(nmin,ninf);
-  var erw=(+o.n50>0)||(+o.vol>0)||(nsuQ==='eingegeben');
-  return {n:n,ninf:ninf,ninfR:ninfR,nmin:nmin,n50:n50,nQ:nQ,e:e,V:V,vQ:vQ,art:art,nsu:nsu,nsuQ:nsuQ,eta:eta,HV:0.34*n*V,stufe:erw?'Erweitert':'Standard'};
+  var erw=!!(o.ldk||+o.vol>0||+o.aenv>0||+o.zh>0||nsuQ==='eingegeben'||o.fass==='eine');
+  return {n:n,ninf:ninf,nmin:nmin,q:q,qQ:qQ,cls:cls,warn:warn,Aenv:AE.A,AenvQ:AE.q,Anotes:AE.notes,e:e,zh:zh,zhQ:zhQ,fass:fass,fqv:fqv,Vinf:Vinf,V:V,vQ:vQ,art:art,nsu:nsu,nsuQ:nsuQ,eta:eta,HV:0.34*n*V,stufe:erw?'Erweitert':'Standard',mfh:o.typ==='mfh'};
+}
+// Bisheriger Ansatz (nur zum Vergleich): V̇inf = n50 · e · V mit n50 nach Baualter, Fassung 2003 auf Gebäudeebene halbiert
+var N50EST=[7,7,6,4,2.5,1.5];
+function lueftHLalt(o){
+  var V=(+o.vol>0)?+o.vol:o.wf*2.5,n50=N50EST[o.band]+(+o.fdicht===1?2:0),e=(+o.abschirm>0)?+o.abschirm:0.05,ninf=n50*e;
+  var art=(o.lvor==='ja')?o.lart:'fenster',n;
+  if(art==='dez'||art==='zent'){var et=(+o.lwrg>0)?(+o.lwrg/100):(art==='zent'?0.80:0.70);n=((+o.nzu>0)?+o.nzu:0.4)*(1-et*0.85)+ninf}
+  else n=Math.max(0.25,ninf);
+  return {HV:0.34*n*V,n:n};
 }
 // Heizlast: Decke zum unbeheizten Keller mit dem Temperaturfaktor bei Auslegung (Kellerluft 10 °C angenommen) statt des Jahresfaktors 0,6.
 // Wärmebrückenzuschlag 0,08 an Bauteilen zu unbeheizten Bereichen mit demselben Temperaturfaktor gewichtet wie das Bauteil.
@@ -1307,7 +1352,8 @@ function hlNorm(o,u){
   var htw=a.w*u.wand,htf=a.f*u.fenster,htd=a.d*u.dach*fxD,htk=kellerTerm(o,u.kst,fd),htb=0.08*(a.w+a.f+a.d*fxD+a.k*fK);
   var htAlt=htw+htf+htd+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k); // bisheriger Ansatz: Jahresfaktor 0,6, Zuschlag ungewichtet
   var ht=htw+htf+htd+htk+htb,hvJahr=(QV[o.band]*lvf(o)+u.leak)/gt,lv=lueftHL(o),hv=lv.HV/o.wf;
-  return {kwAlt:(htAlt+hv)*(ti-te)*o.wf/1000,fd:fd,fK:fK,kellerUb:(s>0&&t==='ub'),fxD:fxD,lv:lv,hvJahr:hvJahr,kwJahr:(ht+hvJahr)*(20-((typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12))*o.wf/1000,ht:ht,hv:hv,HT:ht*o.wf,HV:hv*o.wf,H:(ht+hv)*o.wf,ti:ti,te:te,teAnn:!(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30),kw:(ht+hv)*(ti-te)*o.wf/1000,
+  var lvA=lueftHLalt(o);
+  return {kwInfAlt:(ht+lvA.HV/o.wf)*(ti-te)*o.wf/1000,nAlt:lvA.n,kwAlt:(htAlt+hv)*(ti-te)*o.wf/1000,fd:fd,fK:fK,kellerUb:(s>0&&t==='ub'),fxD:fxD,lv:lv,hvJahr:hvJahr,kwJahr:(ht+hvJahr)*(20-((typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12))*o.wf/1000,ht:ht,hv:hv,HT:ht*o.wf,HV:hv*o.wf,H:(ht+hv)*o.wf,ti:ti,te:te,teAnn:!(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30),kw:(ht+hv)*(ti-te)*o.wf/1000,
     parts:{wand:htw,fenster:htf,dach:htd,keller:htk,wb:htb,lueft:hv}};
 }
 function vlModel(o,qNow,qOrigW,qNowW,fm){
@@ -1656,12 +1702,17 @@ function hlProbe(R){
 function lvTxt(H){
   var L=H.lv,f1=function(x){return fmt(x,2)};
   var art=(L.art==='fenster')?'Fensterlüftung':(L.art==='abluft'?'Abluftanlage':'Lüftungsanlage mit Wärmerückgewinnung');
+  var zhT=L.zh>20?'über 20 m':(L.zh>10?'10 bis 20 m':(L.zh>5?'5 bis 10 m':'bis 5 m'));
   var t='Lüftung ('+art+'): Luftwechsel '+f1(L.n)+' 1/h bei '+fmt(Math.round(L.V))+' m³ ('+L.vQ+') = '+fmt(Math.round(H.HV))+' W/K. ';
-  t+='Infiltration aus n50 '+fmt(L.n50,1)+' 1/h ('+L.nQ+'), Abschirmung '+f1(L.e)+': 2 · n50 · e = '+f1(L.ninfR)+' 1/h je Raum, für das Gebäude halbiert '+f1(L.ninf)+' 1/h (Modellannahme, im Normverfahren nicht bestätigt). ';
-  if(L.nsu!=null) t+='Zuluft '+f1(L.nsu)+' 1/h ('+L.nsuQ+'), wirksame Wärmerückgewinnung '+Math.round(L.eta*100)+' % (Herstellerangabe × 0,85, Annahme). ';
-  else t+='Gerechnet wird mit dem höheren Wert aus Infiltration und Mindestluftwechsel für das Gesamtgebäude 0,25 1/h (je Raum 0,5 1/h, auf Gebäudeebene mit Gleichzeitigkeit). ';
-  if(L.nsu!=null&&L.n50>3) t+='Hinweis: Erhöhte Gebäudeundichtheit kann die energetische Wirksamkeit der Wärmerückgewinnung reduzieren. Luftdichtheit und Luftmengenbilanz prüfen. ';
-  return t+'Stufe: '+L.stufe+'. Angenommene Werte sind keine Messung.';
+  t+='Infiltration nach DIN/TS 12831-1: q_env,50 '+fmt(L.q,1)+' m³/(m²h) ('+L.qQ+') × Hüllfläche '+fmt(Math.round(L.Aenv))+' m² ('+L.AenvQ+') × f_qv '+f1(L.fqv)+' (Tabelle 13; Abschirmung '+(L.e<=0.03?'stark':(L.e>=0.07?'keine':'normal'))+', '+(L.fass==='eine'?'eine Fassade':'mehr als eine Fassade')+', Zonenhöhe '+zhT+', '+L.zhQ+') = '+fmt(Math.round(L.Vinf))+' m³/h, also '+f1(L.ninf)+' 1/h. ';
+  if(L.Anotes&&L.Anotes.length) t+='Hüllfläche: '+L.Anotes.join('; ')+'. ';
+  if(L.nsu!=null) t+='Zuluft '+f1(L.nsu)+' 1/h ('+L.nsuQ+'), wirksame Wärmerückgewinnung '+Math.round(L.eta*100)+' % (Herstellerangabe × 0,85, Annahme), plus Infiltration. ';
+  else t+='Gebäude: höherer Wert aus Infiltration und 0,5 × Mindestluftwechsel 0,5 1/h = 0,25 1/h. Das ist eine vereinfachte Gebäudeabschätzung, nicht die raumweise Summierung der Norm. ';
+  if(L.nsu!=null&&L.q>6) t+='Hinweis: Erhöhte Gebäudeundichtheit kann die energetische Wirksamkeit der Wärmerückgewinnung reduzieren. Luftdichtheit und Luftmengenbilanz prüfen. ';
+  if(L.warn) t+=L.warn+' ';
+  if(L.mfh) t+='Mehrere Nutzungseinheiten: Die Norm rechnet je Wohnung als eigene Lüftungszone, das Ergebnis kann davon abweichen. ';
+  t+='Stufe: '+L.stufe+'. Bisheriger Ansatz (n50 nach Baualter): '+fmt(H.kwInfAlt,1)+' kW.';
+  return t;
 }
 function kTxt(H){
   var t='Wärmebrückenzuschlag 0,08 W/(m²K), an Bauteilen zu unbeheizten Bereichen mit deren Temperaturfaktor gewichtet.';
@@ -1782,7 +1833,7 @@ function read(){
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhMean().m,hhN:hhMean().n,hhMin:hhMean().lo,hhMax:hhMean().hi,hhY:hhMean().y,pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4'),inv5:numG('inv5'),inv6:numG('inv6'),inv7:numG('inv7'),inv8:numG('inv8'),inv9:numG('inv9'),jazM:{luft:num('jazl'),sole:num('jazs')},wartL:numG('wartl'),wartS:numG('warts'),pumpS:numG('pumps'),lebL:numG('lebl'),lebS:numG('lebs'),wq:$('wq').value,
-    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fScen:$('fszen').value,n50:num('n50'),n50q:$('n50q').value,vol:numG('vol'),abschirm:+$('abschirm').value,nzu:num('nzu'),hlext:num('hlext'),tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
+    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fScen:$('fszen').value,n50:num('n50'),ldk:$('ldk').value,qenv:num('qenv'),vn50:numG('vn50'),aen50:numG('aen50'),aenv:numG('aenv'),zh:+$('zh').value||0,fass:$('fass').value,vol:numG('vol'),abschirm:+$('abschirm').value,nzu:num('nzu'),hlext:num('hlext'),tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
     rbOrt:$('rb_ort').value,rbNachb:$('rb_nachb').value,rbPlatz:$('rb_platz').value,rbStrom:$('rb_strom').value,rbTank:$('rb_tank').value,rbNetz:$('rb_netz').value,rbDenk:$('rb_denk').value,rbNote:$('rb_note').value.trim(),
     cvDach:$('cv_dach').checked,cvKeller:$('cv_keller').checked,cvWand:$('cv_wand').checked,cvFen:$('cv_fen').checked,cvHk:$('cv_hk').checked,
     kPa:(function(){var v=parseFloat(String($('k_pa').value).replace(',','.'));return isNaN(v)?4:v})(),kPs:(function(){var v=parseFloat(String($('k_ps').value).replace(',','.'));return isNaN(v)?2:v})(),kWb:numG('k_wb'),kWw:numG('k_ww')
@@ -2489,7 +2540,7 @@ function syncFL(){
     h.textContent=dR>0?'Angesetzt: zusätzlicher Wärmedurchlasswiderstand ca. '+String(dR).replace('.',',')+' m²K/W bei geschlossenem Behang, wirksam in '+Math.round(f*100)+' % der Heizzeit. Der Sommerschutz vor Überhitzung ist nicht Teil dieser Rechnung. Rollladenkästen sind meist Wärmebrücken, das ist nicht eingerechnet.':'';
   }
   var lv=$('lvor').value==='ja',la=$('lart').value;
-  $('lartl').hidden=!lv;$('lwrgl').hidden=!(lv&&(la==='dez'||la==='zent'));
+  $('lartl').hidden=!lv;$('lwrgl').hidden=!(lv&&(la==='dez'||la==='zent'));$('lde').hidden=$('ldk').value!=='E';
   var f2=CALC.lvf(o),t='';
   if(!lv) t='Fensterlüftung: Lüftungsverlust nach Baujahr angesetzt. Mit einer Lüftungsanlage mit Wärmerückgewinnung sinkt er deutlich, Voraussetzung ist eine dichte Gebäudehülle.';
   else if(la==='abluft') t='Abluftanlage ohne Wärmerückgewinnung: Lüftungsverlust pauschal ca. '+Math.round((1-f2)*100)+' % geringer. Sie sichert den Luftwechsel, spart aber kaum Heizenergie.';
@@ -3941,7 +3992,7 @@ function initHome(){
 }
 function init(){
   ['wf','fzve','fsumme','fsumme2','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','inv9','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','fszen','tne','n50','n50q','vol','abschirm','nzu','hlext','wq','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','fszen','tne','n50','ldk','qenv','vn50','aen50','aenv','zh','fass','vol','abschirm','nzu','hlext','wq','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -4015,7 +4066,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-16 22:22',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-16 22:42',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

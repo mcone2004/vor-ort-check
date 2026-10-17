@@ -237,6 +237,47 @@ body[data-ctab="ergebnis"] #bar{display:none!important}
 .hkxbox{display:grid;gap:.8rem}.hkxbox .hint{margin:0}#hkx,#fsx{display:grid;gap:.8rem}
 #hkx .hk-big,#fsx .hk-big{padding:.7rem .9rem;border-left:4px solid var(--green);background:var(--surface);border-radius:.4rem}#hkx .hk-big b,#fsx .hk-big b{font-size:1.15rem}
 #hkx table,#fsx table{width:100%;border-collapse:collapse;font-size:.88rem}#hkx th,#hkx td,#fsx th,#fsx td{padding:.25rem .4rem;border-bottom:1px solid var(--line);text-align:right}#hkx th:first-child,#hkx td:first-child,#fsx th:first-child,#fsx td:first-child{text-align:left}#fsx tr.cur td{background:var(--surface);font-weight:600}#fsx h3{margin:.4rem 0 0;font-size:1rem}#fsx ul{margin:.2rem 0;padding-left:1.1rem}#fsx li{margin:.2rem 0}
+#fsx .fs-res{display:grid;gap:.6rem;padding:1rem 1.1rem;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:6px;background:var(--surface)}
+#fsx .fs-top{display:flex;flex-wrap:wrap;gap:.8rem 2.2rem;align-items:flex-end}
+#fsx .fs-main,#fsx .fs-side{display:grid;gap:.1rem}
+#fsx .fs-lbl{font-size:.82rem;color:var(--muted)}
+#fsx .fs-num{font-family:var(--f-data);font-size:clamp(2rem,6vw,2.7rem);font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:-.01em}
+#fsx .fs-num2{font-family:var(--f-data);font-size:clamp(1.4rem,4vw,1.8rem);font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--text)}
+#fsx .fs-sub{font-size:.8rem;color:var(--muted)}
+#fsx .fs-bar{display:flex;height:.8rem;border-radius:3px;overflow:hidden;background:var(--line)}
+#fsx .fs-bar i{display:block;height:100%}
+#fsx .fs-bar i.g,#fsx .fs-leg i.g{background:var(--green)}
+#fsx .fs-bar i.k,#fsx .fs-leg i.k{background:#B9D98A}
+#fsx .fs-bar i.e,#fsx .fs-leg i.e{background:#3F6B14}
+#fsx .fs-leg{display:flex;flex-wrap:wrap;gap:.2rem 1.1rem;font-size:.78rem;color:var(--muted)}
+#fsx .fs-leg span{display:inline-flex;align-items:center;gap:.35rem}
+#fsx .fs-leg i{display:inline-block;width:.7rem;height:.7rem;border-radius:2px}
+#fsx .fs-leg i.o{background:var(--line)}
+#fsx .fs-ab{margin:0;font-size:.85rem;color:var(--text)}
+#fsx .fs-warn{margin:0;padding:.45rem .7rem;border-left:3px solid #C98A00;background:rgba(201,138,0,.12);font-size:.88rem;color:var(--ink)}
+#fsx .fs-fn{max-width:68ch;margin:0}
+#fsx table th{font-size:.78rem;font-weight:600;color:var(--muted);border-bottom:2px solid var(--line);padding:.4rem .5rem;white-space:normal}
+#fsx table td{padding:.45rem .5rem;font-variant-numeric:tabular-nums}
+#fsx table.fs-base td:last-child,#fsx table.fs-base th:last-child{text-align:left;color:var(--muted);font-size:.8rem}
+#fsx table.fs-base td:nth-child(2),#fsx table.fs-base th:nth-child(2){width:5rem}
+#fsx table.fs-base tr.fs-sum td{font-weight:700;color:var(--ink)}
+#fsx table.fs-base tr.fs-sum td:last-child{font-weight:400;color:var(--muted)}
+#fsx table.fs-base tr:not(.fs-sum)+tr.fs-sum td{border-top:2px solid var(--line)}
+#fsx table.fs-tr tr.vb td:first-child{box-shadow:inset 3px 0 0 #C98A00}
+#fsx table.fs-tr tr.vb td{color:var(--muted)}
+#fsx table.fs-tr tr.vb td.bar span{color:var(--text)}
+#fsx table.fs-tr tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+#fsx table.fs-tr td.bar{background:linear-gradient(90deg,var(--tint) var(--w),transparent var(--w))}
+#fsx table.fs-tr tr.cur td.bar{background:linear-gradient(90deg,#DCEBC2 var(--w),transparent var(--w))}
+#fsx table.fs-tr td.alt{font-style:italic}
+#fsx table.fs-tr td.neg{color:#B3261E}
+:root[data-theme="dark"] #fsx table.fs-tr td.neg{color:#F2998F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #fsx table.fs-tr td.neg{color:#F2998F}}
+#fsx table.fs-ek tr.cur td{background:var(--tint);font-weight:700}
+#fsx details.fs-ank{padding:.5rem .9rem}
+#fsx details.fs-ank>*:not(summary){margin-top:.5rem}
+#fsx details.fs-ank summary{font-size:.92rem}
+@media (max-width:640px){#fsx table.fs-tr th:nth-child(3),#fsx table.fs-tr td:nth-child(3){display:none}}
 #hkx td.bar{width:34%;padding:.25rem .4rem}#hkx td.bar i{display:block;height:.65rem;background:var(--green);border-radius:2px}
 .home{max-width:max(1180px,80vw);margin:0 auto;padding-block:1.6rem 2.4rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));display:grid;gap:1rem;grid-template-columns:minmax(0,1fr)}
 @media (min-width:700px){.home{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -2133,35 +2174,45 @@ function fsRender(o,R){
   var inv=(o.fSumme>0)?o.fSumme:(o.inv1>0?o.inv1:0),ex=!(inv>0);if(ex) inv=28000;
   var T=CALC.kfwTreppe(o,inv),f=T.f,rows=T.rows,c=rows[0],h='',FO=CALC.FOERD,hasEU=rows.some(function(r){return Math.abs(r.eur0-r.eur)>1});
   var ab=o.today?'am '+dmy(o.today):'heute ('+dmy(f.today)+')';
-  h+='<div class="hk-big"><p>'+(f.scen?'<b>Szenario, unverbindlich:</b> ':(f.vorb?'<b>Antrag 2027, unter Vorbehalt:</b> ':''))+'Wärmepumpe für <b>'+eur1(inv)+'</b>'+(ex?' (Beispielsumme, Summe oben eintragen)':'')+', Antrag '+ab+': Zuschuss '+(f.scen?'im Szenario ':(f.vorb?'nach Merkblatt ':''))+'etwa <b>'+eur1(c.eur)+'</b> ('+fmt(c.rate)+' %), Eigenanteil etwa <b>'+eur1(inv-c.eur)+'</b>.'+(f.vorb&&Math.abs(c.eur0-c.eur)>1?' Bei der angekündigten Absenkung der Grundförderung auf 15 % wären es etwa <b>'+eur1(c.eur0)+'</b>.':'')+'</p></div>';
-  if(f.scen) h+='<p class="hint"><b>Vorläufig:</b> Die Grundförderung ab 2027 (15 % plus Wertschöpfungsbonus bei EU-Ursprung) stammt aus Presseberichten. Sie steht weder im KfW-Merkblatt 458 noch auf der BAFA-Seite. Diesen Zuschuss nicht als Förderbedingung nennen.';
-  if(f.scen) h+='</p>';
-  if(f.vorb) h+='<p class="hint"><b>Vorbehalt:</b> Die Stufen bei Klimabonus und förderfähigen Kosten ab 01.02.2027 stehen im KfW-Merkblatt 458 (Stand 09/2026) und sind fest. Die Grundförderung von 30 % steht dort ohne Enddatum. Angekündigt ist ab Q1 2027 eine Absenkung auf 15 % plus 15 % bei EU-Ursprung der Wärmepumpe. Das ist kein Richtlinientext und nicht im Merkblatt, Tag und Bedingungen sind offen. Gegenüber dem Kunden nicht als sicher nennen.</p>';
+  (function(){
+    var sc=(c.sum>0)?c.rate/c.sum:0,pct=function(x){return inv>0?Math.max(0,x*sc*c.cost/100/inv*100):0};
+    var wG=pct(c.basis),wK=pct(c.kgb),wE=pct(c.eink),tag=f.scen?'Szenario, unverbindlich':(f.vorb?'Antrag 2027, unter Vorbehalt':'');
+    h+='<div class="fs-res"><div class="fs-top"><div class="fs-main"><span class="fs-lbl">Zuschuss'+(f.scen?' im Szenario':(f.vorb?' nach Merkblatt':''))+'</span><b class="fs-num">'+eur1(c.eur)+'</b><span class="fs-sub">'+fmt(c.rate)+' % von '+eur1(c.cost)+(inv>c.cost?' förderfähig':'')+'</span></div>'+
+      '<div class="fs-side"><span class="fs-lbl">Eigenanteil</span><b class="fs-num2">'+eur1(inv-c.eur)+'</b><span class="fs-sub">von '+eur1(inv)+(ex?' (Beispielsumme)':'')+'</span></div></div>'+
+      '<div class="fs-bar" role="img" aria-label="Zuschuss '+fmt(c.rate)+' Prozent, Eigenanteil '+fmt(Math.round((inv-c.eur)/inv*100))+' Prozent"><i class="g" style="width:'+wG.toFixed(1)+'%"></i><i class="k" style="width:'+wK.toFixed(1)+'%"></i><i class="e" style="width:'+wE.toFixed(1)+'%"></i></div>'+
+      '<div class="fs-leg"><span><i class="g"></i>Grundförderung '+c.basis+' %</span>'+(c.kgb>0?'<span><i class="k"></i>Klimabonus '+c.kgb+' %</span>':'')+(c.eink>0?'<span><i class="e"></i>Einkommensbonus '+c.eink+' %</span>':'')+'<span><i class="o"></i>Eigenanteil</span></div>'+
+      '<p class="fs-ab">Antrag '+ab+(tag?' · <b>'+tag+'</b>':'')+'</p>'+
+      (f.vorb&&Math.abs(c.eur0-c.eur)>1?'<p class="fs-warn">Bei der angekündigten Absenkung der Grundförderung auf 15 % wären es nur <b>'+eur1(c.eur0)+'</b>.</p>':'')+'</div>';
+  })();
+  if(f.scen) h+='<p class="hint"><b>Vorläufig:</b> Die Grundförderung ab 2027 (15 % plus Wertschöpfungsbonus bei EU-Ursprung) stammt aus Presseberichten. Sie steht weder im KfW-Merkblatt 458 noch auf der BAFA-Seite. Diesen Zuschuss nicht als Förderbedingung nennen.</p>';
+  if(f.vorb) h+='<p class="hint fs-fn"><b>Vorbehalt:</b> Die Stufen bei Klimabonus und förderfähigen Kosten ab 01.02.2027 stehen im KfW-Merkblatt 458 (Stand 09/2026) und sind fest. Die Grundförderung von 30 % steht dort ohne Enddatum. Angekündigt ist ab Q1 2027 eine Absenkung auf 15 % plus 15 % bei EU-Ursprung der Wärmepumpe. Das ist kein Richtlinientext und nicht im Merkblatt, Tag und Bedingungen sind offen. Gegenüber dem Kunden nicht als sicher nennen.</p>';
   // Aufbau des Satzes
   var kgTxt=!f.selbst?'nur für selbstnutzende Eigentümer':(f.kgbOk?'alte Heizung berechtigt ('+(o.fKgb==='ja'?'von dir bestätigt':TRN[o.tr])+')':'alte Heizung nicht berechtigt oder nicht geprüft');
   var inTxt=!f.selbst?'nur für selbstnutzende Eigentümer':(f.einkOffen?'Einkommen nicht angegeben, nicht eingerechnet':'zvE '+fmt(+o.fZve>0?o.fZve:({30:30000,40:40000,50:50000,60:60000,99:60001}[o.fEink]||0))+' €'+(o.fKind==='ja'?', minus 10.000 € wegen Kind = '+fmt(f.eff*1000)+' €':'')+(+o.fZve>0?'':' (Obergrenze der Gruppe)'));
   var bsTxt=f.scen?'15 %'+(o.fHerk==='nein'?', ohne EU-Ursprung kein Wertschöpfungsbonus':' + 15 % Wertschöpfungsbonus (EU-Ursprung)')+', vorläufig (Presseberichte, nicht amtlich bestätigt)':(f.vorb?'30 % laut Merkblatt 458 (Stand 09/2026); Absenkung auf 15 % ab Q1 2027 angekündigt, nicht bestätigt':'30 % laut Merkblatt 458 (Stand 09/2026)');
-  if(!f.unb) h+='<table><thead><tr><th>Baustein</th><th>Satz</th><th>Grundlage</th></tr></thead><tbody>'+
+  if(!f.unb) h+='<table class="fs-base"><thead><tr><th>Baustein</th><th>Satz</th><th>Grundlage</th></tr></thead><tbody>'+
     '<tr><td>Grundförderung</td><td>'+c.basis+' %</td><td>'+esc(bsTxt)+'</td></tr>'+
     '<tr><td>Klimageschwindigkeitsbonus</td><td>'+c.kgb+' %</td><td>'+esc(kgTxt)+'</td></tr>'+
     '<tr><td>Einkommensbonus</td><td>'+c.eink+' %</td><td>'+esc(inTxt)+'</td></tr>'+
-    '<tr><td><b>Summe</b></td><td><b>'+c.sum+' %</b></td><td>Deckel '+c.max+' % ('+(c.max===80?'zvE bis 30.000 €':'sonst 70 %')+')</td></tr>'+
-    '<tr><td><b>Satz</b></td><td><b>'+fmt(c.rate)+' %</b></td><td>auf förderfähige Kosten bis '+fmt(c.kosten)+' €'+(inv>c.kosten?', die übrigen '+fmt(inv-c.kosten)+' € bleiben ohne Förderung':'')+'</td></tr></tbody></table>';
+    '<tr class="fs-sum"><td>Summe</td><td>'+c.sum+' %</td><td>'+(c.sum>c.max?'gedeckelt auf '+c.max+' % ('+(c.max===80?'zvE bis 30.000 €':'Obergrenze, bei zvE bis 30.000 € 80 %')+')':'Obergrenze '+c.max+' % ('+(c.max===80?'zvE bis 30.000 €':'bei zvE bis 30.000 € 80 %')+') nicht erreicht')+'</td></tr>'+
+    '<tr class="fs-sum"><td>Satz</td><td>'+fmt(c.rate)+' %</td><td>auf förderfähige Kosten bis '+fmt(c.kosten)+' €'+(inv>c.kosten?', die übrigen '+fmt(inv-c.kosten)+' € bleiben ohne Förderung':'')+'</td></tr></tbody></table>';
   if(!f.ok) h+='<p class="hint">Eigentümerstatus nicht abgefragt: Es ist nur die Grundförderung gerechnet.</p>';
   h+=(f.notes||[]).map(function(n){return '<p class="hint">'+esc(n)+'</p>'}).join('');
   // Klimatreppe
   var show=rows.filter(function(r,i){return i===0||r.ab<'2029-02-01'});
   var lastR=rows[rows.length-1];if(show.indexOf(lastR)<0) show.push(lastR);
-  h+='<h3>Klimatreppe: Zuschuss je nach Zeitpunkt des Antrags</h3><table><thead><tr><th>Antrag</th><th>Satz</th><th>förderfähig bis</th><th>Zuschuss</th>'+(hasEU?'<th>'+(f.scen?'ohne EU-Ursprung':'bei Absenkung auf 15 %')+'</th>':'')+'<th>gegen heute</th></tr></thead><tbody>'+show.map(function(r){
+  var maxEur=Math.max.apply(null,rows.map(function(r){return Math.max(r.eur,r.eur0)}))||1;
+  h+='<h3>Klimatreppe: Zuschuss je nach Zeitpunkt des Antrags</h3><table class="fs-tr"><thead><tr><th>Antrag</th><th>Satz</th><th>förderfähig bis</th><th>Zuschuss</th>'+(hasEU?'<th>'+(f.scen?'ohne EU-Ursprung':'bei Absenkung auf 15 %')+'</th>':'')+'<th>gegen heute</th></tr></thead><tbody>'+show.map(function(r){
     var lab=(r===lastR&&r.bis==null)?'ab '+dmy(r.ab):(r.cur?'heute bis '+dmy(r.bis):dmy(r.ab)+' bis '+dmy(r.bis));
     if(show.indexOf(r)===show.length-1&&r.bis==null) lab='ab '+dmy(r.ab);
     var d=r.eur-c.eur;if(r.ab>=FO.wp27.ab) lab+=' *';
-    return '<tr'+(r.cur?' class="cur"':'')+'><td>'+lab+'</td><td>'+fmt(r.rate)+' %</td><td>'+fmt(r.kosten)+' €</td><td>'+eur1(r.eur)+'</td>'+(hasEU?'<td>'+eur1(r.eur0)+'</td>':'')+'<td>'+(r.cur?'–':(d>=0?'+':'−')+eur1(Math.abs(d)))+'</td></tr>';
+    return '<tr class="'+(r.cur?'cur ':'')+(r.vorb?'vb':'')+'"><td>'+lab+'</td><td>'+fmt(r.rate)+' %</td><td>'+fmt(r.kosten)+' €</td><td class="bar" style="--w:'+(r.eur/maxEur*100).toFixed(0)+'%"><span>'+eur1(r.eur)+'</span></td>'+(hasEU?'<td class="alt">'+eur1(r.eur0)+'</td>':'')+'<td class="'+(d<-0.5?'neg':'')+'">'+(r.cur?'–':(d>=0?'+':'−')+eur1(Math.abs(d)))+'</td></tr>';
   }).join('')+'</tbody></table>';
-  h+='<p class="hint">Zwischen 01.02.2029 und 01.08.2030 sinken die förderfähigen Kosten alle sechs Monate um 750 € auf 22.000 €, der Klimabonus entfällt ab 01.08.2028. Maßgeblich ist der Tag der Antragstellung bei der KfW, nicht der Einbau. * Zeilen ab 01.01.2027: '+(f.scen?'Gerechnet ist das Szenario nach Presseberichten (15 % plus Bonus bei EU-Ursprung), nicht amtlich bestätigt.':'Kosten und Klimabonus stehen im Merkblatt. Der Satz rechnet mit 30 % Grundförderung unter Vorbehalt, die Spalte „bei Absenkung“ zeigt den Zuschuss mit den angekündigten 15 % (ohne EU-Ursprung), nicht amtlich bestätigt.')+' Der Stichtag 01.01.2027 für die Absenkung ist angenommen, die Quellen nennen nur das Quartal.</p>';
+  h+='<p class="hint fs-fn">Zwischen 01.02.2029 und 01.08.2030 sinken die förderfähigen Kosten alle sechs Monate um 750 € auf 22.000 €, der Klimabonus entfällt ab 01.08.2028. Maßgeblich ist der Tag der Antragstellung bei der KfW, nicht der Einbau.</p><p class="hint fs-fn">* Zeilen ab 01.01.2027: '+(f.scen?'Gerechnet ist das Szenario nach Presseberichten (15 % plus Bonus bei EU-Ursprung), nicht amtlich bestätigt.':'Kosten und Klimabonus stehen im Merkblatt. Der Satz rechnet mit 30 % Grundförderung unter Vorbehalt, die Spalte „bei Absenkung“ zeigt den Zuschuss mit den angekündigten 15 % (ohne EU-Ursprung), nicht amtlich bestätigt.')+' Der Stichtag 01.01.2027 für die Absenkung ist angenommen, die Quellen nennen nur das Quartal.</p>';
   // Einkommen
   var o2=Object.assign({},o,{fSelbst:'ja'}),ET=CALC.kfwEinkTab(o2,inv);
-  if(!f.unb) h+='<h3>Zuschuss je Einkommen, Antrag '+(o.today?'am '+dmy(o.today):'heute')+', selbstnutzend'+(o.fKind==='ja'?', mit Kind':'')+'</h3><table><thead><tr><th>zu versteuerndes Einkommen</th><th>Einkommensbonus</th><th>Satz</th><th>Zuschuss</th></tr></thead><tbody>'+ET.map(function(e){return '<tr><td>'+e.label+'</td><td>'+e.eink+' %</td><td>'+fmt(e.rate)+' %</td><td>'+eur1(e.eur)+'</td></tr>'}).join('')+'</tbody></table>';
+  var gi=(f.einkOffen||!f.selbst||f.eff==null)?-1:(f.eff<=30?0:(f.eff<=40?1:(f.eff<=50?2:3)));
+  if(!f.unb) h+='<h3>Zuschuss je Einkommen, Antrag '+(o.today?'am '+dmy(o.today):'heute')+', selbstnutzend'+(o.fKind==='ja'?', mit Kind':'')+'</h3><table class="fs-ek"><thead><tr><th>zu versteuerndes Einkommen</th><th>Einkommensbonus</th><th>Satz</th><th>Zuschuss</th></tr></thead><tbody>'+ET.map(function(e,ix){return '<tr'+(ix===gi?' class="cur"':'')+'><td>'+e.label+(ix===gi?' (dein Fall)':'')+'</td><td>'+e.eink+' %</td><td>'+fmt(e.rate)+' %</td><td>'+eur1(e.eur)+'</td></tr>'}).join('')+'</tbody></table>';
   // Hülle
   if(o.fSumme2>0){
     var ob=Object.assign({},o,{fSelbst:o.fSelbst||'nein'}),b=CALC.bafaFoerd(ob,o.fSumme2);
@@ -2169,7 +2220,7 @@ function fsRender(o,R){
   }
   // Änderungen
   var up=FO.termine.filter(function(t){return t[0]>=f.today});
-  if(up.length) h+='<h3>Was sich laut Ankündigung noch ändert</h3><p class="hint">Nicht amtlich bestätigt: Die Punkte stammen überwiegend aus Presseberichten und stehen nicht im Merkblatt oder auf der BAFA-Seite. Vor einer Aussage zum Kunden prüfen.</p><ul>'+up.map(function(t){return '<li><b>'+esc(t[1])+':</b> '+esc(t[2])+'</li>'}).join('')+'</ul>';
+  if(up.length) h+='<details open class="fs-ank"><summary>Was sich laut Ankündigung noch ändert ('+up.length+')</summary><p class="hint">Nicht amtlich bestätigt: Die Punkte stammen überwiegend aus Presseberichten und stehen nicht im Merkblatt oder auf der BAFA-Seite. Vor einer Aussage zum Kunden prüfen.</p><ul>'+up.map(function(t){return '<li><b>'+esc(t[1])+':</b> '+esc(t[2])+'</li>'}).join('')+'</ul></details>';
   h+='<p class="hint">Stand der Regeln in der App: '+FO.stand+'. Grundlage sind die BEG-Richtlinie vom 17.07.2026 und das KfW-Merkblatt 458, ausgewertet über Zusammenfassungen (Ökozentrum NRW, ADAC, Fachportale). Die Richtlinientexte selbst sind nicht geprüft. Annahmen: Boni nur auf die Kosten der selbstgenutzten Wohneinheit; ein Kind im Haushalt hebt die Einkommensgrenzen einmalig um 10.000 € an (eine Quelle nennt je Kind); Einzelhaus mit einer Wohneinheit. Verbindlich sind nur Zusage und Bescheid. Die Regeln ändern sich, vor einer Zusage an den Kunden bei der KfW prüfen.</p>';
   if(h!==box._h){box._h=h;box.innerHTML=h}
 }
@@ -4064,7 +4115,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-17 07:04',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-17 16:51',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

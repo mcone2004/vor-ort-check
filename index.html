@@ -238,7 +238,7 @@ body[data-ctab="ergebnis"] #bar{display:none!important}
 #hkx .hk-big,#fsx .hk-big{padding:.7rem .9rem;border-left:4px solid var(--green);background:var(--surface);border-radius:.4rem}#hkx .hk-big b,#fsx .hk-big b{font-size:1.15rem}
 #hkx table,#fsx table{width:100%;border-collapse:collapse;font-size:.88rem}#hkx th,#hkx td,#fsx th,#fsx td{padding:.25rem .4rem;border-bottom:1px solid var(--line);text-align:right}#hkx th:first-child,#hkx td:first-child,#fsx th:first-child,#fsx td:first-child{text-align:left}#fsx tr.cur td{background:var(--surface);font-weight:600}label.calc{color:var(--ink)}
 label.calc>input,label.calc>select,label.calc>textarea,.calcf{border-left:4px solid var(--green)}
-.calc-leg{margin:0 0 .6rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted)}
+.calc-leg[hidden]{display:none}.calc-leg{margin:0 0 .6rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted)}
 .calc-key{flex:none;width:1.6rem;height:1.1rem;border:1px solid var(--line);border-left:4px solid var(--green);border-radius:4px;background:var(--bg)}
 #fsx h3{margin:.4rem 0 0;font-size:1rem}#fsx ul{margin:.2rem 0;padding-left:1.1rem}#fsx li{margin:.2rem 0}
 #fsx .fs-res{display:grid;gap:.6rem;padding:1rem 1.1rem;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:6px;background:var(--surface)}
@@ -366,7 +366,7 @@ body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{d
 
 
 /* Datenqualität und Eignung offen */
-.verdict.r0{background:var(--surface);color:var(--ink);border:2px dashed var(--muted)}.verdict.r0 h2{color:var(--ink)}
+.verdict.r0{--vbg:var(--surface);--vfg:var(--ink);background:var(--surface);color:var(--ink);border:2px dashed var(--muted)}.verdict.r0 h2{color:var(--ink)}
 .mbar.r0{background:var(--surface);color:var(--ink);border-top:2px dashed var(--muted)}
 .sc.r0{border-top:4px dashed var(--muted)}
 .dq h2{display:flex;align-items:center;gap:.55rem}.dqd{flex:none;width:.9rem;height:.9rem;border-radius:50%;border:1px solid rgba(0,0,0,.3)}.dqd.dq-g{background:#5E8F16}.dqd.dq-y{background:#E0A030}.dqd.dq-r{background:#B03A2E}
@@ -3964,6 +3964,7 @@ function setTab(id,noScroll){
   for(var i=0;i<els.length;i++) els[i].classList.toggle('ctab-on',all||els[i].getAttribute('data-tab')===id);
   var bs=document.querySelectorAll('#ctabs button');
   for(var j=0;j<bs.length;j++) bs[j].setAttribute('aria-current',String(bs[j].getAttribute('data-t')===id));
+  var cl=$('calcleg');if(cl) cl.hidden=!document.querySelector('form>.ctab-on label.calc,form>.ctab-on .calcf');
   var L=tabList().map(function(t){return t[0]}),ix=L.indexOf(id);
   var pv=$('ctab_prev'),nx=$('ctab_next');
   if(pv) pv.hidden=all||ix<=0;
@@ -4129,7 +4130,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-17 17:04',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-17 17:17',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

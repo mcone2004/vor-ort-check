@@ -824,7 +824,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
   </fieldset>
 
   <fieldset class="only-check hkxbox" data-tab="fsatz"><legend>Förderrechner</legend>
-    <p class="hint">Zuschuss für die Wärmepumpe (KfW 458) nach den Konditionen ab 21.07.2026, mit Klimatreppe. Für 2027 sind Änderungen angekündigt, die nur aus Presseberichten bekannt und nicht amtlich bestätigt sind (als vorläufig markiert). Der Satz richtet sich automatisch nach dem heutigen Datum. Die Regeln selbst sind in der App hinterlegt, Stand siehe unten.</p>
+    <p class="hint">Zuschuss für die Wärmepumpe (KfW 458) nach den Konditionen ab 21.07.2026, mit Klimatreppe. Die Stufen von Klimabonus und förderfähigen Kosten ab 01.02.2027 stehen im Merkblatt und sind fest. Die Absenkung der Grundförderung ab Q1 2027 ist nur angekündigt, nicht amtlich bestätigt (Zeilen ab 2027 sind als Vorbehalt markiert). Der Satz richtet sich automatisch nach dem heutigen Datum. Die Regeln selbst sind in der App hinterlegt, Stand siehe unten.</p>
     <div class="row">
       <label for="f_selbst">Eigentümer, selbstnutzend<select id="f_selbst"><option value="" selected>nicht abgefragt</option><option value="ja">ja</option><option value="nein">nein, vermietet oder andere</option></select></label>
       <label for="f_kind">Minderjähriges Kind im Haushalt<select id="f_kind"><option value="nein" selected>nein</option><option value="ja">ja</option></select></label>
@@ -847,7 +847,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
       <label for="fdatum">Antragsdatum, leer = heute<input id="fdatum" type="date"></label>
     </div>
     <div class="row">
-      <label for="fszen">Anträge ab 2027 als unverbindliches Szenario rechnen<select id="fszen"><option value="nein" selected>nein, kein Zuschuss ausweisen</option><option value="ja">ja, Szenario nach Presseberichten</option></select></label>
+      <label for="fszen">Anträge ab 2027: angekündigte Absenkung der Grundförderung<select id="fszen"><option value="nein" selected>nicht rechnen, Merkblatt mit Vorbehalt (30 %)</option><option value="ja">als Szenario rechnen (15 % plus Bonus bei EU-Ursprung)</option></select></label>
     </div>
     <div id="fsx" aria-live="polite"></div>
   </fieldset>
@@ -1430,7 +1430,7 @@ function solar(o,S,ist,q,hhV){
 // BAFA BEG EM (Hülle, Heizungsoptimierung): 15 %, mit iSFP 5 % zusätzlich auf den Teil über 30.000 €. Verbindlich sind nur Zusage und Bescheid.
 var FOERD={stand:'16.10.2026',quelle:'KfW-Merkblatt 458 (Stand 09/2026, gültig ab 24.09.2026) und BAFA-Seite zur Gebäudehülle, abgerufen am 16.10.2026',
   wp27:{ab:'2027-01-01',basis:15,wsb:15},
-  termine:[['2027-03-31','Q1 2027, Tag nicht genannt','Grundförderung für Wärmepumpen sinkt von 30 auf 15 %. Wärmepumpen mit Ursprung in der EU erhalten 15 % Wertschöpfungsbonus und liegen damit wieder bei 30 %. Was „Ursprung in der EU“ genau heißt, ist noch offen.'],['2027-03-31','Q1 2027, Tag nicht genannt','Kein Anspruch mehr beim Wechsel von Fernwärme auf eine andere erneuerbare Heizung. Ersatz erneuerbarer Heizungen ab Baujahr 2008 wird nicht mehr gefördert, bei älteren gelten pauschal 25 % der Ausgaben als förderfähig.'],['2027-03-31','BAFA, Q1 2027, Tag nicht genannt','Neuer WPB-Bonus von 5 % für Dämmmaßnahmen der Hülle (nicht Fenster), nur bei Energiebedarf ab 300 kWh/(m²a) oder Klasse H, Berechnung höchstens ein Jahr alt.'],['2027-07-01','01.07.2027','Wärmepumpen: Schnittstelle nach § 14a EnWG und Beauftragung eines intelligenten Messsystems, falls nicht vorhanden.'],['2028-01-01','01.01.2028','Wärmepumpen: natürliches Kältemittel ist Pflicht.']],
+  termine:[['2027-03-31','Q1 2027, Tag nicht genannt','Grundförderung für Wärmepumpen sinkt von 30 auf 15 %. Wärmepumpen mit Ursprung in der EU erhalten 15 % Wertschöpfungsbonus und liegen damit wieder bei 30 %. Was „Ursprung in der EU“ genau heißt, ist noch offen.'],['2027-03-31','Q1 2027, Tag nicht genannt','Kein Anspruch mehr beim Wechsel von Fernwärme auf eine andere erneuerbare Heizung. Ersatz erneuerbarer Heizungen ab Baujahr 2008 wird nicht mehr gefördert, bei älteren gelten pauschal 25 % der Ausgaben als förderfähig (laut FAQ nur geplant, die Angaben dazu widersprechen sich).'],['2027-03-31','BAFA, Q1 2027, Tag nicht genannt','Neuer WPB-Bonus von 5 % für Dämmmaßnahmen der Hülle (nicht Fenster), nur bei Energiebedarf ab 300 kWh/(m²a) oder Klasse H, Berechnung höchstens ein Jahr alt.'],['2027-07-01','01.07.2027','Wärmepumpen: Schnittstelle nach § 14a EnWG und Beauftragung eines intelligenten Messsystems, falls nicht vorhanden.'],['2028-01-01','01.01.2028','Wärmepumpen: natürliches Kältemittel ist Pflicht.']],
   kfw:[['2026-07-21',28000,16],['2027-02-01',27250,12],['2027-08-01',26500,8],['2028-02-01',25750,4],['2028-08-01',25000,0],['2029-02-01',24250,0],['2029-08-01',23500,0],['2030-02-01',22750,0],['2030-08-01',22000,0]],
   basis:30,
   eink:[[30,40],[40,30],[50,10]], // Obergrenze in 1.000 €, Bonus in %; darüber kein Bonus
@@ -1451,12 +1451,13 @@ function wpBasis(today,herk){var w=FOERD.wp27;return today>=w.ab?w.basis+(herk==
 function dayBefore(s){var t=new Date(s+'T00:00:00Z');t.setUTCDate(t.getUTCDate()-1);return t.toISOString().slice(0,10)}
 // Satz zum Antragsdatum: f trägt die vom Datum unabhängigen Angaben (alte Heizung, Einkommensbonus, Deckel)
 function kfwRate(o,today,f){
-  var st=kfwStufe(today),r={stufe:st,basis:wpBasis(today,o.fHerk),kgb:0,eink:0,max:f.max};
+  // Grundförderung: laut Merkblatt 458 (Stand 09/2026) 30 %. Die Absenkung auf 15 % (plus Wertschöpfungsbonus) ab Q1 2027 ist nur angekündigt:
+  // Sie wird nur im ausdrücklich gewählten Szenario gerechnet, sonst gilt das Merkblatt mit Vorbehalt (r.vorb).
+  var late=(today>=FOERD.wp27.ab),scen=(late&&o.fScen==='ja');
+  var st=kfwStufe(today),r={stufe:st,basis:scen?wpBasis(today,o.fHerk):FOERD.basis,kgb:0,eink:0,max:f.max,scen:scen,vorb:(late&&!scen)};
   if(f.selbst){r.kgb=f.kgbOk?st.kgb:0;r.eink=f.eink}
   r.sum=r.basis+r.kgb+r.eink;r.rate=Math.min(r.max,r.sum);
-  // Ab 2027 sind die Konditionen nicht amtlich bestätigt: ohne ausdrückliche Wahl des Szenarios kein Satz und kein Zuschuss
-  r.unb=(today>=FOERD.wp27.ab&&o.fScen!=='ja');
-  if(r.unb) r.rate=0;
+  r.unb=false;
   return r;
 }
 function foerdBasis(o){
@@ -1479,7 +1480,7 @@ function foerdBasis(o){
     }
   }
   var r=kfwRate(o,today,f);
-  f.stufe=r.stufe;f.basis=r.basis;f.kgb=r.kgb;f.rate=r.rate;f.sum=r.sum;f.unb=r.unb;f.scen=(f.spaet&&o.fScen==='ja');
+  f.stufe=r.stufe;f.basis=r.basis;f.kgb=r.kgb;f.rate=r.rate;f.sum=r.sum;f.unb=false;f.vorb=r.vorb;f.scen=r.scen;
   return f;
 }
 // Klimatreppe: Satz und Zuschuss für die Summe sum je Antragsstufe, ab der Stufe, die heute gilt
@@ -1489,8 +1490,8 @@ function kfwTreppe(o,sum){
   var cur=0;ds.forEach(function(d,i){if(f.today>=d) cur=i});
   var rows=[];
   for(var i=cur;i<ds.length;i++){
-    var r=kfwRate(o,ds[i],f),cost=Math.min(sum,r.stufe.kosten),r0=kfwRate(Object.assign({},o,{fHerk:'nein'}),ds[i],f);
-    rows.push({unb:r.unb,eur0:cost*r0.rate/100,rate0:r0.rate,ab:ds[i],bis:ds[i+1]?dayBefore(ds[i+1]):null,cur:i===cur,basis:r.basis,kgb:r.kgb,eink:r.eink,sum:r.sum,max:r.max,rate:r.rate,kosten:r.stufe.kosten,cost:cost,eur:cost*r.rate/100});
+    var r=kfwRate(o,ds[i],f),cost=Math.min(sum,r.stufe.kosten),r0=kfwRate(Object.assign({},o,{fHerk:'nein',fScen:'ja'}),ds[i],f);
+    rows.push({unb:false,vorb:r.vorb,eur0:cost*r0.rate/100,rate0:r0.rate,ab:ds[i],bis:ds[i+1]?dayBefore(ds[i+1]):null,cur:i===cur,basis:r.basis,kgb:r.kgb,eink:r.eink,sum:r.sum,max:r.max,rate:r.rate,kosten:r.stufe.kosten,cost:cost,eur:cost*r.rate/100});
   }
   return {rows:rows,f:f};
 }
@@ -1500,9 +1501,8 @@ function kfwEinkTab(o,sum){
   var st=kfwStufe(f.today),cost=Math.min(sum,st.kosten);
   [[30,'bis '+fmtN(30+sh)+' €'],[40,fmtN(30+sh+0.001)+' bis '+fmtN(40+sh)+' €'],[50,fmtN(40+sh+0.001)+' bis '+fmtN(50+sh)+' €'],[999,'über '+fmtN(50+sh)+' €']].forEach(function(g,i){
     var e=0,eff=g[0];FOERD.eink.forEach(function(r){if(eff<=r[0]&&e===0) e=r[1]});
-    var kg=f.kgbOk?st.kgb:0,mx=(eff<=30)?80:70,b=wpBasis(f.today,o.fHerk),rate=Math.min(mx,b+kg+e);
-    if(f.unb) rate=0;
-    out.push({label:g[1],eink:e,rate:rate,eur:cost*rate/100,unb:f.unb});
+    var kg=f.kgbOk?st.kgb:0,mx=(eff<=30)?80:70,b=f.scen?wpBasis(f.today,o.fHerk):FOERD.basis,rate=Math.min(mx,b+kg+e);
+    out.push({label:g[1],eink:e,rate:rate,eur:cost*rate/100,unb:false});
   });
   return out;
 }
@@ -1510,9 +1510,9 @@ function fmtN(k){var v=Math.round(k*1000);return String(v).replace(/\B(?=(\d{3})
 // KfW 458 für die Wärmepumpe: Kosten bis zur Grenze der ersten Wohneinheit
 function kfwFoerd(o,inv){
   var f=foerdBasis(o);
-  if(!f.ok||f.mfh||f.netz||!(inv>0)||f.unb) return {eur:0,rate:f.rate,cost:0,f:f,unb:f.unb};
+  if(!f.ok||f.mfh||f.netz||!(inv>0)) return {eur:0,rate:f.rate,cost:0,f:f,unb:false,vorb:f.vorb};
   var cost=Math.min(inv,f.stufe.kosten);
-  return {eur:cost*f.rate/100,rate:f.rate,cost:cost,f:f};
+  return {eur:cost*f.rate/100,rate:f.rate,cost:cost,f:f,vorb:f.vorb};
 }
 // BAFA für Hülle oder Heizungsoptimierung
 function bafaFoerd(o,inv){
@@ -1741,7 +1741,7 @@ function wqVergleich(o,R){
   var inv=null;
   if(o.inv1>0&&o.inv9>0){
     var kl=CALC.kfwFoerd(o,o.inv1),ks=CALC.kfwFoerd(o,o.inv9),mehr=o.inv9-o.inv1,mehrN=(o.inv9-ks.eur)-(o.inv1-kl.eur);
-    inv={mehr:mehr,mehrN:mehrN,unb:kl.unb,gleichFoerd:Math.abs(ks.eur-kl.eur)<1,nl:o.inv1-kl.eur,ns:o.inv9-ks.eur};
+    inv={mehr:mehr,mehrN:mehrN,unb:false,vorb:!!kl.vorb,gleichFoerd:Math.abs(ks.eur-kl.eur)<1,nl:o.inv1-kl.eur,ns:o.inv9-ks.eur};
     if(o.lebL>0&&o.lebS>0){
       inv.jkL=inv.nl/o.lebL+rows[0].cl+wl;
       inv.jkS=inv.ns/o.lebS+rows[0].cs+ws+pump;
@@ -1753,7 +1753,7 @@ function wqNotes(o,V){
   var n=['Die Jahresarbeitszahl ist, soweit nicht eingegeben, eine Schätzung. Grundlage ist der nötige Vorlauf. Für Luft/Wasser liegt der Mittelwert eines Feldtests im Bestand bei 3,4, für Sole/Wasser bei 4,3 (Fraunhofer ISE, 77 Anlagen, davon nur 16 Sole). Das sind Mittelwerte unterschiedlicher Anlagen und Gebäude, kein nachgewiesener Unterschied bei gleichen Bedingungen. Der Aufschlag für Sole/Wasser nimmt mit steigendem Vorlauf ab, dieser Verlauf ist eine Annahme.',
     'Nicht einzeln abgebildet sind Klimaregion, Warmwasser, Heizstab und Hilfsstrom. Sie stecken nur im Mittelwert.',
     'Ob Sole/Wasser am Grundstück möglich ist (Platz für Kollektor oder Sonde, Genehmigung, Bohrung), ist hier nicht beurteilt.'];
-  if(V&&V.inv) n.push(V.inv.unb?'Förderung ist wegen des Antragsdatums 2027 nicht angesetzt.':(V.inv.gleichFoerd?'Beide Wärmequellen erhalten denselben Zuschuss, weil die förderfähigen Kosten gedeckelt sind. Einen Effizienzbonus für Wärmepumpen gibt es nach den hinterlegten Konditionen ab 21.07.2026 nicht mehr.':'Der Zuschuss unterscheidet sich nur wegen der Kostenobergrenze.'));
+  if(V&&V.inv) n.push((V.inv.vorb?'Antrag 2027: Der Zuschuss ist nach dem Merkblatt gerechnet, unter Vorbehalt (angekündigte Absenkung der Grundförderung). ':'')+(V.inv.gleichFoerd?'Beide Wärmequellen erhalten denselben Zuschuss, weil die förderfähigen Kosten gedeckelt sind. Einen Effizienzbonus für Wärmepumpen gibt es nach den hinterlegten Konditionen ab 21.07.2026 nicht mehr.':'Der Zuschuss unterscheidet sich nur wegen der Kostenobergrenze.'));
   if(V&&!V.extra) n.push('Wartung, Quellenpumpe und Nutzungsdauer sind nicht eingerechnet. Sie lassen sich unter „Preise und Investitionen“ eintragen.');
   return n;
 }
@@ -1909,7 +1909,7 @@ function foerdLines(o,F){
   }
   var inv=[[F.v[1],'V2'],[F.v[2],'V3'],[F.v[3],'V4'],[F.cv,'Eigene Variante']].filter(function(x){return x[0]&&x[0].inv>0&&x[0].fund>0}).map(function(x){return x[1]+' etwa '+r0(x[0].fund)+' €'});
   out.push('Hülle und Heizkörpertausch (BAFA): 15 %'+(o.fIsfp==='ja'?' plus 5 % iSFP-Bonus auf den Teil über 30.000 €':'')+' auf förderfähige Kosten bis '+(o.fIsfp==='ja'?'60.000':'30.000')+' €'+(inv.length?': '+inv.join(', '):'')+'. Der Heizkörpertausch ist als Heizungsoptimierung angenommen, bitte prüfen.');
-  out.push('Stand der Konditionen: '+CALC.FOERD.stand+' (Förderung ab 21.07.2026). Grundlage: '+CALC.FOERD.quelle+'. Änderungen ab 2027 sind dort nicht enthalten. Sie sind nur aus Presseberichten bekannt, nicht amtlich bestätigt und nicht Grundlage der Zahlen für ein Antragsdatum vor 2027.'+(fb.today<CALC.FOERD.wp27.ab?' Angekündigt ist für Q1 2027 eine geringere Grundförderung für Wärmepumpen, mit einem Bonus bei EU-Ursprung. Die genauen Bedingungen sind offen (siehe Förderrechner).':' Das Antragsdatum liegt im Jahr 2027 oder später: '+(fb.unb?'Für die Wärmepumpe ist keine Förderung angesetzt, weil die Konditionen nicht amtlich bestätigt sind.':'Gerechnet ist ein unverbindliches Szenario nach Presseberichten, kein bestätigter Zuschuss.'))+' Antrag vor der Beauftragung stellen. Verbindlich sind nur Zusage und Bescheid.');
+  out.push('Stand der Konditionen: '+CALC.FOERD.stand+' (Förderung ab 21.07.2026). Grundlage: '+CALC.FOERD.quelle+'. Die Stufen von Klimabonus und förderfähigen Kosten ab 01.02.2027 stehen im Merkblatt. Weitere Änderungen ab 2027 (Absenkung der Grundförderung, Wertschöpfungsbonus) sind nur angekündigt, nicht amtlich bestätigt und nicht Grundlage der Zahlen für ein Antragsdatum vor 2027.'+(fb.today<CALC.FOERD.wp27.ab?' Angekündigt ist für Q1 2027 eine geringere Grundförderung für Wärmepumpen, mit einem Bonus bei EU-Ursprung. Die genauen Bedingungen sind offen (siehe Förderrechner).':' Das Antragsdatum liegt im Jahr 2027 oder später: '+(fb.scen?'Gerechnet ist ein unverbindliches Szenario nach Presseberichten, kein bestätigter Zuschuss.':'Gerechnet ist nach dem Merkblatt (30 % Grundförderung) unter Vorbehalt, weil eine Absenkung angekündigt ist.'))+' Antrag vor der Beauftragung stellen. Verbindlich sind nur Zusage und Bescheid.');
   return out;
 }
 function rbLines(o){
@@ -2133,14 +2133,14 @@ function fsRender(o,R){
   var inv=(o.fSumme>0)?o.fSumme:(o.inv1>0?o.inv1:0),ex=!(inv>0);if(ex) inv=28000;
   var T=CALC.kfwTreppe(o,inv),f=T.f,rows=T.rows,c=rows[0],h='',FO=CALC.FOERD,hasEU=rows.some(function(r){return Math.abs(r.eur0-r.eur)>1});
   var ab=o.today?'am '+dmy(o.today):'heute ('+dmy(f.today)+')';
-  var vorl=(f.today>=FO.wp27.ab);
-  if(f.unb) h+='<div class="hk-big"><p>Wärmepumpe für <b>'+eur1(inv)+'</b>'+(ex?' (Beispielsumme, Summe oben eintragen)':'')+', Antrag '+ab+': <b>kein Zuschuss ausgewiesen.</b> Die Konditionen ab 2027 sind nicht amtlich bestätigt. Die App rechnet dafür ohne Förderung. Wer trotzdem eine Größenordnung sehen will, wählt oben „Anträge ab 2027 als unverbindliches Szenario rechnen: ja“.</p></div>';
-  else h+='<div class="hk-big"><p>'+(vorl?'<b>Szenario, unverbindlich:</b> ':'')+'Wärmepumpe für <b>'+eur1(inv)+'</b>'+(ex?' (Beispielsumme, Summe oben eintragen)':'')+', Antrag '+ab+': Zuschuss '+(vorl?'im Szenario ':'')+'etwa <b>'+eur1(c.eur)+'</b> ('+fmt(c.rate)+' %), Eigenanteil etwa <b>'+eur1(inv-c.eur)+'</b>.</p></div>';
-  if(vorl&&!f.unb) h+='<p class="hint"><b>Vorläufig:</b> Die Grundförderung ab 2027 (15 % plus Wertschöpfungsbonus bei EU-Ursprung) stammt aus Presseberichten. Sie steht weder im KfW-Merkblatt 458 noch auf der BAFA-Seite. Diesen Zuschuss nicht als Förderbedingung nennen.</p>';
+  h+='<div class="hk-big"><p>'+(f.scen?'<b>Szenario, unverbindlich:</b> ':(f.vorb?'<b>Antrag 2027, unter Vorbehalt:</b> ':''))+'Wärmepumpe für <b>'+eur1(inv)+'</b>'+(ex?' (Beispielsumme, Summe oben eintragen)':'')+', Antrag '+ab+': Zuschuss '+(f.scen?'im Szenario ':(f.vorb?'nach Merkblatt ':''))+'etwa <b>'+eur1(c.eur)+'</b> ('+fmt(c.rate)+' %), Eigenanteil etwa <b>'+eur1(inv-c.eur)+'</b>.'+(f.vorb&&Math.abs(c.eur0-c.eur)>1?' Bei der angekündigten Absenkung der Grundförderung auf 15 % wären es etwa <b>'+eur1(c.eur0)+'</b>.':'')+'</p></div>';
+  if(f.scen) h+='<p class="hint"><b>Vorläufig:</b> Die Grundförderung ab 2027 (15 % plus Wertschöpfungsbonus bei EU-Ursprung) stammt aus Presseberichten. Sie steht weder im KfW-Merkblatt 458 noch auf der BAFA-Seite. Diesen Zuschuss nicht als Förderbedingung nennen.';
+  if(f.scen) h+='</p>';
+  if(f.vorb) h+='<p class="hint"><b>Vorbehalt:</b> Die Stufen bei Klimabonus und förderfähigen Kosten ab 01.02.2027 stehen im KfW-Merkblatt 458 (Stand 09/2026) und sind fest. Die Grundförderung von 30 % steht dort ohne Enddatum. Angekündigt ist ab Q1 2027 eine Absenkung auf 15 % plus 15 % bei EU-Ursprung der Wärmepumpe. Das ist kein Richtlinientext und nicht im Merkblatt, Tag und Bedingungen sind offen. Gegenüber dem Kunden nicht als sicher nennen.</p>';
   // Aufbau des Satzes
   var kgTxt=!f.selbst?'nur für selbstnutzende Eigentümer':(f.kgbOk?'alte Heizung berechtigt ('+(o.fKgb==='ja'?'von dir bestätigt':TRN[o.tr])+')':'alte Heizung nicht berechtigt oder nicht geprüft');
   var inTxt=!f.selbst?'nur für selbstnutzende Eigentümer':(f.einkOffen?'Einkommen nicht angegeben, nicht eingerechnet':'zvE '+fmt(+o.fZve>0?o.fZve:({30:30000,40:40000,50:50000,60:60000,99:60001}[o.fEink]||0))+' €'+(o.fKind==='ja'?', minus 10.000 € wegen Kind = '+fmt(f.eff*1000)+' €':'')+(+o.fZve>0?'':' (Obergrenze der Gruppe)'));
-  var bsTxt=(f.today>=FO.wp27.ab)?'15 %'+(o.fHerk==='nein'?', ohne EU-Ursprung kein Wertschöpfungsbonus':' + 15 % Wertschöpfungsbonus (EU-Ursprung)')+', vorläufig (Presseberichte, nicht amtlich bestätigt)':'30 % bis Ende 2026';
+  var bsTxt=f.scen?'15 %'+(o.fHerk==='nein'?', ohne EU-Ursprung kein Wertschöpfungsbonus':' + 15 % Wertschöpfungsbonus (EU-Ursprung)')+', vorläufig (Presseberichte, nicht amtlich bestätigt)':(f.vorb?'30 % laut Merkblatt 458 (Stand 09/2026); Absenkung auf 15 % ab Q1 2027 angekündigt, nicht bestätigt':'30 % laut Merkblatt 458 (Stand 09/2026)');
   if(!f.unb) h+='<table><thead><tr><th>Baustein</th><th>Satz</th><th>Grundlage</th></tr></thead><tbody>'+
     '<tr><td>Grundförderung</td><td>'+c.basis+' %</td><td>'+esc(bsTxt)+'</td></tr>'+
     '<tr><td>Klimageschwindigkeitsbonus</td><td>'+c.kgb+' %</td><td>'+esc(kgTxt)+'</td></tr>'+
@@ -2152,14 +2152,13 @@ function fsRender(o,R){
   // Klimatreppe
   var show=rows.filter(function(r,i){return i===0||r.ab<'2029-02-01'});
   var lastR=rows[rows.length-1];if(show.indexOf(lastR)<0) show.push(lastR);
-  h+='<h3>Klimatreppe: Zuschuss je nach Zeitpunkt des Antrags</h3><table><thead><tr><th>Antrag</th><th>Satz</th><th>förderfähig bis</th><th>Zuschuss</th>'+(hasEU?'<th>ohne EU-Ursprung</th>':'')+'<th>gegen heute</th></tr></thead><tbody>'+show.map(function(r){
+  h+='<h3>Klimatreppe: Zuschuss je nach Zeitpunkt des Antrags</h3><table><thead><tr><th>Antrag</th><th>Satz</th><th>förderfähig bis</th><th>Zuschuss</th>'+(hasEU?'<th>'+(f.scen?'ohne EU-Ursprung':'bei Absenkung auf 15 %')+'</th>':'')+'<th>gegen heute</th></tr></thead><tbody>'+show.map(function(r){
     var lab=(r===lastR&&r.bis==null)?'ab '+dmy(r.ab):(r.cur?'heute bis '+dmy(r.bis):dmy(r.ab)+' bis '+dmy(r.bis));
     if(show.indexOf(r)===show.length-1&&r.bis==null) lab='ab '+dmy(r.ab);
     var d=r.eur-c.eur;if(r.ab>=FO.wp27.ab) lab+=' *';
-    if(r.unb) return '<tr'+(r.cur?' class="cur"':'')+'><td>'+lab+'</td><td>–</td><td>'+fmt(r.kosten)+' €</td><td>nicht bestätigt</td>'+(hasEU?'<td>–</td>':'')+'<td>–</td></tr>';
     return '<tr'+(r.cur?' class="cur"':'')+'><td>'+lab+'</td><td>'+fmt(r.rate)+' %</td><td>'+fmt(r.kosten)+' €</td><td>'+eur1(r.eur)+'</td>'+(hasEU?'<td>'+eur1(r.eur0)+'</td>':'')+'<td>'+(r.cur?'–':(d>=0?'+':'−')+eur1(Math.abs(d)))+'</td></tr>';
   }).join('')+'</tbody></table>';
-  h+='<p class="hint">Zwischen 01.02.2029 und 01.08.2030 sinken die förderfähigen Kosten alle sechs Monate um 750 € auf 22.000 €, der Klimabonus entfällt ab 01.08.2028. Maßgeblich ist der Tag der Antragstellung bei der KfW, nicht der Einbau. * Zeilen ab 01.01.2027: Die Grundförderung steht noch nicht fest. Angekündigt sind nach Presseberichten 15 % plus ein Bonus bei EU-Ursprung. Das ist nicht amtlich bestätigt, deshalb steht dort kein Zuschuss. Der Stichtag 01.01.2027 ist angenommen, die Quellen nennen nur das Quartal.</p>';
+  h+='<p class="hint">Zwischen 01.02.2029 und 01.08.2030 sinken die förderfähigen Kosten alle sechs Monate um 750 € auf 22.000 €, der Klimabonus entfällt ab 01.08.2028. Maßgeblich ist der Tag der Antragstellung bei der KfW, nicht der Einbau. * Zeilen ab 01.01.2027: '+(f.scen?'Gerechnet ist das Szenario nach Presseberichten (15 % plus Bonus bei EU-Ursprung), nicht amtlich bestätigt.':'Kosten und Klimabonus stehen im Merkblatt. Der Satz rechnet mit 30 % Grundförderung unter Vorbehalt, die Spalte „bei Absenkung“ zeigt den Zuschuss mit den angekündigten 15 % (ohne EU-Ursprung), nicht amtlich bestätigt.')+' Der Stichtag 01.01.2027 für die Absenkung ist angenommen, die Quellen nennen nur das Quartal.</p>';
   // Einkommen
   var o2=Object.assign({},o,{fSelbst:'ja'}),ET=CALC.kfwEinkTab(o2,inv);
   if(!f.unb) h+='<h3>Zuschuss je Einkommen, Antrag '+(o.today?'am '+dmy(o.today):'heute')+', selbstnutzend'+(o.fKind==='ja'?', mit Kind':'')+'</h3><table><thead><tr><th>zu versteuerndes Einkommen</th><th>Einkommensbonus</th><th>Satz</th><th>Zuschuss</th></tr></thead><tbody>'+ET.map(function(e){return '<tr><td>'+e.label+'</td><td>'+e.eink+' %</td><td>'+fmt(e.rate)+' %</td><td>'+eur1(e.eur)+'</td></tr>'}).join('')+'</tbody></table>';
@@ -2266,8 +2265,7 @@ function render(){
     var rows=[['Heizwärme',fmt(s.qh)+' kWh/m²a'],['Energieklasse, ca.',chip(s.klasse,s.eA)],['Heizlastabschätzung',fmt(s.kw,1)+' kW'],['Vorlauf',Math.round(s.vl)+' °C'+gauge(s.vl)],['Jahresarbeitszahl',fmt(s.jaz,1)],['Strom',fmt(s.strom/1000,1)+' MWh/a']].concat(solRowsVar(o,s),[['Heizkosten'+((s.stN>0||s.pv)?' (mit Solar)':''),eur(s.cost)+'/a']]);
     if(key===0){
       rows.push(['Ersparnis zur Bestandsheizung',(sav1>=0?eur(sav1):'−'+eur(-sav1))+'/a']);
-      if(fund>0) rows.push(['Förderung KfW, ca.',eur(fund)+' ('+fmt(Math.round(fv.rate))+' %)']);
-      else if(F.fb.ok&&F.fb.unb) rows.push(['Förderung KfW','nicht angesetzt: Antrag ab 2027, Konditionen nicht bestätigt']);
+      if(fund>0) rows.push(['Förderung KfW, ca.',eur(fund)+' ('+fmt(Math.round(fv.rate))+' %)'+(F.fb.vorb?', unter Vorbehalt (Antrag 2027)':'')]);
       else if(F.fb.ok&&F.fb.netz) rows.push(['Förderung KfW','keine, Wärmenetz']);
       rows.push(['Amortisation WP'+(pl.has?' (ohne Solar)':'')+(fund>0?', ohne Förderung':''),pay(o.inv1,pl.sav)]);
       if(fund>0) rows.push(['Amortisation WP mit Förderung',pay(fv.net,pl.sav)]);
@@ -4066,7 +4064,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-16 22:42',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-17 07:04',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

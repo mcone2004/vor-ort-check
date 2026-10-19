@@ -243,6 +243,8 @@ label.calc>input,label.calc>select,label.calc>textarea,.calcf{border-left:4px so
 label.pend{color:#8A5A00}
 label.pend>input,label.pend>select,label.calc.pend>input,label.calc.pend>select,.pendf{border:2px solid #C98A00;border-left-width:5px;background:rgba(201,138,0,.09)}
 input.autov{font-style:italic}
+.dqgo{color:inherit;text-decoration:underline dotted;text-underline-offset:3px}.dqgo:hover,.dqgo:focus-visible{color:var(--green);text-decoration-style:solid}
+.goflash{outline:3px solid var(--green);outline-offset:3px;border-radius:.4rem;transition:outline-color .4s}
 label.pend>input{color:var(--muted)}
 label.pend>select.pick{color:var(--muted)}
 :root[data-theme="dark"] label.pend{color:#F0B35A}
@@ -2073,10 +2075,24 @@ function dqEval(o,R){
   var txt={g:'Wesentliche Angaben sind vorhanden.',y:(anm.length||!wn.length)?'Einige wichtige Angaben beruhen auf Annahmen.':'Die Angaben sind weitgehend vollständig, einzelne Werte fallen aber auf.',r:'Für eine sinnvolle Ersteinschätzung fehlen wesentliche Daten.'}[lv];
   return {lvl:lv,pct:pc,items:it,warn:wn,hkOffen:hkOffen,txt:txt,why:why,name:{g:'Grün',y:'Gelb',r:'Rot'}[lv],nAnn:anm.length,nFehl:fehl.length};
 }
+// Bereiche der Datenqualität verlinken: Klick springt zum Eingabefeld (Tab wechseln, Feld markieren)
+var DQ_GO={'Wohnfläche':'wf','Verbrauch':'verb','Verbrauch gegen Bauteile':'verb','Verbrauch schwankt':'verb','Heizwärme':'verb','Außenwand':'wtyp','U-Wert Außenwand':'wtyp','Dach':'dach','U-Wert Dach':'dach','Fenster':'fenster','Uw Fenster':'fenster','Keller und Boden':'kshare','Bauteilflächen':'aw','Außenwandfläche':'aw','Fensterfläche':'af','Dachfläche':'ad','Bodenfläche':'ak','Heizung':'traeger','Vorlauftemperatur':'vlm','Heizkörper':'hk','Fußbodenheizung':'hk','Standort und Klima':'kd_plz','Warmwasser':'wwart','Energiepreis':'p_alt'};
+function dqLink(n){var g=DQ_GO[n];return g?'<a href="#" class="dqgo" data-go="'+g+'"><b>'+esc(n)+':</b></a>':'<b>'+esc(n)+':</b>'}
+function goField(id){
+  var e=$(id);if(!e) return;
+  var sec=e.closest('form>[data-tab]'),tab=sec&&sec.getAttribute('data-tab');
+  if(cTab!=='all'&&tab&&tabList().some(function(t){return t[0]===tab})) setTab(tab,true);
+  var cl=e.closest('.bt-closed');if(cl){var tg=cl.querySelector('.bt-tg');if(tg) tg.click()}
+  setTimeout(function(){
+    try{e.scrollIntoView({block:'center',behavior:'smooth'})}catch(x){}
+    try{e.focus({preventScroll:true})}catch(x){}
+    var l=e.closest('label')||e;l.classList.add('goflash');setTimeout(function(){l.classList.remove('goflash')},1800);
+  },40);
+}
 function dqHtml(d){
   var lab={ok:'angegeben',ann:'angenommen',fehlt:'fehlt'};
   return '<section class="panel dq"><h2><span class="dqd dq-'+d.lvl+'"></span>Datenqualität: '+d.name+'</h2><p>'+esc(d.txt)+(d.why?' Grund: '+esc(d.why)+'.':'')+(d.lvl!=='g'?' Je mehr davon vor Ort erfasst wird, desto belastbarer wird das Ergebnis.':'')+'</p><ul class="dql">'+
-    d.items.map(function(x){return '<li class="dq-'+x.st+'"><span class="dqs">'+lab[x.st]+'</span><span><b>'+esc(x.n)+':</b> '+esc(x.t)+'</span></li>'}).join('')+'</ul>'+(d.warn&&d.warn.length?'<h3>Auffälligkeiten, bitte prüfen</h3><ul class="dql">'+d.warn.map(function(x){return '<li class="dq-warn"><span class="dqs">prüfen</span><span><b>'+esc(x[0])+':</b> '+esc(x[1])+'</span></li>'}).join('')+'</ul>':'')+'<p class="sub">Das ist eine offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.</p></section>';
+    d.items.map(function(x){return '<li class="dq-'+x.st+'"><span class="dqs">'+lab[x.st]+'</span><span>'+dqLink(x.n)+' '+esc(x.t)+'</span></li>'}).join('')+'</ul>'+(d.warn&&d.warn.length?'<h3>Auffälligkeiten, bitte prüfen</h3><ul class="dql">'+d.warn.map(function(x){return '<li class="dq-warn"><span class="dqs">prüfen</span><span>'+dqLink(x[0])+' '+esc(x[1])+'</span></li>'}).join('')+'</ul>':'')+'<p class="sub">Das ist eine offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.</p></section>';
 }
 function dqRate(d){return {k:0,t:'Weitere Prüfung erforderlich',s:'Die Datenlage reicht für eine Eignungsaussage nicht aus'+(d.why?' ('+d.why+')':'')+'.'}}
 var TM={verb2:'verb',verb3:'verb'};
@@ -4167,6 +4183,7 @@ function init(){
   ['wwart','wzirk'].forEach(function(id){$(id).addEventListener('change',syncWw)});
   $('bar').addEventListener('click',function(){if(cTab!=='all'){setTab('ergebnis');return}try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
   var fm0=document.querySelector('form');if(fm0){fm0.addEventListener('input',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.auto==='1'){delete t.dataset.auto;t.classList.remove('autov')}},true);fm0.addEventListener('input',onTouch,true);fm0.addEventListener('change',onTouch,true)}
+  var outEl=$('out');if(outEl) outEl.addEventListener('click',function(ev){var a=ev.target.closest?ev.target.closest('a[data-go]'):null;if(!a) return;ev.preventDefault();goField(a.getAttribute('data-go'))});
   initBt();
   pendSync();
   syncKeller();syncWand();syncHk();syncWw();syncSolar();initGeo();initPhotos();
@@ -4207,7 +4224,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-19 19:46',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-19 19:57',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

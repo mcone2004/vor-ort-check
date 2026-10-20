@@ -74,7 +74,7 @@ fieldset{border:1px solid var(--line);border-radius:6px;background:var(--surface
 .bt-dach{border-left-color:var(--z4)}.bt-dach .bt-h svg{stroke:currentColor}
 .bt-keller,.bt-boden{border-left-color:var(--z3)}.bt-keller .bt-h svg,.bt-boden .bt-h svg{stroke:currentColor}
 .bt-fenster{border-left-color:var(--z2)}
-.bt-notiz{border-left-color:#7A8CA8}.bt-notiz .bt-h svg{stroke:#7A8CA8}
+.hcols>.bt-notiz{grid-column:1/-1}.bt-notiz{border-left-color:#7A8CA8}.bt-notiz .bt-h svg{stroke:#7A8CA8}
 .pad-tb{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
 .pad-g{display:flex;gap:.3rem}.pad-tb{gap:.4rem .9rem}
 .pad-b{min-height:2.75rem;min-width:2.75rem;padding:.3rem .7rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit;font:inherit;font-size:.88rem;cursor:pointer;touch-action:manipulation}
@@ -738,27 +738,6 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     <span class="hint" id="kbhint"></span>
     <label for="ak">Fläche Bodenplatte bzw. Kellerdecke in m² (optional)<input id="ak" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
-    <section class="bt bt-notiz" id="padbox"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16zM14 7l3 3"/></svg>Notizen und Skizzen, Handschrift</h3>
-    <div class="pad-tb" role="toolbar" aria-label="Notizwerkzeuge">
-      <span class="pad-g"><button type="button" class="pad-b" id="pad_pen" aria-pressed="true">Stift</button>
-      <button type="button" class="pad-b" id="pad_er" aria-pressed="false">Radierer</button></span>
-      <span class="pad-g"><button type="button" class="pad-b col" data-c="0" style="--c:#23282B" aria-label="schwarz" aria-pressed="true"><i></i></button>
-      <button type="button" class="pad-b col" data-c="1" style="--c:#1F5FA8" aria-label="blau" aria-pressed="false"><i></i></button>
-      <button type="button" class="pad-b col" data-c="2" style="--c:#B03A2E" aria-label="rot" aria-pressed="false"><i></i></button></span>
-      <span class="pad-g"><button type="button" class="pad-b" data-w="0" aria-pressed="false">dünn</button>
-      <button type="button" class="pad-b" data-w="1" aria-pressed="true">mittel</button>
-      <button type="button" class="pad-b" data-w="2" aria-pressed="false">dick</button></span>
-      <span class="pad-g"><button type="button" class="pad-b" id="pad_undo">Rückgängig</button>
-      <button type="button" class="pad-b" id="pad_clear">Alles löschen</button></span>
-      <span class="pad-g"><button type="button" class="pad-b" id="pad_lo" aria-label="Feld niedriger">Höhe −</button>
-      <button type="button" class="pad-b" id="pad_hi" aria-label="Feld höher">Höhe +</button>
-      <button type="button" class="pad-b" id="pad_po" aria-pressed="false" title="Nur der Stift zeichnet, Finger und Handballen werden ignoriert">Nur Stift</button></span>
-    </div>
-    <div class="pad-wrap" id="padwrap"><canvas id="padc" aria-label="Notizfeld, mit Stift oder Finger beschreibbar"></canvas></div>
-    <div class="pad-grip" id="padgrip" role="separator" aria-label="Höhe des Notizfelds ziehen">Höhe ziehen</div>
-    <span class="hint" id="padhint">Mit dem Stift oder Finger schreiben und zeichnen. „Nur Stift“ ignoriert Finger und Handballen (schaltet sich beim ersten Stiftstrich selbst ein). Auf dem Feld scrollt der Finger nicht, zum Scrollen neben das Feld greifen. Die Notiz wird mit dem Kunden gespeichert.</span>
-    <input type="hidden" id="notiz" value="">
-    </section>
     </div><div class="hcol">
     <section class="bt bt-fenster"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM12 3v18M5 12h14"/></svg>Fenster</h3>
     <label for="fmix" id="fmixl" hidden>Sind die Fenster in allen Geschossen gleich?<select id="fmix"><option value="ja" selected>Ja, alle Geschosse gleiche Fenster</option><option value="nein">Nein, Obergeschoss(e) andere Fenster</option></select></label>
@@ -815,7 +794,29 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     <label for="nzu">Zuluft der Lüftungsanlage, Luftwechsel in 1/h<input id="nzu" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="leer: 0,4 angenommen"></label>
     <label for="hlext">Heizlast nach DIN EN 12831, extern berechnet, kW (Nachweis)<input id="hlext" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="z. B. aus Hottgenroth"></label>
     </section>
-  </div></div>
+  </div>
+    <section class="bt bt-notiz" id="padbox"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16zM14 7l3 3"/></svg>Notizen und Skizzen, Handschrift</h3>
+    <div class="pad-tb" role="toolbar" aria-label="Notizwerkzeuge">
+      <span class="pad-g"><button type="button" class="pad-b" id="pad_pen" aria-pressed="true">Stift</button>
+      <button type="button" class="pad-b" id="pad_er" aria-pressed="false">Radierer</button></span>
+      <span class="pad-g"><button type="button" class="pad-b col" data-c="0" style="--c:#23282B" aria-label="schwarz" aria-pressed="true"><i></i></button>
+      <button type="button" class="pad-b col" data-c="1" style="--c:#1F5FA8" aria-label="blau" aria-pressed="false"><i></i></button>
+      <button type="button" class="pad-b col" data-c="2" style="--c:#B03A2E" aria-label="rot" aria-pressed="false"><i></i></button></span>
+      <span class="pad-g"><button type="button" class="pad-b" data-w="0" aria-pressed="false">dünn</button>
+      <button type="button" class="pad-b" data-w="1" aria-pressed="true">mittel</button>
+      <button type="button" class="pad-b" data-w="2" aria-pressed="false">dick</button></span>
+      <span class="pad-g"><button type="button" class="pad-b" id="pad_undo">Rückgängig</button>
+      <button type="button" class="pad-b" id="pad_clear">Alles löschen</button></span>
+      <span class="pad-g"><button type="button" class="pad-b" id="pad_lo" aria-label="Feld niedriger">Höhe −</button>
+      <button type="button" class="pad-b" id="pad_hi" aria-label="Feld höher">Höhe +</button>
+      <button type="button" class="pad-b" id="pad_po" aria-pressed="false" title="Nur der Stift zeichnet, Finger und Handballen werden ignoriert">Nur Stift</button></span>
+    </div>
+    <div class="pad-wrap" id="padwrap"><canvas id="padc" aria-label="Notizfeld, mit Stift oder Finger beschreibbar"></canvas></div>
+    <div class="pad-grip" id="padgrip" role="separator" aria-label="Höhe des Notizfelds ziehen">Höhe ziehen</div>
+    <span class="hint" id="padhint">Mit dem Stift oder Finger schreiben und zeichnen. „Nur Stift“ ignoriert Finger und Handballen (schaltet sich beim ersten Stiftstrich selbst ein). Auf dem Feld scrollt der Finger nicht, zum Scrollen neben das Feld greifen. Die Notiz wird mit dem Kunden gespeichert.</span>
+    <input type="hidden" id="notiz" value="">
+    </section>
+  </div>
   </fieldset>
 
   <fieldset data-tab="heizung"><legend>Heizung</legend>
@@ -3016,7 +3017,7 @@ function btSumSet(R){
   }catch(e){}
 }
 // ---- Handschriftliche Notizen: Vektorstriche in einem Koordinatenraum von 1000 Einheiten Breite, gespeichert als JSON im Feld #notiz (wandert mit dem Kunden) ----
-var PAD={s:[],h:800,tool:'pen',col:0,w:1,po:false,cur:null,last:'',ok:false};
+var PAD={s:[],h:450,tool:'pen',col:0,w:1,po:false,cur:null,last:'',ok:false};
 var PAD_COL=['#23282B','#1F5FA8','#B03A2E'],PAD_W=[2.2,3.6,6.5],PAD_MIN=200,PAD_MAX=2000;
 function padScale(){var c=$('padc');return c&&c.clientWidth>0?c.clientWidth/1000:0}
 function padLayout(){
@@ -3041,14 +3042,14 @@ function padDraw(){
   PAD.s.forEach(function(st){padStroke(g,st,k,d)});
 }
 function padSave(){
-  var v=PAD.s.length?JSON.stringify({v:1,h:PAD.h,s:PAD.s}):(PAD.h!==800?JSON.stringify({v:1,h:PAD.h,s:[]}):'');
+  var v=PAD.s.length?JSON.stringify({v:1,h:PAD.h,s:PAD.s}):(PAD.h!==450?JSON.stringify({v:1,h:PAD.h,s:[]}):'');
   PAD.last=v;var e=$('notiz');if(e&&e.value!==v){e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}))}
 }
 // Feld #notiz geändert (Kunde geladen, zurückgesetzt): Striche neu einlesen
 function padSync(){
   var e=$('notiz');if(!e||!PAD.ok||e.value===PAD.last) return;
   var j=null;try{j=e.value?JSON.parse(e.value):null}catch(x){}
-  PAD.s=(j&&j.s instanceof Array)?j.s:[];PAD.h=(j&&j.h>=PAD_MIN&&j.h<=PAD_MAX)?j.h:800;PAD.last=e.value;padDraw();
+  PAD.s=(j&&j.s instanceof Array)?j.s:[];PAD.h=(j&&j.h>=PAD_MIN&&j.h<=PAD_MAX)?j.h:450;PAD.last=e.value;padDraw();
 }
 function padPoint(ev){var c=$('padc'),r=c.getBoundingClientRect(),k=padScale();return [Math.round((ev.clientX-r.left)/k*10)/10,Math.round((ev.clientY-r.top)/k*10)/10]}
 function padErase(pt){
@@ -4620,7 +4621,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-20 06:21',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-20 06:25',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

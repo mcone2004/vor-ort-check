@@ -74,6 +74,18 @@ fieldset{border:1px solid var(--line);border-radius:6px;background:var(--surface
 .bt-dach{border-left-color:var(--z4)}.bt-dach .bt-h svg{stroke:currentColor}
 .bt-keller,.bt-boden{border-left-color:var(--z3)}.bt-keller .bt-h svg,.bt-boden .bt-h svg{stroke:currentColor}
 .bt-fenster{border-left-color:var(--z2)}
+.bt-notiz{border-left-color:#7A8CA8}.bt-notiz .bt-h svg{stroke:#7A8CA8}
+.pad-tb{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.pad-g{display:flex;gap:.3rem}.pad-tb{gap:.4rem .9rem}
+.pad-b{min-height:2.75rem;min-width:2.75rem;padding:.3rem .7rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit;font:inherit;font-size:.88rem;cursor:pointer;touch-action:manipulation}
+.pad-b[aria-pressed="true"]{background:var(--dark,#23282B);color:var(--onDark,#fff);border-color:var(--dark,#23282B)}
+.pad-b.col{padding:0;width:2.75rem;position:relative}
+.pad-b.col i{position:absolute;inset:.55rem;border-radius:50%;background:var(--c)}
+.pad-b.col[aria-pressed="true"]{background:var(--bg);border:3px solid var(--dark,#23282B)}
+.pad-wrap{position:relative;border:1px solid var(--line);border-radius:6px 6px 0 0;background-color:#fff;background-image:radial-gradient(circle,#c9d2c0 1px,transparent 1.2px);background-size:24px 24px;overflow:hidden}
+.pad-wrap canvas{display:block;width:100%;touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.pad-grip{display:flex;align-items:center;justify-content:center;gap:.5rem;min-height:2.25rem;margin-top:-.7rem;border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;background:var(--surface,#f3f5ef);font-size:.8rem;color:#5a6158;cursor:ns-resize;touch-action:none;-webkit-user-select:none;user-select:none}
+.pad-grip::before{content:"";width:2.5rem;height:.3rem;border-radius:.2rem;background:#a9b1a2}
 .bt-pv{border-left-color:#E0A030}.bt-pv .bt-h svg{stroke:#E0A030}
 .bt-st{border-left-color:#C0612B}.bt-st .bt-h svg{stroke:#C0612B}
 
@@ -725,6 +737,27 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     </div>
     <span class="hint" id="kbhint"></span>
     <label for="ak">Fläche Bodenplatte bzw. Kellerdecke in m² (optional)<input id="ak" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
+    </section>
+    <section class="bt bt-notiz" id="padbox"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16zM14 7l3 3"/></svg>Notizen und Skizzen, Handschrift</h3>
+    <div class="pad-tb" role="toolbar" aria-label="Notizwerkzeuge">
+      <span class="pad-g"><button type="button" class="pad-b" id="pad_pen" aria-pressed="true">Stift</button>
+      <button type="button" class="pad-b" id="pad_er" aria-pressed="false">Radierer</button></span>
+      <span class="pad-g"><button type="button" class="pad-b col" data-c="0" style="--c:#23282B" aria-label="schwarz" aria-pressed="true"><i></i></button>
+      <button type="button" class="pad-b col" data-c="1" style="--c:#1F5FA8" aria-label="blau" aria-pressed="false"><i></i></button>
+      <button type="button" class="pad-b col" data-c="2" style="--c:#B03A2E" aria-label="rot" aria-pressed="false"><i></i></button></span>
+      <span class="pad-g"><button type="button" class="pad-b" data-w="0" aria-pressed="false">dünn</button>
+      <button type="button" class="pad-b" data-w="1" aria-pressed="true">mittel</button>
+      <button type="button" class="pad-b" data-w="2" aria-pressed="false">dick</button></span>
+      <span class="pad-g"><button type="button" class="pad-b" id="pad_undo">Rückgängig</button>
+      <button type="button" class="pad-b" id="pad_clear">Alles löschen</button></span>
+      <span class="pad-g"><button type="button" class="pad-b" id="pad_lo" aria-label="Feld niedriger">Höhe −</button>
+      <button type="button" class="pad-b" id="pad_hi" aria-label="Feld höher">Höhe +</button>
+      <button type="button" class="pad-b" id="pad_po" aria-pressed="false" title="Nur der Stift zeichnet, Finger und Handballen werden ignoriert">Nur Stift</button></span>
+    </div>
+    <div class="pad-wrap" id="padwrap"><canvas id="padc" aria-label="Notizfeld, mit Stift oder Finger beschreibbar"></canvas></div>
+    <div class="pad-grip" id="padgrip" role="separator" aria-label="Höhe des Notizfelds ziehen">Höhe ziehen</div>
+    <span class="hint" id="padhint">Mit dem Stift oder Finger schreiben und zeichnen. „Nur Stift“ ignoriert Finger und Handballen (schaltet sich beim ersten Stiftstrich selbst ein). Auf dem Feld scrollt der Finger nicht, zum Scrollen neben das Feld greifen. Die Notiz wird mit dem Kunden gespeichert.</span>
+    <input type="hidden" id="notiz" value="">
     </section>
     </div><div class="hcol">
     <section class="bt bt-fenster"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM12 3v18M5 12h14"/></svg>Fenster</h3>
@@ -2500,6 +2533,7 @@ function syncVv(){
 function render(){
   syncVv();
   autoSync();
+  padSync();
   var o=read(),R=CALC.compute(o),S=R.S,I=R.ist,dqv=dqEval(o,R);
   if(dqv.lvl==='r'){S.forEach(function(s){s.rate=dqRate(dqv)});if(R.cv) R.cv.rate=dqRate(dqv)}
   else if(dqv.hkOffen&&o.vlm==null){var hkR=function(s){if(s.rate&&s.rate.k===1) s.rate={k:2,t:'Voraussichtlich geeignet',s:'Heizkörper nicht erfasst: Heizflächen vor einer Zusage prüfen'}};S.forEach(hkR);if(R.cv) hkR(R.cv)}
@@ -2959,6 +2993,121 @@ function btSumSet(R){
     s('bts_fenster','Uw '+fmt(R.uFenB,2)+($('fshut').value!=='none'?' · mit Läden '+fmt(R.uFen,2):''));
     s('bts_lueft',$('lvor').value==='ja'?otxt('lart').replace(/ \(.*$/,'').replace(/,.*$/,''):'Fensterlüftung');
   }catch(e){}
+}
+// ---- Handschriftliche Notizen: Vektorstriche in einem Koordinatenraum von 1000 Einheiten Breite, gespeichert als JSON im Feld #notiz (wandert mit dem Kunden) ----
+var PAD={s:[],h:800,tool:'pen',col:0,w:1,po:false,cur:null,last:'',ok:false};
+var PAD_COL=['#23282B','#1F5FA8','#B03A2E'],PAD_W=[2.2,3.6,6.5],PAD_MIN=200,PAD_MAX=2000;
+function padScale(){var c=$('padc');return c&&c.clientWidth>0?c.clientWidth/1000:0}
+function padLayout(){
+  var c=$('padc'),k=padScale();if(!c||!k) return false;
+  var d=window.devicePixelRatio||1,w=Math.round(c.clientWidth*d),h=Math.round(PAD.h*k*d);
+  c.style.height=(PAD.h*k)+'px';
+  if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+  return true;
+}
+function padStroke(g,st,k,d){
+  var p=st[2],n=p.length/2;if(n<1) return;
+  g.strokeStyle=PAD_COL[st[0]]||PAD_COL[0];g.fillStyle=g.strokeStyle;g.lineWidth=st[1]*k*d;g.lineCap='round';g.lineJoin='round';
+  if(n===1){g.beginPath();g.arc(p[0]*k*d,p[1]*k*d,st[1]*k*d/2,0,6.2832);g.fill();return}
+  g.beginPath();g.moveTo(p[0]*k*d,p[1]*k*d);
+  for(var i=1;i<n-1;i++){var mx=(p[2*i]+p[2*i+2])/2,my=(p[2*i+1]+p[2*i+3])/2;g.quadraticCurveTo(p[2*i]*k*d,p[2*i+1]*k*d,mx*k*d,my*k*d)}
+  g.lineTo(p[2*n-2]*k*d,p[2*n-1]*k*d);g.stroke();
+}
+function padDraw(){
+  var c=$('padc');if(!c||!padLayout()) return;
+  var g=c.getContext('2d'),k=padScale(),d=window.devicePixelRatio||1;
+  g.clearRect(0,0,c.width,c.height);
+  PAD.s.forEach(function(st){padStroke(g,st,k,d)});
+}
+function padSave(){
+  var v=PAD.s.length?JSON.stringify({v:1,h:PAD.h,s:PAD.s}):(PAD.h!==800?JSON.stringify({v:1,h:PAD.h,s:[]}):'');
+  PAD.last=v;var e=$('notiz');if(e&&e.value!==v){e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}))}
+}
+// Feld #notiz geändert (Kunde geladen, zurückgesetzt): Striche neu einlesen
+function padSync(){
+  var e=$('notiz');if(!e||!PAD.ok||e.value===PAD.last) return;
+  var j=null;try{j=e.value?JSON.parse(e.value):null}catch(x){}
+  PAD.s=(j&&j.s instanceof Array)?j.s:[];PAD.h=(j&&j.h>=PAD_MIN&&j.h<=PAD_MAX)?j.h:800;PAD.last=e.value;padDraw();
+}
+function padPoint(ev){var c=$('padc'),r=c.getBoundingClientRect(),k=padScale();return [Math.round((ev.clientX-r.left)/k*10)/10,Math.round((ev.clientY-r.top)/k*10)/10]}
+function padErase(pt){
+  var r=14,n=PAD.s.length;
+  function dist2(x,y,ax,ay,bx,by){var vx=bx-ax,vy=by-ay,l=vx*vx+vy*vy,t=l>0?Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/l)):0,dx=ax+t*vx-x,dy=ay+t*vy-y;return dx*dx+dy*dy}
+  PAD.s=PAD.s.filter(function(st){var p=st[2];if(p.length<4) return dist2(pt[0],pt[1],p[0],p[1],p[0],p[1])>=r*r;for(var i=0;i<p.length-2;i+=2){if(dist2(pt[0],pt[1],p[i],p[i+1],p[i+2],p[i+3])<r*r) return false}return true});
+  return PAD.s.length!==n;
+}
+function padSetH(h){PAD.h=Math.max(PAD_MIN,Math.min(PAD_MAX,Math.round(h)));padDraw();}
+function padInit(){
+  var c=$('padc');if(!c) return;
+  PAD.ok=true;
+  function pressed(sel,fn){[].forEach.call(document.querySelectorAll(sel),function(b){b.setAttribute('aria-pressed',fn(b)?'true':'false')})}
+  function tools(){
+    $('pad_pen').setAttribute('aria-pressed',PAD.tool==='pen'?'true':'false');$('pad_er').setAttribute('aria-pressed',PAD.tool==='er'?'true':'false');
+    pressed('#padbox .col',function(b){return +b.getAttribute('data-c')===PAD.col});
+    pressed('#padbox [data-w]',function(b){return +b.getAttribute('data-w')===PAD.w});
+    $('pad_po').setAttribute('aria-pressed',PAD.po?'true':'false');
+    c.style.cursor=PAD.tool==='er'?'cell':'crosshair';
+  }
+  $('pad_pen').addEventListener('click',function(){PAD.tool='pen';tools()});
+  $('pad_er').addEventListener('click',function(){PAD.tool='er';tools()});
+  [].forEach.call(document.querySelectorAll('#padbox .col'),function(b){b.addEventListener('click',function(){PAD.col=+b.getAttribute('data-c');PAD.tool='pen';tools()})});
+  [].forEach.call(document.querySelectorAll('#padbox [data-w]'),function(b){b.addEventListener('click',function(){PAD.w=+b.getAttribute('data-w');PAD.tool='pen';tools()})});
+  $('pad_po').addEventListener('click',function(){PAD.po=!PAD.po;PAD.poUser=true;tools()});
+  $('pad_undo').addEventListener('click',function(){if(PAD.s.length){PAD.s.pop();padDraw();padSave()}});
+  var ct=null;
+  $('pad_clear').addEventListener('click',function(){
+    var b=this;
+    if(!PAD.s.length) return;
+    if(ct){clearTimeout(ct);ct=null;PAD.s=[];padDraw();padSave();b.textContent='Alles löschen';return}
+    b.textContent='Wirklich löschen?';ct=setTimeout(function(){ct=null;b.textContent='Alles löschen'},3000);
+  });
+  $('pad_lo').addEventListener('click',function(){padSetH(PAD.h-100);padSave()});
+  $('pad_hi').addEventListener('click',function(){padSetH(PAD.h+100);padSave()});
+  // Höhe ziehen
+  var gr=$('padgrip'),gs=null;
+  gr.addEventListener('pointerdown',function(ev){gs={y:ev.clientY,h:PAD.h};try{gr.setPointerCapture(ev.pointerId)}catch(x){}ev.preventDefault()});
+  gr.addEventListener('pointermove',function(ev){if(!gs) return;var k=padScale();if(k) padSetH(gs.h+(ev.clientY-gs.y)/k)});
+  function gend(){if(gs){gs=null;padSave()}}
+  gr.addEventListener('pointerup',gend);gr.addEventListener('pointercancel',gend);
+  // Zeichnen
+  function accept(ev){
+    if(ev.pointerType==='pen'&&!PAD.po&&!PAD.poUser){PAD.po=true;tools()} // erster Stiftstrich: Handballen ab jetzt ignorieren
+    if(PAD.po&&ev.pointerType!=='pen'&&ev.pointerType!=='mouse') return false;
+    return true;
+  }
+  c.addEventListener('pointerdown',function(ev){
+    if(ev.button>0&&ev.pointerType==='mouse') return;
+    if(!accept(ev)) return;
+    ev.preventDefault();try{c.setPointerCapture(ev.pointerId)}catch(x){}
+    var er=(PAD.tool==='er')||(ev.pointerType==='pen'&&(ev.buttons&32)),pt=padPoint(ev);
+    PAD.cur={id:ev.pointerId,er:er,chg:false};
+    if(er){PAD.cur.chg=padErase(pt);if(PAD.cur.chg) padDraw()}
+    else{PAD.cur.st=[PAD.col,PAD_W[PAD.w],[pt[0],pt[1]]];PAD.cur.n=1;PAD.s.push(PAD.cur.st);padDraw()}
+  });
+  c.addEventListener('pointermove',function(ev){
+    var u=PAD.cur;if(!u||u.id!==ev.pointerId) return;
+    ev.preventDefault();
+    var evs=(ev.getCoalescedEvents&&ev.getCoalescedEvents())||[];if(!evs.length) evs=[ev];
+    var g=c.getContext('2d'),k=padScale(),d=window.devicePixelRatio||1;
+    evs.forEach(function(e){
+      var pt=padPoint(e);
+      if(u.er){if(padErase(pt)){u.chg=true;padDraw()}return}
+      var p=u.st[2],lx=p[p.length-2],ly=p[p.length-1];
+      if(Math.abs(pt[0]-lx)+Math.abs(pt[1]-ly)<0.8) return;
+      g.strokeStyle=PAD_COL[u.st[0]];g.lineWidth=u.st[1]*k*d;g.lineCap='round';g.beginPath();g.moveTo(lx*k*d,ly*k*d);g.lineTo(pt[0]*k*d,pt[1]*k*d);g.stroke();
+      p.push(pt[0],pt[1]);
+    });
+  });
+  function up(ev){
+    var u=PAD.cur;if(!u||u.id!==ev.pointerId) return;
+    PAD.cur=null;
+    if(!u.er){padDraw();padSave()}else if(u.chg){padSave()}
+  }
+  c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+  c.addEventListener('contextmenu',function(ev){ev.preventDefault()});
+  if(window.ResizeObserver) new ResizeObserver(function(){padDraw()}).observe($('padwrap'));
+  window.addEventListener('resize',padDraw);
+  tools();padSync();padDraw();
 }
 function initBt(){
   var st=null;try{st=JSON.parse(localStorage.getItem('ocheck.bt')||'null')}catch(e){}
@@ -4412,7 +4561,7 @@ function init(){
   var outEl=$('out');if(outEl) outEl.addEventListener('click',function(ev){var a=ev.target.closest?ev.target.closest('a[data-go]'):null;if(!a) return;ev.preventDefault();goField(a.getAttribute('data-go'))});
   initBt();
   pendSync();
-  syncKeller();syncWand();syncHk();syncWw();syncSolar();initGeo();initPhotos();
+  syncKeller();syncWand();syncHk();syncWw();syncSolar();initGeo();initPhotos();padInit();
   // Felder, deren Wert in die Berechnung eingeht (Heizlast, Verbrauch, Kosten, Förderung): grün markiert. Alle anderen dokumentieren nur.
   (function(){
     ['typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','fmix','fenster2','frahmen2','tne','vvh','vvs','wtyp','wd','wand','dstoff','wlg','dstark','dbj','aw','dform','dach','dka','dkh','dkf','dkfd','dkfw','dstoffD','wlgD','dstarkD','dbjD','dab','dzs','dzd','dzw','dib','ddb','ad','kshare','kart','kdmat','kdd','kstoff','kwlg','kstark','kbj','kwd','kwanteil','kwstoff','kwwlg','kwstark','bpart','kbstoff','kbwlg','kbstark','kbbj','ak','fenster','frahmen','fdicht','fshut','fshutuse','af','lvor','lart','lwrg','ldk','abschirm','qenv','n50','vn50','aen50','zh','fass','vol','aenv','nzu','hlext','traeger','hz_alter','ofen','hpumpe','hk','hktyp','vlm','wwart','wwp','wzirk','wzart','wzpu','pvst','pvkwp','pvsp','stst','stm2','stnu','verb','vj1','verb2','verb3','einheit','p_alt','basis','sv1','sv2','sv3','p_wp','wq','rb_netz','f_selbst','f_kind','fzve','f_eink','fsumme','fsumme2','f_isfp','fherk','fkgb','fdatum','fszen','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','p_einsp','p_hh','inv1','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_pa','k_ps','k_wb','k_ww','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','wlgg','kdanteil','kf1','kf2','kf3','vj2','vj3','abschlag','abgrund','kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){

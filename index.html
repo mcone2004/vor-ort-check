@@ -2044,7 +2044,7 @@ function dqEval(o,R){
   var t=$('touched')?$('touched').value:'',all=(t==='*'),set={};t.split(',').forEach(function(x){if(x) set[x]=1});
   var tc=function(id){return all||!!set[id]};
   var it=[],sc=0,mx=0;
-  function add(n,st,txt,w,part){it.push({n:n,st:st,t:txt});mx+=w;sc+=w*(part!=null?part:(st==='ok'?1:(st==='ann'?0.3:0)))}
+  function add(n,st,txt,w,part,go){it.push({n:n,st:st,t:txt,go:go});mx+=w;sc+=w*(part!=null?part:(st==='ok'?1:(st==='ann'?0.3:0)))}
   var wfIn=numG('wf')>0&&tc('wf');
   add('Wohnfläche',wfIn?'ok':'fehlt',wfIn?'angegeben':'nicht angegeben',2);
   var ofn=CALC.ofenTr(o);
@@ -2061,7 +2061,9 @@ function dqEval(o,R){
   add('Fenster',tc('fenster')?'ok':'ann',tc('fenster')?'Bauart angegeben':'Standardwert, nicht abgefragt',1);
   add('Keller und Boden',tc('kshare')?'ok':'ann',tc('kshare')?'Unterkellerung angegeben':'Standardwert, nicht abgefragt',1);
   var an=[o.aW,o.aF,o.aD,o.aK].filter(function(v){return v>0}).length;
-  add('Bauteilflächen',an>=3?'ok':'ann',an>=3?'aufgemessen':(an>0?'teilweise eingegeben, Rest geschätzt':'aus Wohnfläche und Geschosszahl geschätzt'),1,an>=3?1:(an>0?0.6:0.3));
+  // Ohne Aufmaß ist die Schätzung aus Wohnfläche und Geschosszahl der Normalfall bei der Erstberatung: „angegeben“, sobald beides bestätigt ist
+  var flOk=an>=3||(wfIn&&(tc('gesch')||o.typ==='mfh'));
+  add('Bauteilflächen',flOk?'ok':'ann',an>=3?'aufgemessen':(flOk?(an>0?'teilweise aufgemessen, Rest aus Wohnfläche und Geschosszahl geschätzt':'aus Wohnfläche und Geschosszahl geschätzt'):(wfIn?'Geschosszahl nicht bestätigt, Flächen nach Vorgabe geschätzt':'Wohnfläche fehlt, Flächen nicht schätzbar')),1,an>=3?1:(flOk?0.85:0.3),wfIn?(o.typ==='mfh'?'aw':'gesch'):'wf');
   var hOk=tc('traeger')&&(tc('hz_alter')||o.tr==='holz'||o.tr==='kohle');
   add('Heizung',hOk?'ok':'ann',hOk?'Energieträger und Alter angegeben':'Standardwert, nicht abgefragt',1);
   add('Vorlauftemperatur',o.vlm!=null?'ok':'ann',o.vlm!=null?'gemessen, '+o.vlm+' °C':'nicht gemessen, Modellwert',1);
@@ -2099,7 +2101,7 @@ function dqEval(o,R){
 }
 // Bereiche der Datenqualität verlinken: Klick springt zum Eingabefeld (Tab wechseln, Feld markieren)
 var DQ_GO={'Wohnfläche':'wf','Verbrauch':'verb','Verbrauch gegen Bauteile':'verb','Verbrauch schwankt':'verb','Heizwärme':'verb','Außenwand':'wtyp','U-Wert Außenwand':'wtyp','Dach':'dach','U-Wert Dach':'dach','Fenster':'fenster','Uw Fenster':'fenster','Keller und Boden':'kshare','Bauteilflächen':'aw','Außenwandfläche':'aw','Fensterfläche':'af','Dachfläche':'ad','Bodenfläche':'ak','Heizung':'traeger','Vorlauftemperatur':'vlm','Heizkörper':'hk','Fußbodenheizung':'hk','Standort und Klima':'kd_plz','Warmwasser':'wwart','Energiepreis':'p_alt'};
-function dqLink(n){var g=DQ_GO[n];return g?'<a href="#" class="dqgo" data-go="'+g+'"><b>'+esc(n)+':</b></a>':'<b>'+esc(n)+':</b>'}
+function dqLink(n,go){var g=go||DQ_GO[n];return g?'<a href="#" class="dqgo" data-go="'+g+'"><b>'+esc(n)+':</b></a>':'<b>'+esc(n)+':</b>'}
 function goField(id){
   var e=$(id);if(!e) return;
   var sec=e.closest('form>[data-tab]'),tab=sec&&sec.getAttribute('data-tab');
@@ -2114,7 +2116,7 @@ function goField(id){
 function dqHtml(d){
   var lab={ok:'angegeben',ann:'angenommen',fehlt:'fehlt'};
   return '<section class="panel dq"><h2><span class="dqd dq-'+d.lvl+'"></span>Datenqualität: '+d.name+'</h2><p>'+esc(d.txt)+(d.why?' Grund: '+esc(d.why)+'.':'')+(d.lvl!=='g'?' Je mehr davon vor Ort erfasst wird, desto belastbarer wird das Ergebnis.':'')+'</p><ul class="dql">'+
-    d.items.map(function(x){return '<li class="dq-'+x.st+'"><span class="dqs">'+lab[x.st]+'</span><span>'+dqLink(x.n)+' '+esc(x.t)+'</span></li>'}).join('')+'</ul>'+(d.warn&&d.warn.length?'<h3>Auffälligkeiten, bitte prüfen</h3><ul class="dql">'+d.warn.map(function(x){return '<li class="dq-warn"><span class="dqs">prüfen</span><span>'+dqLink(x[0])+' '+esc(x[1])+'</span></li>'}).join('')+'</ul>':'')+'<p class="sub">Das ist eine offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.</p></section>';
+    d.items.map(function(x){return '<li class="dq-'+x.st+'"><span class="dqs">'+lab[x.st]+'</span><span>'+dqLink(x.n,x.go)+' '+esc(x.t)+'</span></li>'}).join('')+'</ul>'+(d.warn&&d.warn.length?'<h3>Auffälligkeiten, bitte prüfen</h3><ul class="dql">'+d.warn.map(function(x){return '<li class="dq-warn"><span class="dqs">prüfen</span><span>'+dqLink(x[0])+' '+esc(x[1])+'</span></li>'}).join('')+'</ul>':'')+'<p class="sub">Das ist eine offene Bewertung der Datengrundlage, keine statistische Genauigkeitsangabe.</p></section>';
 }
 function dqRate(d){return {k:0,t:'Weitere Prüfung erforderlich',s:'Die Datenlage reicht für eine Eignungsaussage nicht aus'+(d.why?' ('+d.why+')':'')+'.'}}
 var TM={verb2:'verb',verb3:'verb'};
@@ -4255,7 +4257,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-20 05:24',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-20 05:32',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

@@ -571,7 +571,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     <label for="gesch" id="geschl">Geschosse über dem Keller<select id="gesch"><option value="1">1 Geschoss, z. B. Bungalow</option><option value="1.5">1,5 Geschosse, Dachgeschoss mit Kniestock</option><option value="2" selected>2 Geschosse</option><option value="2.5">2,5 Geschosse</option><option value="3">3 Geschosse</option></select></label>
     <span class="hint" id="geschh">Daraus schätzt die App Außenwand-, Dach- und Bodenfläche, solange sie nicht aufgemessen sind: Grundfläche = Wohnfläche ÷ Geschosse, quadratischer Grundriss, 2,8 m je Geschoss. Beispiel: 10 × 10 m, 1 Geschoss, 100 m² Wohnfläche ergibt etwa 100 m² Außenwand ohne Fenster.</span>
 <label for="tne">Norm-Außentemperatur, °C (für die Heizlast-Gegenprobe)<input id="tne" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" placeholder="−12 (Annahme)"></label>
-    <span class="hint" id="tnehint">Wert für den Standort aus der Tabelle zur Heizlastberechnung (DIN/TS 12831-1, Beiblatt 1) eintragen. Leer: gerechnet wird mit −12 °C als Annahme. Typisch sind −10 bis −16 °C.</span>
+    <span class="hint" id="tnehint">Wert für den Standort nach DIN/TS 12831-1 je PLZ eintragen (PLZ-Suche auf heiznorm.de/normaussentemperatur). Für Großstädte trägt die App den Tabellenwert selbst ein, sonst eine Abschätzung aus Wetterdaten. Ohne Standort: −12 °C als Annahme. Typisch sind −10 bis −16 °C.</span>
   </fieldset>
 
   <fieldset data-tab="huelle"><legend>Gebäudehülle</legend>
@@ -1489,7 +1489,7 @@ function hlNorm(o,u){
   var htAlt=htw+htf+htd+kellerTerm(o,u.kst)+0.08*(a.w+a.f+a.d+a.k); // bisheriger Ansatz: Jahresfaktor 0,6, Zuschlag ungewichtet
   var ht=htw+htf+htd+htk+htb,hvJahr=(QV[o.band]*lvf(o)+u.leak)/gt,lv=lueftHL(o),hv=lv.HV/o.wf;
   var lvA=lueftHLalt(o);
-  return {kwInfAlt:(ht+lvA.HV/o.wf)*(ti-te)*o.wf/1000,nAlt:lvA.n,kwAlt:(htAlt+hv)*(ti-te)*o.wf/1000,fd:fd,fK:fK,kellerUb:(s>0&&t==='ub'),fxD:fxD,lv:lv,hvJahr:hvJahr,kwJahr:(ht+hvJahr)*(20-((typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12))*o.wf/1000,ht:ht,hv:hv,HT:ht*o.wf,HV:hv*o.wf,H:(ht+hv)*o.wf,ti:ti,te:te,teAnn:!(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30),teAuto:!!o.tneAuto,kw:(ht+hv)*(ti-te)*o.wf/1000,
+  return {kwInfAlt:(ht+lvA.HV/o.wf)*(ti-te)*o.wf/1000,nAlt:lvA.n,kwAlt:(htAlt+hv)*(ti-te)*o.wf/1000,fd:fd,fK:fK,kellerUb:(s>0&&t==='ub'),fxD:fxD,lv:lv,hvJahr:hvJahr,kwJahr:(ht+hvJahr)*(20-((typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30)?o.tne:-12))*o.wf/1000,ht:ht,hv:hv,HT:ht*o.wf,HV:hv*o.wf,H:(ht+hv)*o.wf,ti:ti,te:te,teAnn:!(typeof o.tne==='number'&&isFinite(o.tne)&&o.tne<=5&&o.tne>=-30),teAuto:!!o.tneAuto,teTab:!!o.tneTab,kw:(ht+hv)*(ti-te)*o.wf/1000,
     parts:{wand:htw,fenster:htf,dach:htd,keller:htk,wb:htb,lueft:hv}};
 }
 function vlModel(o,qNow,qOrigW,qNowW,fm){
@@ -1824,7 +1824,7 @@ function hlText(R,L){
 // Gegenprobe der Heizlastabschätzung: Bauteile bei Norm-Außentemperatur gegen Verbrauch ÷ 1.700 h. Prüfgrenzen 10 % und 20 % sind selbst festgelegt.
 function hlProbe(R){
   var H=R.hl;if(!H) return null;
-  var te=String(Math.round(H.te)).replace('-','−')+' °C'+(H.teAnn?' (Annahme)':(H.teAuto?' (Näherung aus Wetterdaten)':''));
+  var te=String(Math.round(H.te*10)/10).replace('-','−').replace('.',',')+' °C'+(H.teAnn?' (Annahme)':(H.teTab?' (Tabelle DIN/TS 12831-1, Großstadt)':(H.teAuto?' (Näherung aus Wetterdaten)':'')));
   var lvl=null,bew;
   if(H.dev==null) bew='Kein Verbrauch eingetragen: Ein Vergleich ist nicht möglich. Die Heizlastabschätzung beruht allein auf den Bauteilen.';
   else{
@@ -1974,7 +1974,7 @@ function read(){
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhGet().m,hhN:hhGet().n,hhMin:hhGet().lo,hhMax:hhGet().hi,hhY:hhGet().y,hhEst:hhGet().est,vvh:$('vvh').value,gesch:+$('gesch').value,f2:{on:($('fmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5),fen:+$('fenster2').value,mat:$('frahmen2').value},w2:{on:($('wmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5),typ:$('wtyp2').value,wD:+$('wd2').value||0},pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4'),inv5:numG('inv5'),inv6:numG('inv6'),inv7:numG('inv7'),inv8:numG('inv8'),inv9:numG('inv9'),jazM:{luft:num('jazl'),sole:num('jazs')},wartL:numG('wartl'),wartS:numG('warts'),pumpS:numG('pumps'),lebL:numG('lebl'),lebS:numG('lebs'),wq:$('wq').value,
-    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fScen:$('fszen').value,n50:num('n50'),ldk:$('ldk').value,qenv:num('qenv'),vn50:numG('vn50'),aen50:numG('aen50'),aenv:numG('aenv'),zh:+$('zh').value||0,fass:$('fass').value,vol:numG('vol'),abschirm:+$('abschirm').value,nzu:num('nzu'),hlext:num('hlext'),tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),tneAuto:$('tne').dataset.auto==='1',fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
+    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fScen:$('fszen').value,n50:num('n50'),ldk:$('ldk').value,qenv:num('qenv'),vn50:numG('vn50'),aen50:numG('aen50'),aenv:numG('aenv'),zh:+$('zh').value||0,fass:$('fass').value,vol:numG('vol'),abschirm:+$('abschirm').value,nzu:num('nzu'),hlext:num('hlext'),tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),tneAuto:$('tne').dataset.auto==='1',tneTab:($('tne').dataset.auto==='1'&&$('tne').dataset.src==='tab'),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
     rbOrt:$('rb_ort').value,rbNachb:$('rb_nachb').value,rbPlatz:$('rb_platz').value,rbStrom:$('rb_strom').value,rbTank:$('rb_tank').value,rbNetz:$('rb_netz').value,rbDenk:$('rb_denk').value,rbNote:$('rb_note').value.trim(),
     cvDach:$('cv_dach').checked,cvKeller:$('cv_keller').checked,cvWand:$('cv_wand').checked,cvFen:$('cv_fen').checked,cvHk:$('cv_hk').checked,
     kPa:(function(){var v=parseFloat(String($('k_pa').value).replace(',','.'));return isNaN(v)?4:v})(),kPs:(function(){var v=parseFloat(String($('k_ps').value).replace(',','.'));return isNaN(v)?2:v})(),kWb:numG('k_wb'),kWw:numG('k_ww')
@@ -2381,6 +2381,66 @@ function autoPut(id,val){
   if(val==null){if(isA) e.value='';delete e.dataset.auto;e.classList.remove('autov')}
   else{e.value=val;e.dataset.auto='1';e.classList.add('autov')}
 }
+// Norm-Außentemperatur nach DIN/TS 12831-1:2020-04, Großstädte (Tabelle aus der Klimakarte des Bundesverbands Wärmepumpe, abgerufen 01.07.2026).
+// Je Stadt nur der kälteste und der mildeste Wert ihrer Postleitzahlen: [Stadt, PLZ von, PLZ bis, kältester °C, mildester °C]
+var NTE=[
+  ["Aachen", 52062, 52080, -8.8, -7.1],
+  ["Augsburg", 86150, 86199, -14.3, -13.3],
+  ["Berlin", 10115, 14199, -13.3, -11.1],
+  ["Bielefeld", 33602, 33739, -10.3, -8.8],
+  ["Bochum", 44787, 44894, -8.4, -7.3],
+  ["Bonn", 53111, 53229, -9.1, -7.4],
+  ["Braunschweig", 38100, 38126, -11.5, -10.3],
+  ["Bremen", 28195, 28779, -9.5, -8.6],
+  ["Chemnitz", 9111, 9228, -14.3, -12.9],
+  ["Dortmund", 44135, 44388, -9.1, -7.5],
+  ["Dresden", 1067, 1465, -14, -12.1],
+  ["Duisburg", 47051, 47279, -8.4, -7.1],
+  ["Düsseldorf", 40210, 40629, -8.4, -6.8],
+  ["Erfurt", 99084, 99099, -13.8, -11.9],
+  ["Essen", 45127, 45359, -8.4, -7.1],
+  ["Frankfurt am Main", 60311, 65936, -10.1, -8.3],
+  ["Freiburg im Breisgau", 79098, 79117, -11, -9.5],
+  ["Gelsenkirchen", 45879, 45899, -8.3, -7.3],
+  ["Halle (Saale)", 6108, 6132, -14, -12.8],
+  ["Hamburg", 20095, 22769, -10.5, -8.2],
+  ["Hannover", 30159, 30659, -11.3, -10],
+  ["Karlsruhe", 76131, 76229, -10.7, -9.3],
+  ["Kassel", 34117, 34233, -12.4, -10.1],
+  ["Kiel", 24103, 24159, -8.7, -7.7],
+  ["Köln", 50667, 51149, -8.7, -7],
+  ["Krefeld", 47798, 47839, -8.3, -7],
+  ["Leipzig", 4103, 4357, -13.6, -11.6],
+  ["Lübeck", 23552, 23570, -11, -9.1],
+  ["Magdeburg", 39104, 39130, -12.6, -11.1],
+  ["Mainz", 55116, 55131, -10.1, -8.6],
+  ["Mannheim", 68159, 68309, -10.8, -10],
+  ["Mönchengladbach", 41061, 41239, -8.5, -7],
+  ["München", 80331, 81929, -13.9, -11.1],
+  ["Münster", 48143, 48167, -9.3, -7.9],
+  ["Nürnberg", 90402, 90537, -13.7, -11.2],
+  ["Oldenburg", 26121, 26135, -9.5, -8.8],
+  ["Potsdam", 14467, 14482, -12.7, -12.1],
+  ["Rostock", 18055, 18182, -11.8, -10],
+  ["Saarbrücken", 66111, 66133, -10.2, -8.5],
+  ["Stuttgart", 70173, 70629, -11.8, -9.3],
+  ["Wiesbaden", 65183, 65207, -10.5, -8.4],
+  ["Wuppertal", 42103, 42399, -9.7, -7.8]
+];
+function nteNorm(t){return String(t||'').toLowerCase().replace(/ß/g,'ss').replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim()}
+// Treffer nur, wenn PLZ im Bereich liegt UND der Ort zur Stadt passt (die Bereiche von Berlin, Hamburg, Frankfurt, München enthalten auch Umland). Bei mehreren Treffern der engste Bereich.
+function nteLookup(plz,ort){
+  var p=/^\d{5}$/.test(String(plz||'').trim())?parseInt(plz,10):null,o=nteNorm(ort);
+  if(p==null||!o) return null;
+  var best=null;
+  NTE.forEach(function(r){
+    if(p<r[1]||p>r[2]) return;
+    var base=nteNorm(r[0].replace(/\(.*\)/,'').replace(/ am main| im breisgau/i,''));
+    if((' '+o+' ').indexOf(' '+base+' ')<0&&o.indexOf(base)!==0) return;
+    if(!best||(r[2]-r[1])<(best[2]-best[1])) best=r;
+  });
+  return best?{city:best[0],kalt:best[3],mild:best[4],plz:best[1]+'–'+best[2]}:null;
+}
 var REQ_IN=['kd_plz','kd_ort','vj1','tne'];
 function autoSync(){
   var g=geoGet();
@@ -2392,11 +2452,15 @@ function autoSync(){
     var j=parseInt($(p[1]).value,10),k=(g&&g.kf&&numG(p[0])>0&&j>=1990)?g.kf[j]:0;
     autoPut(p[2],(k>=0.5&&k<=1.5)?fmt(k,2):null);
   });
-  autoPut('tne',(g&&typeof g.tne==='number')?String(g.tne).replace('-','−'):null);
+  var nt=nteLookup($('kd_plz').value,$('kd_ort').value);
+  autoPut('tne',nt?String(nt.kalt).replace('-','−').replace('.',','):((g&&typeof g.tne==='number')?String(g.tne).replace('-','−'):null));
   var te=$('tne'),h=$('tnehint');
+  if(te.dataset.auto==='1') te.dataset.src=nt?'tab':'era';else delete te.dataset.src;
   if(h){
     var has=te.value.trim()!=='';
-    h.textContent=te.dataset.auto==='1'
+    h.textContent=(te.dataset.auto==='1'&&te.dataset.src==='tab')
+      ?'Tabellenwert nach DIN/TS 12831-1 für '+nt.city+': '+String(nt.kalt).replace('.',',').replace('-','−')+' °C, der kälteste Wert der PLZ-Bereiche '+nt.plz+' (mildester '+String(nt.mild).replace('.',',').replace('-','−')+' °C). Die Tabelle gibt je Großstadt nur diese beiden Werte an, die App nimmt den kälteren (sichere Seite). Der Wert der genauen PLZ ersetzt ihn, wenn er eingetragen wird.'
+      :te.dataset.auto==='1'
       ?'Aus den Wetterdaten des Standorts abgeschätzt: tiefstes Zweitagesmittel, das 10-mal in 20 Jahren erreicht wird (ERA5, 1991 bis 2020). Das ist eine Näherung, nicht der Tabellenwert nach DIN/TS 12831-1, Beiblatt 1. Den Tabellenwert eintragen, sobald er vorliegt. Er ersetzt die Abschätzung.'
       :(has?'Eingetragener Wert, er ersetzt die Abschätzung aus den Wetterdaten. Quelle: Tabelle DIN/TS 12831-1, Beiblatt 1.'
       :(g?'Für den gespeicherten Standort fehlt die Abschätzung. „Standort neu ermitteln“ unter Kunde holt sie. Bis dahin rechnet die App mit −12 °C als Annahme.'

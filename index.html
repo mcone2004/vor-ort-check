@@ -728,7 +728,9 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     </section>
     </div><div class="hcol">
     <section class="bt bt-fenster"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM12 3v18M5 12h14"/></svg>Fenster</h3>
-    <label for="fenster">Fenster, vorhandene Bauart<select id="fenster"><option value="0">Einfachverglasung</option><option value="1">Kasten- oder Verbundfenster, älter</option><option value="2">2-fach Isolierglas, bis 1994</option><option value="3" selected>2-fach Wärmeschutzglas, 1995 bis 2009</option><option value="4">2-fach Wärmeschutzglas, ab 2010</option><option value="5">3-fach Wärmeschutzglas</option><option value="6">Kastenfenster neu oder saniert, mit Wärmeschutzglas</option></select></label>
+    <label for="fmix" id="fmixl" hidden>Sind die Fenster in allen Geschossen gleich?<select id="fmix"><option value="ja" selected>Ja, alle Geschosse gleiche Fenster</option><option value="nein">Nein, Obergeschoss(e) andere Fenster</option></select></label>
+    <span class="hint" id="fmixh" hidden>Die Felder direkt darunter gelten für das Erdgeschoss, das Obergeschoss steht weiter unten. Dichtheit und Läden gelten für alle Geschosse. Die Fensterfläche ist zu gleichen Teilen auf die Geschosse verteilt (Annahme). Bei drei Geschossen gilt der Obergeschoss-Aufbau für OG und 2. OG.</span>
+    <label for="fenster"><span id="fenl">Fenster, vorhandene Bauart</span><select id="fenster"><option value="0">Einfachverglasung</option><option value="1">Kasten- oder Verbundfenster, älter</option><option value="2">2-fach Isolierglas, bis 1994</option><option value="3" selected>2-fach Wärmeschutzglas, 1995 bis 2009</option><option value="4">2-fach Wärmeschutzglas, ab 2010</option><option value="5">3-fach Wärmeschutzglas</option><option value="6">Kastenfenster neu oder saniert, mit Wärmeschutzglas</option></select></label>
     <div class="row">
     <label for="frahmen">Rahmenmaterial<select id="frahmen"><option value="holz">Holz</option><option value="kst" selected>Kunststoff</option><option value="ha">Holz-Aluminium</option><option value="alu">Aluminium, thermisch getrennt</option><option value="alu0">Aluminium ohne thermische Trennung, älter</option></select></label>
     <label for="fdicht">Dichtheit der Fenster<select id="fdicht"><option value="0" selected>normal</option><option value="1">spürbar undicht, Zugluft an den Fugen</option></select></label>
@@ -740,6 +742,11 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
     <span class="hint" id="fshh" hidden></span>
     <span class="hint">Maßgeblich ist die Verglasung, nicht das Baujahr des Hauses. Angesetzt sind Uw-Werte von 4,7 (Einfach) über 2,6 (Kasten alt), 2,8, 1,5 und 1,2 (2-fach) bis 0,95 (3-fach) und 1,1 (Kastenfenster neu). Der Dichtheitsaufschlag gilt nur für ältere Fenster. Rahmen als Aufschlag auf den Uw: Kunststoff Bezug, Holz und Holz-Aluminium +0,05, Aluminium getrennt +0,3, Aluminium ohne Trennung +0,9.</span>
     <span class="hint" id="fuw"></span>
+    <div id="f2box" hidden>
+      <h4 class="w2h">Fenster Obergeschoss</h4>
+      <label for="fenster2">Obergeschoss, vorhandene Bauart<select id="fenster2"><option value="0">Einfachverglasung</option><option value="1">Kasten- oder Verbundfenster, älter</option><option value="2">2-fach Isolierglas, bis 1994</option><option value="3" selected>2-fach Wärmeschutzglas, 1995 bis 2009</option><option value="4">2-fach Wärmeschutzglas, ab 2010</option><option value="5">3-fach Wärmeschutzglas</option><option value="6">Kastenfenster neu oder saniert, mit Wärmeschutzglas</option></select></label>
+      <label for="frahmen2">Obergeschoss, Rahmenmaterial<select id="frahmen2"><option value="holz">Holz</option><option value="kst" selected>Kunststoff</option><option value="ha">Holz-Aluminium</option><option value="alu">Aluminium, thermisch getrennt</option><option value="alu0">Aluminium ohne thermische Trennung, älter</option></select></label>
+    </div>
     <label for="af">Fensterfläche gesamt in m² (optional)<input id="af" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="decimal" placeholder="geschätzt"></label>
     </section>
     <section class="bt bt-lueft"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/></svg>Lüftung</h3>
@@ -1099,7 +1106,9 @@ function pick(t,b,st,rk){
   var v=t.s[st];return (v==null)?t.o[b]:Math.min(t.o[b],v)}
 // Zielfenster für Variante 3 und Einzelmaßnahme: 3-fach, außer die vorhandenen sind schon so gut
 // Neufenster mit Holz-, Kunststoff- oder Holz-Alu-Rahmen angesetzt, Uw 0,95; 'new' steht für diesen Neuzustand
-function fenTarget(o){return (UFEN[o.fen]+matDelta(o,o.fen))<=0.95?o.fen:'new'}
+function fenTarget(o){
+  if(fenMixOn(o)) return {a:(fenU1(o,o.fen,o.fMat)<=0.95?o.fen:'new'),b:(fenU1(o,o.f2.fen,o.f2.mat)<=0.95?o.f2.fen:'new')};
+  return (UFEN[o.fen]+matDelta(o,o.fen))<=0.95?o.fen:'new'}
 // Effizienzklasse nach GEG-Skala, Endenergie in kWh je m² Gebäudenutzfläche und Jahr
 function klasse(e){
   var T=[[30,'A+'],[50,'A'],[75,'B'],[100,'C'],[130,'D'],[160,'E'],[200,'F'],[250,'G']];
@@ -1314,6 +1323,26 @@ function lvf(o){
   var e=(+o.lwrg>0)?(+o.lwrg/100):(o.lart==='zent'?0.80:0.70);
   return 0.4+0.6*(1-e*0.85);
 }
+// Fenster je Geschoss: Fensterfläche zu gleichen Teilen auf die Geschosse verteilt (Annahme), Obergeschoss(e) mit eigener Bauart und eigenem Rahmen
+function fenMixOn(o){return !!(o.f2&&o.f2.on&&o.typ!=='mfh'&&((+o.gesch>0)?+o.gesch:2)>=1.5)}
+function fenU1(o,fen,mat){return (fen==='new')?0.95:(UFEN[fen]+matDelta({fMat:mat},fen))}
+// fen: Zahl (Ist, gilt für das Erdgeschoss, das Obergeschoss bleibt im Ist), 'new' (alle Geschosse neu) oder {a,b} je Geschoss
+function fenPair(o,fen){
+  if(!fenMixOn(o)) return null;
+  var a=fen,b=fen;
+  if(fen&&typeof fen==='object'){a=fen.a;b=fen.b}else if(fen===o.fen) b=o.f2.fen;
+  return {a:a,b:b,ma:o.fMat,mb:o.f2.mat};
+}
+function fenSplit(o){if(!fenMixOn(o)) return null;return {share:wallShare(o),u1:fenU1(o,o.fen,o.fMat),u2:fenU1(o,o.f2.fen,o.f2.mat)}}
+function fenSame(o,ft){return (ft&&typeof ft==='object')?(ft.a===o.fen&&ft.b===o.f2.fen):(ft===o.fen)}
+function fenHebel(o){
+  var base='Fenster erneuern (3-fach oder hochwertiges Kastenfenster)';
+  if(!fenMixOn(o)) return base;
+  var ft=fenTarget(o);
+  if(ft.a===o.fen&&ft.b!==o.f2.fen) return 'Fenster im Obergeschoss erneuern (3-fach oder hochwertiges Kastenfenster)';
+  if(ft.b===o.f2.fen&&ft.a!==o.fen) return 'Fenster im Erdgeschoss erneuern (3-fach oder hochwertiges Kastenfenster)';
+  return 'Fenster in allen Geschossen erneuern (3-fach oder hochwertiges Kastenfenster)';
+}
 function uOf(o,s,fen){
   var b=o.band,r={};
   if(s.dach===3) r.dach=uDachKnown(o);
@@ -1321,9 +1350,17 @@ function uOf(o,s,fen){
     if(o.st&&o.st.dach===3&&(s.dach===1||s.dach===2)) r.dach=Math.min(r.dach,uDachKnown(o))}
   r.wand=uWallS(o,s.wand,s.wand2); // Ist die vorhandene, bekannte Dämmung besser als der Zielstand, bleibt sie erhalten
   r.kst=(o.st&&o.st.keller===3&&(s.keller===1||s.keller===2)&&kellerTerm(o,3)<kellerTerm(o,s.keller))?3:s.keller;
-  r.fbase=(fen==='new')?0.95:(UFEN[fen]+matDelta(o,fen));
-  r.fenster=shutU(o,r.fbase);
-  r.leak=(o.fdicht===1&&r.fbase>=1.6)?8:0; // undichte ältere Fenster: mehr Lüftungsverlust in kWh/(m²a)
+  var fp=fenPair(o,fen);
+  if(fp){
+    var fsh=wallShare(o),ua=fenU1(o,fp.a,fp.ma),ub=fenU1(o,fp.b,fp.mb);
+    r.fbase=fsh*ua+(1-fsh)*ub;
+    r.fenster=fsh*shutU(o,ua)+(1-fsh)*shutU(o,ub);
+    r.leak=(o.fdicht===1)?8*(fsh*(ua>=1.6?1:0)+(1-fsh)*(ub>=1.6?1:0)):0;
+  }else{
+    r.fbase=(fen==='new')?0.95:(UFEN[fen]+matDelta(o,fen));
+    r.fenster=shutU(o,r.fbase);
+    r.leak=(o.fdicht===1&&r.fbase>=1.6)?8:0; // undichte ältere Fenster: mehr Lüftungsverlust in kWh/(m²a)
+  }
   return r;
 }
 function uOrig(o){var b=o.band;return {wand:uWallS(o,0,0),dach:U0.dach[b],kst:0,fenster:U0.fenster[b],leak:0}}
@@ -1721,7 +1758,7 @@ function compute(o){
   if(o.cvDach&&dachTo2(o)!==o.st.dach){cvS.dach=dachTo2(o);cvN.push('Dach')}
   if(o.cvKeller&&cu&&kTo2(o)!==o.st.keller){cvS.keller=kTo2(o);cvN.push('Kellerdecke')}
   if(o.cvWand&&(cvS.wand<2||(wallMixOn(o)&&cvS.wand2<2))){if(cvS.wand<2) cvS.wand=2;if(wallMixOn(o)&&cvS.wand2<2) cvS.wand2=2;cvN.push('Außenwand')}
-  if(o.cvFen){var ft=fenTarget(o);if(ft!==cvF){cvF=ft;cvN.push('Fenster')}}
+  if(o.cvFen){var ft=fenTarget(o);if(!fenSame(o,ft)){cvF=ft;cvN.push('Fenster')}}
   var swc=swapMul(o);
   if(o.cvHk&&swc>1){cvFm=swc;cvN.push('Heizkörpertausch')}
   var cv=null;
@@ -1742,11 +1779,11 @@ function compute(o){
   var hebel=[];
   ['wand','dach','keller','fenster'].forEach(function(k){
     var s={wand:o.st.wand,wand2:o.st.wand2,dach:o.st.dach,keller:o.st.keller},f=o.fen;
-    if(k==='fenster'){var ft=fenTarget(o);if(ft===f)return;f=ft}else if(k==='wand'&&wallMixOn(o)){var chg=false;if(s.wand<2||(s.wand===3&&uWall(o,3)>uWall(o,2)*1.15)){s.wand=2;chg=true}if(s.wand2<2){s.wand2=2;chg=true}if(!chg) return}else if(k==='wand'&&s.wand===3){if(uWall(o,3)<=uWall(o,2)*1.15) return;s.wand=2}else if(k==='dach'&&s.dach===3){if(dachTo2(o)===3) return;s.dach=2}else if(k==='keller'&&s.keller===3){if(kTo2(o)===3) return;s.keller=2}else{if(s[k]>=2)return;s[k]=2}
+    if(k==='fenster'){var ft=fenTarget(o);if(fenSame(o,ft))return;f=ft}else if(k==='wand'&&wallMixOn(o)){var chg=false;if(s.wand<2||(s.wand===3&&uWall(o,3)>uWall(o,2)*1.15)){s.wand=2;chg=true}if(s.wand2<2){s.wand2=2;chg=true}if(!chg) return}else if(k==='wand'&&s.wand===3){if(uWall(o,3)<=uWall(o,2)*1.15) return;s.wand=2}else if(k==='dach'&&s.dach===3){if(dachTo2(o)===3) return;s.dach=2}else if(k==='keller'&&s.keller===3){if(kTo2(o)===3) return;s.keller=2}else{if(s[k]>=2)return;s[k]=2}
     var q=sc*qh(o,uOf(o,s,f)), d=(qIst-q)*o.wf;
     if(d<100) return;
     var vl=clamp(vlModel(o,q,qOrigW,q*1000/VBH)+shift,30,80);
-    hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,kwNew:q*o.wf/VBH,dkw:(qIst-q)*o.wf/VBH,label:(k==='keller')?kLabel(o):(k==='fenster'?'Fenster erneuern (3-fach oder hochwertiges Kastenfenster)':(k==='dach'?dachHebel(o):null))});
+    hebel.push({k:k,d:d,eur:d/eta*o.pAlt,vl:vl,kwNew:q*o.wf/VBH,dkw:(qIst-q)*o.wf/VBH,label:(k==='keller')?kLabel(o):(k==='fenster'?fenHebel(o):(k==='dach'?dachHebel(o):null))});
   });
   hebel.sort(function(a,b){return b.d-a.d});
   var pp=qhParts(o,uIst),kwP={};
@@ -1754,7 +1791,7 @@ function compute(o){
   var hl=hlNorm(o,uIst);hl.verb=(qVerb!=null)?qVerb*o.wf/VBH:null;hl.ext=(+o.hlext>0)?+o.hlext:null;hl.dev=(hl.verb>0)?hl.kw/hl.verb-1:null;hl.ist=ist.kw;
   return {WQ:WQ,wq:chosenWq,jazM:{luft:!!(o.jazM&&o.jazM.luft>0),sole:!!(o.jazM&&o.jazM.sole>0)},hl:hl,ofen:ofenTr(o)?{eta:eta,real:(o.verb>0)?o.verb*KWH[o.einh]:0,anteil:(qVerb!=null&&qBT>0)?qVerb/qBT:null}:null,hilf:hilfsE(o,ist.end),uIst:uIst,cv:cv,ww:WWq,solar:solar(o,S,ist,qIst,hhV),areas:AR(o),ist:ist,S:S,hebel:hebel,kwP:kwP,dachNm:dachNm(o),qBT:qBT,qVerb:qVerb,anchored:anchored,mode:mode,auto:auto,scale:sc,vlModelIst:clamp(vlIstModel,30,80),hkNoGain:hkNoGain,uFen:uIst.fenster,uFenB:uIst.fbase,uWand:uIst.wand,vlIst:S[0].vl};
 }
-return {wallSplit:wallSplit,wallMixOn:wallMixOn,ZT:ZT,zweiExp:zweiExp,zweiSt:zweiSt,zweiR:zweiR,zweiU:zweiU,ZV:ZV,kfwTreppe:kfwTreppe,kfwEinkTab:kfwEinkTab,wpBasis:wpBasis,ofenTr:ofenTr,OFEN_ETA:OFEN_ETA,hilfsE:hilfsE,shutU:shutU,SHUT:SHUT,shutF:shutF,lvf:lvf,typU:typU,REG:REG,kLevel:kLevel,kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,jazQ:jazQ,wqFaktor:wqFaktor,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
+return {wallSplit:wallSplit,wallMixOn:wallMixOn,fenSplit:fenSplit,fenMixOn:fenMixOn,ZT:ZT,zweiExp:zweiExp,zweiSt:zweiSt,zweiR:zweiR,zweiU:zweiU,ZV:ZV,kfwTreppe:kfwTreppe,kfwEinkTab:kfwEinkTab,wpBasis:wpBasis,ofenTr:ofenTr,OFEN_ETA:OFEN_ETA,hilfsE:hilfsE,shutU:shutU,SHUT:SHUT,shutF:shutF,lvf:lvf,typU:typU,REG:REG,kLevel:kLevel,kellerTerm:kellerTerm,kTo2:kTo2,dachAufbau:dachAufbau,uDachKnown:uDachKnown,dachNmOf:dachNm,FOERD:FOERD,kfwFoerd:kfwFoerd,bafaFoerd:bafaFoerd,foerdBasis:foerdBasis,gesamt:gesamt,wwq:wwq,AR:AR,lamKnown:lamKnown,compute:compute,ETA:ETA,KWH:KWH,jaz:jaz,jazQ:jazQ,wqFaktor:wqFaktor,rate:rate,canUp:canUp,kLabel:kLabel,HKREL:HKREL,swapMul:swapMul,klasse:klasse};
 })();
 if(typeof module!=='undefined') module.exports=CALC;
 
@@ -1935,7 +1972,7 @@ function read(){
     zw:($('wtyp').value==='zwei'?zwRead():null),wTyp:$('wtyp').value,wD:+$('wd').value||0,wlgG:($('wtyp').value==='hrb'?+$('wlgg').value||0:0),dm:{ds:$('dstoff').value,wlg:+$('wlg').value||0,d:+$('dstark').value||0,bj:+$('dbj').value||0},dd:{ds:$('dstoffD').value,wlg:+$('wlgD').value||0,d:+$('dstarkD').value||0,bj:+$('dbjD').value||0},dk:{ds:$('kstoff').value,wlg:+$('kwlg').value||0,d:+$('kstark').value||0,bj:+$('kbj').value||0,td:true,f:($('kdd').value==='teil'?(+$('kdanteil').value||50)/100:1),lage:'beide'},dkmat:($('kart').value==='kk'?'unbek':$('kdmat').value),dkw:{m:$('kwd').value,a:+$('kwanteil').value||50,ds:$('kwstoff').value,wlg:+$('kwwlg').value||0,d:+$('kwstark').value||0},bpart:$('bpart').value,dkb:{ds:$('kbstoff').value,wlg:+$('kbwlg').value||0,d:+$('kbstark').value||0,bj:+$('kbbj').value||0},dl:{dka:$('dka').value,dkh:+$('dkh').value||0,dkf:$('dkf').value,dkfd:+$('dkfd').value||0,dkfw:+$('dkfw').value||0,dib:$('dib').value,dab:$('dab').value,dzs:$('dzs').value,dzd:+$('dzd').value||0,dzw:+$('dzw').value||0,ddb:$('ddb').value},st:{wand:wandSt(),wand2:(+$('wand2').value||0),dach:+$('dach').value,keller:((+$('kshare').value>0&&$('kart').value!=='bh'&&($('kdd').value==='ja'||$('kdd').value==='teil'))?3:0)},fen:+$('fenster').value,
     tr:$('traeger').value,ha:+$('hz_alter').value,hk:($('hk').value==='keine'?'hk_neu':$('hk').value),hkKeine:$('hk').value==='keine',ofen:$('ofen').value,ofa:+$('ofa').value||0,ofb:$('ofb').value,
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
-    pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhGet().m,hhN:hhGet().n,hhMin:hhGet().lo,hhMax:hhGet().hi,hhY:hhGet().y,hhEst:hhGet().est,vvh:$('vvh').value,gesch:+$('gesch').value,w2:{on:($('wmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5),typ:$('wtyp2').value,wD:+$('wd2').value||0},pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
+    pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhGet().m,hhN:hhGet().n,hhMin:hhGet().lo,hhMax:hhGet().hi,hhY:hhGet().y,hhEst:hhGet().est,vvh:$('vvh').value,gesch:+$('gesch').value,f2:{on:($('fmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5),fen:+$('fenster2').value,mat:$('frahmen2').value},w2:{on:($('wmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5),typ:$('wtyp2').value,wD:+$('wd2').value||0},pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4'),inv5:numG('inv5'),inv6:numG('inv6'),inv7:numG('inv7'),inv8:numG('inv8'),inv9:numG('inv9'),jazM:{luft:num('jazl'),sole:num('jazs')},wartL:numG('wartl'),wartS:numG('warts'),pumpS:numG('pumps'),lebL:numG('lebl'),lebS:numG('lebs'),wq:$('wq').value,
     wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fScen:$('fszen').value,n50:num('n50'),ldk:$('ldk').value,qenv:num('qenv'),vn50:numG('vn50'),aen50:numG('aen50'),aenv:numG('aenv'),zh:+$('zh').value||0,fass:$('fass').value,vol:numG('vol'),abschirm:+$('abschirm').value,nzu:num('nzu'),hlext:num('hlext'),tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),tneAuto:$('tne').dataset.auto==='1',fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
     rbOrt:$('rb_ort').value,rbNachb:$('rb_nachb').value,rbPlatz:$('rb_platz').value,rbStrom:$('rb_strom').value,rbTank:$('rb_tank').value,rbNetz:$('rb_netz').value,rbDenk:$('rb_denk').value,rbNote:$('rb_note').value.trim(),
@@ -2030,11 +2067,11 @@ function rbLines(o){
   if(o.rbNote) r.push('Notiz: '+o.rbNote);
   return r;
 }
-var CONF=[['typ','Gebäudetyp'],['baujahr','Baujahr'],['wf','Wohnfläche'],['gesch','Geschosszahl'],['wtyp','Bauart der Außenwand'],['wand','Dämmzustand der Außenwand'],['wtyp2','Bauart der Außenwand im Obergeschoss'],['wand2','Dämmzustand der Außenwand im Obergeschoss'],['dach','Dämmzustand des Dachs'],['kshare','Unterkellerung'],['kdd','Dämmung der Kellerdecke'],['fenster','Fensterart'],['frahmen','Rahmenmaterial der Fenster'],['traeger','Energieträger'],['hz_alter','Alter der Heizung'],['hk','Wärmeübergabe'],['hktyp','Heizkörpertyp'],['vvh','Verbrauchswerte der Heizung vorhanden?'],['verb','Heizverbrauch'],['p_alt','Preis der bisherigen Heizung'],['p_wp','Strompreis der Wärmepumpe'],['wwart','Warmwasser']];
+var CONF=[['typ','Gebäudetyp'],['baujahr','Baujahr'],['wf','Wohnfläche'],['gesch','Geschosszahl'],['wtyp','Bauart der Außenwand'],['wand','Dämmzustand der Außenwand'],['wtyp2','Bauart der Außenwand im Obergeschoss'],['wand2','Dämmzustand der Außenwand im Obergeschoss'],['dach','Dämmzustand des Dachs'],['kshare','Unterkellerung'],['kdd','Dämmung der Kellerdecke'],['fenster','Fensterart'],['frahmen','Rahmenmaterial der Fenster'],['fenster2','Fensterart im Obergeschoss'],['frahmen2','Rahmenmaterial der Fenster im Obergeschoss'],['traeger','Energieträger'],['hz_alter','Alter der Heizung'],['hk','Wärmeübergabe'],['hktyp','Heizkörpertyp'],['vvh','Verbrauchswerte der Heizung vorhanden?'],['verb','Heizverbrauch'],['p_alt','Preis der bisherigen Heizung'],['p_wp','Strompreis der Wärmepumpe'],['wwart','Warmwasser']];
 function confMissing(){
   var t=$('touched')?$('touched').value:'';if(t==='*') return [];
   var set={};t.split(',').forEach(function(x){if(x) set[x]=1});
-  return CONF.filter(function(c){return !(c[0]==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))&&!(c[0]==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))&&!(c[0]==='verb'&&$('vvh').value==='nein')&&!(c[0]==='gesch'&&$('typ').value==='mfh')&&!((c[0]==='wtyp2'||c[0]==='wand2')&&!wmixOn())&&!set[c[0]]}).map(function(c){return c[1]});
+  return CONF.filter(function(c){return !(c[0]==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))&&!(c[0]==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))&&!(c[0]==='verb'&&$('vvh').value==='nein')&&!(c[0]==='gesch'&&$('typ').value==='mfh')&&!((c[0]==='wtyp2'||c[0]==='wand2')&&!wmixOn())&&!((c[0]==='fenster2'||c[0]==='frahmen2')&&!fmixOn())&&!set[c[0]]}).map(function(c){return c[1]});
 }
 
 // Pflichtangaben: die Angaben aus CONF zählen erst als bestätigt, wenn sie angefasst wurden (Feld „touched“).
@@ -2051,7 +2088,7 @@ function pendSync(reset){
   var t=$('touched')?$('touched').value:'',all=(t==='*'),set={};t.split(',').forEach(function(x){if(x) set[x]=1});
   CONF.forEach(function(c){
     var id=c[0],e=$(id);if(!e) return;
-    var skip=(id==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))||(id==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))||(id==='verb'&&$('vvh').value==='nein')||(id==='gesch'&&$('typ').value==='mfh')||((id==='wtyp2'||id==='wand2')&&!wmixOn());
+    var skip=(id==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))||(id==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))||(id==='verb'&&$('vvh').value==='nein')||(id==='gesch'&&$('typ').value==='mfh')||((id==='wtyp2'||id==='wand2')&&!wmixOn())||((id==='fenster2'||id==='frahmen2')&&!fmixOn());
     var done=all||skip||!!set[id];
     if(PICK[id]!=null){
       var raw=NATV.get.call(e);
@@ -2086,7 +2123,8 @@ function dqEval(o,R){
   add('Außenwand',wOk?'ok':'ann',wOk?'Bauart und Dämmzustand angegeben':(o.wTyp==='unb'?'Bauart unbekannt, baujahrtypischer Wert':(o.wTyp==='zwei'&&!CALC.zweiExp(o)&&tc('wtyp')?'Kerndämmung unbekannt, baujahrtypischer Wert':'Standardwert, nicht abgefragt')),2);
   var dOk=tc('dach')&&o.dform!=='';
   add('Dach',dOk?'ok':'ann',dOk?'Dachform und Dämmzustand angegeben':(o.dform===''?'Dachform nicht gewählt':'Dämmzustand nicht abgefragt'),2);
-  add('Fenster',tc('fenster')?'ok':'ann',tc('fenster')?'Bauart angegeben':'Standardwert, nicht abgefragt',1);
+  var fOk=tc('fenster')&&(!(o.f2&&o.f2.on)||(tc('fenster2')&&tc('frahmen2')));
+  add('Fenster',fOk?'ok':'ann',fOk?'Bauart angegeben':(tc('fenster')?'Fenster im Obergeschoss nicht bestätigt, Vorbelegung wie Erdgeschoss':'Standardwert, nicht abgefragt'),1);
   add('Keller und Boden',tc('kshare')?'ok':'ann',tc('kshare')?'Unterkellerung angegeben':'Standardwert, nicht abgefragt',1);
   var an=[o.aW,o.aF,o.aD,o.aK].filter(function(v){return v>0}).length;
   // Ohne Aufmaß ist die Schätzung aus Wohnfläche und Geschosszahl der Normalfall bei der Erstberatung: „angegeben“, sobald beides bestätigt ist
@@ -2366,6 +2404,7 @@ function autoSync(){
   }
   REQ_IN.forEach(function(id){var e=$(id),l=e&&e.closest('label');if(l) l.classList.toggle('pend',e.value.trim()==='')});
 }
+function fmixOn(){return $('fmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5}
 function wmixOn(){return $('wmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5}
 function syncWand2(){
   var t=$('wtyp2').value,w=WSET[t]||WSET.hlz,opt=$('wand2').querySelectorAll('option:not([data-pick])');
@@ -2384,6 +2423,7 @@ function syncWand2(){
 function syncMix(){
   var mf=$('typ').value==='mfh',show=!mf&&(+$('gesch').value||2)>=1.5,on=wmixOn();
   $('wmixl').hidden=!show;$('wmixh').hidden=!on;$('w2box').hidden=!on;
+  var fo=fmixOn();$('fmixl').hidden=!show;$('fmixh').hidden=!fo;$('f2box').hidden=!fo;$('fenl').textContent=fo?'Fenster Erdgeschoss, vorhandene Bauart':'Fenster, vorhandene Bauart';
   if(on) syncWand2();
 }
 function syncVv(){
@@ -2417,7 +2457,8 @@ function render(){
   var wsp=CALC.wallSplit(o);
   $('wuw2').textContent=wsp?'Angesetzt für das Obergeschoss: U ca. '+fmt(wsp.u2,2)+' W/m²K. Erdgeschoss U ca. '+fmt(wsp.u1,2)+' W/m²K, nach Wandhöhe gewichtet ('+Math.round(wsp.share*100)+' % Erdgeschoss) ergibt U ca. '+fmt(R.uWand,2)+' W/m²K für die Rechnung.':'';
   $('wuw').textContent=(wsp?'Angesetzt für die Außenwand im Erdgeschoss: U ca. '+fmt(wsp.u1,2):'Angesetzt für die Außenwand: U ca. '+fmt(R.uWand,2))+' W/m²K'+(($('wtyp').value==='unb'&&+$('wand').value===0)?' (baujahrtypisch, '+CALC.REG[o.band]+')':'');
-  $('fuw').textContent='Angesetzt für die Bestandsfenster: Uw ca. '+fmt(R.uFenB,2)+' W/m²K'+(R.uFen<R.uFenB-0.005?', mit Läden im Mittel ca. '+fmt(R.uFen,2)+' W/m²K':'');
+  var fsp=CALC.fenSplit(o);
+  $('fuw').textContent=(fsp?'Angesetzt: Erdgeschoss Uw ca. '+fmt(fsp.u1,2)+', Obergeschoss Uw ca. '+fmt(fsp.u2,2)+' W/m²K, nach Fensterfläche gewichtet ('+Math.round(fsp.share*100)+' % Erdgeschoss) Uw ca. '+fmt(R.uFenB,2)+' W/m²K':'Angesetzt für die Bestandsfenster: Uw ca. '+fmt(R.uFenB,2)+' W/m²K')+(R.uFen<R.uFenB-0.005?', mit Läden im Mittel ca. '+fmt(R.uFen,2)+' W/m²K':'');
   btSumSet(R);bjSet(o);syncKD();syncFL();syncOfen(o);syncZwei(o);syncWsk(o);
   var sav1=I.cost-s1.cost, add2=s1.cost-s2.cost, add3=s1.cost-s3.cost;
   // Geplante Solaranlagen werden getrennt amortisiert: Die Wärmepumpe rechnet ohne ihren Vorteil, die Solaranlagen mit ihrem Gesamtnutzen
@@ -2525,6 +2566,25 @@ function render(){
     hb+='</ul>';
   }
   hb+='</section>';
+  var ip='';
+  (function(){
+    if(!LP) return;
+    var wsp=CALC.wallSplit(o),fsp3=CALC.fenSplit(o),U=R.uIst,tz={wand:0.22,dach:0.16,fenster:0.95};
+    ip='<section class="panel"><h2>Sanierungsansätze aus dem Istzustand</h2>';
+    if(!R.hebel.length){ip+='<p>Alle erfassten Bauteile sind bereits auf aktuellem Stand. Der Hebel liegt dann bei Heizung, Lüftung und Betrieb.</p></section>';return}
+    ip+='<p>Abgeleitet aus dem heutigen Zustand: Maßnahmen an Bauteilen, die nicht auf aktuellem Stand sind, nach Einsparung geordnet. Jede Maßnahme ist einzeln gerechnet, die Werte lassen sich nicht einfach addieren. Kosten, Förderung und Wärmepumpe stehen unter „Sanierung und ihre Folgen“.</p><ul class="bars">';
+    var mx=R.hebel[0].d;
+    R.hebel.forEach(function(h){
+      var sh=(R.kwP&&R.kwP[h.k]>0)?R.kwP[h.k]/LP.sum:null,u='';
+      if(h.k==='wand') u=wsp?('Erdgeschoss U '+fmt(wsp.u1,2)+', Obergeschoss U '+fmt(wsp.u2,2)+' W/m²K, Zielwert nach aktuellem Stand etwa '+fmt(tz.wand,2)):('U heute etwa '+fmt(U.wand,2)+' W/m²K, nach aktuellem Stand etwa '+fmt(tz.wand,2));
+      else if(h.k==='dach') u='U heute etwa '+fmt(U.dach,2)+' W/m²K, nach aktuellem Stand etwa '+fmt(tz.dach,2);
+      else if(h.k==='fenster') u=fsp3?('Erdgeschoss Uw '+fmt(fsp3.u1,2)+', Obergeschoss Uw '+fmt(fsp3.u2,2)+' W/m²K, neue Fenster etwa '+fmt(tz.fenster,2)):('Uw heute etwa '+fmt(U.fbase,2)+' W/m²K, neue Fenster etwa '+fmt(tz.fenster,2));
+      ip+='<li><div class="lbl"><span>'+(h.label||NAMES[h.k])+'</span><span>'+fmt(h.d/1000,1)+' MWh/a, ca. '+eur(h.eur)+'/a</span></div><div class="bar"><i style="width:'+(h.d/mx*100)+'%"></i></div><p class="sub">'+(sh!=null?'Anteil an den Wärmeverlusten heute: '+fmt(Math.round(sh*100))+' %. ':'')+(u?u+'. ':'')+'Heizlast danach etwa '+fmt(h.kwNew,1)+' kW (minus '+fmt(h.dkw,1)+' kW).</p></li>';
+    });
+    ip+='</ul>';
+    if(o.fdicht===1) ip+='<p class="sub">Die Fenster sind spürbar undicht. Das erhöht den Lüftungsverlust. Der Fenstertausch beseitigt das und ist in der Einsparung oben enthalten, neue Dichtungen sind die kleinere Lösung.</p>';
+    ip+='</section>';
+  })();
 
   // 5 Befunde
   var f=[];
@@ -2554,6 +2614,8 @@ function render(){
   ['w','f','d','k'].forEach(function(k){if(R.areas.meas[k]){mn.push(AN[k]);var q=R.areas.use[k]/R.areas.est[k];if(q<0.5||q>2) odd.push(AN[k]+' '+fmt(R.areas.use[k])+' m² statt geschätzt '+fmt(R.areas.est[k])+' m²')}});
   var wsp2=CALC.wallSplit(o);
   if(wsp2) f.push('Außenwand je Geschoss unterschiedlich: Erdgeschoss U '+fmt(wsp2.u1,2)+', Obergeschoss U '+fmt(wsp2.u2,2)+' W/m²K. Gerechnet wird mit dem nach Wandhöhe gewichteten Mittel ('+Math.round(wsp2.share*100)+' % Erdgeschoss, gleiche Geschosshöhe angenommen).');
+  var fsp2=CALC.fenSplit(o);
+  if(fsp2) f.push('Fenster je Geschoss unterschiedlich: Erdgeschoss Uw '+fmt(fsp2.u1,2)+', Obergeschoss Uw '+fmt(fsp2.u2,2)+' W/m²K. Gerechnet wird mit dem nach Fensterfläche gewichteten Mittel ('+Math.round(fsp2.share*100)+' % Erdgeschoss, gleiche Fensterfläche je Geschoss angenommen).');
   if(mn.length) f.push('Bauteilflächen eingegeben: '+mn.join(', ')+'. Die übrigen sind aus Wohnfläche und Gebäudetyp geschätzt.');
   if(odd.length) f.push('Auffällige Flächenangabe: '+odd.join('; ')+'. Maße und Netto-Ansatz (Außenwand ohne Fenster) prüfen.');
   if(o.vlm!=null && Math.abs(R.vlModelIst-o.vlm)>8) f.push('Modell ergibt etwa '+Math.round(R.vlModelIst)+' °C Vorlauf, gemessen wurden '+o.vlm+' °C. Heizkörper sind vermutlich größer als angenommen oder der Dämmstand besser. Gerechnet wird mit dem gemessenen Wert.');
@@ -2562,8 +2624,8 @@ function render(){
   if((o.tr==='oel'||o.tr==='gas')&&o.ha===3) f.push('Kessel ist jünger als 10 Jahre. Der Austausch ist technisch nicht dringend, die Wirtschaftlichkeit hängt dann vor allem an Energiepreisen und Förderung.');
   if(s1.vl>55 && o.hk==='hk_alt') f.push('Die Heizkörper begrenzen den Vorlauf. Oft reicht der Tausch einzelner Heizkörper in den kältesten Räumen.');
   if(s2.kw<4||s3.kw<4) f.push('Heizlast unter 4 kW in einer Variante: Mindestleistung der Geräte und Taktverhalten beachten.');
-  if(o.fMat==='alu0') f.push('Aluminiumrahmen ohne thermische Trennung: hoher Wärmeverlust und Kondensat am Rahmen. Beim Fensteraustausch oder beim Dämmen der Fassade Taupunkt und Schimmelrisiko an der Laibung prüfen.');
-  if((o.fMat==='holz'||o.fMat==='ha')&&o.fen<=3) f.push('Holzfenster: Zustand von Anstrich, Dichtungen und Beschlägen prüfen. Eine Sanierung mit neuer Dichtung und Wärmeschutzglas kann den Austausch ersetzen.');
+  if(o.fMat==='alu0'||(CALC.fenMixOn(o)&&o.f2.mat==='alu0')) f.push('Aluminiumrahmen ohne thermische Trennung: hoher Wärmeverlust und Kondensat am Rahmen. Beim Fensteraustausch oder beim Dämmen der Fassade Taupunkt und Schimmelrisiko an der Laibung prüfen.');
+  if(((o.fMat==='holz'||o.fMat==='ha')&&o.fen<=3)||(CALC.fenMixOn(o)&&(o.f2.mat==='holz'||o.f2.mat==='ha')&&o.f2.fen<=3)) f.push('Holzfenster: Zustand von Anstrich, Dichtungen und Beschlägen prüfen. Eine Sanierung mit neuer Dichtung und Wärmeschutzglas kann den Austausch ersetzen.');
   if(o.kShare===0) f.push('Bodenplatte: Die Dämmung ist nur bei ohnehin anstehender Fußbodenerneuerung realistisch und steckt deshalb nicht in Variante 2 und 3.');
   if(o.kShare>0&&o.kArt==='bh') f.push('Beheizter Keller: Verluste über Boden und erdberührte Wände sind angesetzt. Perimeterdämmung ist aufwendig und steckt nicht in Variante 2 und 3.');
   rbLines(o).forEach(function(x){f.push(x)});
@@ -2606,7 +2668,7 @@ function render(){
     '<div class="vcls"><p class="eyebrow">Energieklasse heute, ca.</p>'+scaleI+'</div>'+
     '<p class="vfoot">'+basisTxt+'</p></div>';
   var istSec='<section><h2>Heizung heute</h2><div class="grid">'+istCardH+'</div></section>';
-  var outHtml=full?(top+dqHtml(dqv)+unc+rec+wqPanelHtml(o,R)+foep+hkp+solp+sc+srcp+lp+hb+bf):(istTop+dqHtml(dqv)+unc+istSec+lp+bf);
+  var outHtml=full?(top+dqHtml(dqv)+unc+rec+wqPanelHtml(o,R)+foep+hkp+solp+sc+srcp+lp+hb+bf):(istTop+dqHtml(dqv)+unc+istSec+lp+ip+bf);
   hkxRender(o,R,I);fsRender(o,R);
   if(outHtml!==lastOut){lastOut=outHtml;$('out').innerHTML=outHtml} // unveränderte Ausgabe nicht neu aufbauen, damit aufgeklappte Bereiche stehen bleiben
   var bar=$('bar');bar.hidden=false;bar.className='mbar r'+rt.k;
@@ -4225,7 +4287,7 @@ function initHome(){
 }
 function init(){
   ['wf','fzve','fsumme','fsumme2','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','inv9','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','vvh','vvs','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','fszen','tne','n50','ldk','qenv','vn50','aen50','aenv','zh','fass','vol','abschirm','nzu','hlext','wq','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','fmix','fenster2','frahmen2','vvh','vvs','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','fszen','tne','n50','ldk','qenv','vn50','aen50','aenv','zh','fass','vol','abschirm','nzu','hlext','wq','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -4277,13 +4339,19 @@ function init(){
     $('wand2').value=String(Math.min(2,+$('wand').value||0));
     pendSync();render();
   });
+  $('fmix').addEventListener('change',function(){
+    if(this.value!=='nein') return;
+    // Obergeschoss zunächst wie das Erdgeschoss vorbelegen (bleibt orange, bis bestätigt)
+    $('fenster2').value=$('fenster').value;$('frahmen2').value=$('frahmen').value;
+    pendSync();render();
+  });
   var outEl=$('out');if(outEl) outEl.addEventListener('click',function(ev){var a=ev.target.closest?ev.target.closest('a[data-go]'):null;if(!a) return;ev.preventDefault();goField(a.getAttribute('data-go'))});
   initBt();
   pendSync();
   syncKeller();syncWand();syncHk();syncWw();syncSolar();initGeo();initPhotos();
   // Felder, deren Wert in die Berechnung eingeht (Heizlast, Verbrauch, Kosten, Förderung): grün markiert. Alle anderen dokumentieren nur.
   (function(){
-    ['typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','tne','vvh','vvs','wtyp','wd','wand','dstoff','wlg','dstark','dbj','aw','dform','dach','dka','dkh','dkf','dkfd','dkfw','dstoffD','wlgD','dstarkD','dbjD','dab','dzs','dzd','dzw','dib','ddb','ad','kshare','kart','kdmat','kdd','kstoff','kwlg','kstark','kbj','kwd','kwanteil','kwstoff','kwwlg','kwstark','bpart','kbstoff','kbwlg','kbstark','kbbj','ak','fenster','frahmen','fdicht','fshut','fshutuse','af','lvor','lart','lwrg','ldk','abschirm','qenv','n50','vn50','aen50','zh','fass','vol','aenv','nzu','hlext','traeger','hz_alter','ofen','hpumpe','hk','hktyp','vlm','wwart','wwp','wzirk','wzart','wzpu','pvst','pvkwp','pvsp','stst','stm2','stnu','verb','vj1','verb2','verb3','einheit','p_alt','basis','sv1','sv2','sv3','p_wp','wq','rb_netz','f_selbst','f_kind','fzve','f_eink','fsumme','fsumme2','f_isfp','fherk','fkgb','fdatum','fszen','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','p_einsp','p_hh','inv1','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_pa','k_ps','k_wb','k_ww','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','wlgg','kdanteil','kf1','kf2','kf3','vj2','vj3','abschlag','abgrund','kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){
+    ['typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','fmix','fenster2','frahmen2','tne','vvh','vvs','wtyp','wd','wand','dstoff','wlg','dstark','dbj','aw','dform','dach','dka','dkh','dkf','dkfd','dkfw','dstoffD','wlgD','dstarkD','dbjD','dab','dzs','dzd','dzw','dib','ddb','ad','kshare','kart','kdmat','kdd','kstoff','kwlg','kstark','kbj','kwd','kwanteil','kwstoff','kwwlg','kwstark','bpart','kbstoff','kbwlg','kbstark','kbbj','ak','fenster','frahmen','fdicht','fshut','fshutuse','af','lvor','lart','lwrg','ldk','abschirm','qenv','n50','vn50','aen50','zh','fass','vol','aenv','nzu','hlext','traeger','hz_alter','ofen','hpumpe','hk','hktyp','vlm','wwart','wwp','wzirk','wzart','wzpu','pvst','pvkwp','pvsp','stst','stm2','stnu','verb','vj1','verb2','verb3','einheit','p_alt','basis','sv1','sv2','sv3','p_wp','wq','rb_netz','f_selbst','f_kind','fzve','f_eink','fsumme','fsumme2','f_isfp','fherk','fkgb','fdatum','fszen','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','p_einsp','p_hh','inv1','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_pa','k_ps','k_wb','k_ww','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','wlgg','kdanteil','kf1','kf2','kf3','vj2','vj3','abschlag','abgrund','kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){
       var e=$(id);if(!e) return;
       var l=e.closest('label');
       if(l&&l.querySelectorAll('input,select,textarea').length===1) l.classList.add('calc');

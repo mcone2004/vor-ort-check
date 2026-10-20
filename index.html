@@ -851,6 +851,10 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp{display:no
       <label for="wwart">Warmwasser<select id="wwart"><option value="zh" selected>zentral über die Heizung</option><option value="el">elektrisch dezentral (Boiler, Durchlauferhitzer)</option></select></label>
       <label for="wwp">Personen im Haushalt, optional<input id="wwp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="2" placeholder="z. B. 3"></label>
     </div>
+    <div class="row" id="wwmrow">
+      <label for="wwm">Ansatz für den Warmwasseranteil im Verbrauch<select id="wwm"><option value="p" selected>nach Personenzahl (Vorgabe)</option><option value="pct">pauschal in % des Brennstoffverbrauchs</option></select></label>
+      <label for="wwpc" id="wwpcl" hidden>Anteil Warmwasser am Verbrauch, %<input id="wwpc" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" maxlength="2" value="20"></label>
+    </div>
     <label for="wzirk" id="wzirkl">Zirkulationsleitung<select id="wzirk"><option value="nein" selected>nein</option><option value="ja">ja</option></select></label>
     <div id="wzbox" class="wzbox" hidden>
       <div class="row">
@@ -1183,6 +1187,9 @@ function anFaktor(o){return ((o.kShare||0)>0&&o.kArt==='bh'&&(o.typ!=='mfh'))?1.
 var QV=[34,34,32,28,24,18];          // Lüftungsverluste kWh/(m²WF·a)
 // Warmwasser-Nutzwärme je m² Wohnfläche: Vorgabe 12,5 kWh/m²a; mit Personenzahl 500 kWh je Person und Jahr; Zirkulation +40 %
 function wwq(o){
+  if(o.wwM==='pct'&&o.wwArt!=='el'&&+o.wwPc>0&&o.verb>0&&o.wf>0){ // pauschal: Anteil der Wärme aus dem Verbrauch (Verbrauch × Nutzungsgrad), Zirkulation steckt im Anteil
+    return Math.min(35,Math.max(4,(+o.wwPc/100)*o.verb*KWH[o.einh]*etaOf(o)/o.wf));
+  }
   var p=+o.wwP>0?+o.wwP:0,b=(p>0&&o.wf>0)?Math.min(35,Math.max(4,p*500/o.wf)):12.5;
   return b*((o.wwZirk||o.wwArt==='zz')?1.4:1);
 }
@@ -2037,7 +2044,7 @@ function read(){
     vlm:$('vlm').value===''?null:+$('vlm').value,verb:verbMean().m,verbN:verbMean().n,verbY:verbMean().y,verbMin:verbMean().lo,verbMax:verbMean().hi,kf:verbMean().kf,einh:$('einheit').value,aW:numG('aw'),aF:numG('af'),aD:numG('ad'),aK:numG('ak'),
     pAlt:num('p_alt')||DEF.oel,pWp:num('p_wp')||0.27,pEin:num('p_einsp')||0.08,pHH:num('p_hh')||0.35,hh:hhGet().m,hhN:hhGet().n,hhMin:hhGet().lo,hhMax:hhGet().hi,hhY:hhGet().y,hhEst:hhGet().est,vvh:$('vvh').value,gesch:+$('gesch').value,f2:{on:($('fmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5),fen:+$('fenster2').value,mat:$('frahmen2').value},w2:{on:($('wmix').value==='nein'&&$('typ').value!=='mfh'&&(+$('gesch').value||2)>=1.5),typ:$('wtyp2').value,wD:+$('wd2').value||0},pvSt:+$('pvst').value,pvKwp:num('pvkwp'),pvSp:num('pvsp'),stSt:+$('stst').value,stM2:num('stm2'),stNu:$('stnu').value,
     inv1:numG('inv1'),inv2:numG('inv2'),inv3:numG('inv3'),inv4:numG('inv4'),inv5:numG('inv5'),inv6:numG('inv6'),inv7:numG('inv7'),inv8:numG('inv8'),inv9:numG('inv9'),jazM:{luft:num('jazl'),sole:num('jazs')},wartL:numG('wartl'),wartS:numG('warts'),pumpS:numG('pumps'),lebL:numG('lebl'),lebS:numG('lebs'),wq:$('wq').value,
-    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),fScen:$('fszen').value,n50:num('n50'),ldk:$('ldk').value,qenv:num('qenv'),vn50:numG('vn50'),aen50:numG('aen50'),aenv:numG('aenv'),zh:+$('zh').value||0,fass:$('fass').value,vol:numG('vol'),abschirm:+$('abschirm').value,nzu:num('nzu'),hlext:num('hlext'),tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),tneAuto:$('tne').dataset.auto==='1',tneTab:($('tne').dataset.auto==='1'&&$('tne').dataset.src==='tab'),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
+    wwArt:$('wwart').value,wwZirk:($('wwart').value!=='el'&&$('wzirk').value==='ja'),wwP:numG('wwp'),wwM:$('wwm').value,wwPc:Math.min(60,Math.max(0,numG('wwpc'))),fScen:$('fszen').value,n50:num('n50'),ldk:$('ldk').value,qenv:num('qenv'),vn50:numG('vn50'),aen50:numG('aen50'),aenv:numG('aenv'),zh:+$('zh').value||0,fass:$('fass').value,vol:numG('vol'),abschirm:+$('abschirm').value,nzu:num('nzu'),hlext:num('hlext'),tne:(function(){var v=parseFloat(String($('tne').value).replace('−','-').replace(',','.'));return isNaN(v)?null:v})(),tneAuto:$('tne').dataset.auto==='1',tneTab:($('tne').dataset.auto==='1'&&$('tne').dataset.src==='tab'),fSelbst:$('f_selbst').value,fEink:$('f_eink').value,fKind:$('f_kind').value,fIsfp:$('f_isfp').value,fZve:numG('fzve'),fSumme:numG('fsumme'),fSumme2:numG('fsumme2'),fHerk:$('fherk').value,fKgb:$('fkgb').value,today:$('fdatum').value||'',
     rbOrt:$('rb_ort').value,rbNachb:$('rb_nachb').value,rbPlatz:$('rb_platz').value,rbStrom:$('rb_strom').value,rbTank:$('rb_tank').value,rbNetz:$('rb_netz').value,rbDenk:$('rb_denk').value,rbNote:$('rb_note').value.trim(),
     cvDach:$('cv_dach').checked,cvKeller:$('cv_keller').checked,cvWand:$('cv_wand').checked,cvFen:$('cv_fen').checked,cvHk:$('cv_hk').checked,
     kPa:(function(){var v=parseFloat(String($('k_pa').value).replace(',','.'));return isNaN(v)?4:v})(),kPs:(function(){var v=parseFloat(String($('k_ps').value).replace(',','.'));return isNaN(v)?2:v})(),kWb:numG('k_wb'),kWw:numG('k_ww')
@@ -2134,7 +2141,7 @@ var CONF=[['typ','Gebäudetyp'],['baujahr','Baujahr'],['wf','Wohnfläche'],['ges
 function confMissing(){
   var t=$('touched')?$('touched').value:'';if(t==='*') return [];
   var set={};t.split(',').forEach(function(x){if(x) set[x]=1});
-  return CONF.filter(function(c){return !(c[0]==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))&&!(c[0]==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))&&!(c[0]==='verb'&&$('vvh').value==='nein')&&!(c[0]==='gesch'&&$('typ').value==='mfh')&&!((c[0]==='wtyp2'||c[0]==='wand2')&&!wmixOn())&&!((c[0]==='fenster2'||c[0]==='frahmen2')&&!fmixOn())&&!set[c[0]]}).map(function(c){return c[1]});
+  return CONF.filter(function(c){return !(c[0]==='kdd'&&$('kdeck').hidden)&&!(c[0]==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))&&!(c[0]==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))&&!(c[0]==='verb'&&$('vvh').value==='nein')&&!(c[0]==='gesch'&&$('typ').value==='mfh')&&!((c[0]==='wtyp2'||c[0]==='wand2')&&!wmixOn())&&!((c[0]==='fenster2'||c[0]==='frahmen2')&&!fmixOn())&&!set[c[0]]}).map(function(c){return c[1]});
 }
 
 // Pflichtangaben: die Angaben aus CONF zählen erst als bestätigt, wenn sie angefasst wurden (Feld „touched“).
@@ -2151,7 +2158,7 @@ function pendSync(reset){
   var t=$('touched')?$('touched').value:'',all=(t==='*'),set={};t.split(',').forEach(function(x){if(x) set[x]=1});
   CONF.forEach(function(c){
     var id=c[0],e=$(id);if(!e) return;
-    var skip=(id==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))||(id==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))||(id==='verb'&&$('vvh').value==='nein')||(id==='gesch'&&$('typ').value==='mfh')||((id==='wtyp2'||id==='wand2')&&!wmixOn())||((id==='fenster2'||id==='frahmen2')&&!fmixOn());
+    var skip=(id==='kdd'&&$('kdeck').hidden)||(id==='hktyp'&&($('hk').value==='fbh'||$('hk').value==='keine'))||(id==='hz_alter'&&($('traeger').value==='holz'||$('traeger').value==='kohle'))||(id==='verb'&&$('vvh').value==='nein')||(id==='gesch'&&$('typ').value==='mfh')||((id==='wtyp2'||id==='wand2')&&!wmixOn())||((id==='fenster2'||id==='frahmen2')&&!fmixOn());
     var done=all||skip||!!set[id];
     if(PICK[id]!=null){
       var raw=NATV.get.call(e);
@@ -2198,7 +2205,8 @@ function dqEval(o,R){
   add('Vorlauftemperatur',o.vlm!=null?'ok':'ann',o.vlm!=null?'gemessen, '+o.vlm+' °C':'nicht gemessen, Modellwert',1);
   if(!(o.hkKeine||o.hk==='fbh')) add('Heizkörper',(tc('hk')||tc('hktyp'))?'ok':'ann',(tc('hk')||tc('hktyp'))?'Bauart angegeben':'Standardwert, nicht abgefragt',0.5);
   add('Standort und Klima',o.geo?'ok':'ann',o.geo?'Gradtage und Strahlung vom Standort':'Vorgabewerte, Adresse nicht gefunden',1);
-  add('Warmwasser',o.wwP>0?'ok':'ann',o.wwP>0?'nach Personenzahl':'Pauschale',0.5);
+  var wwPct=(o.wwM==='pct'&&o.wwArt!=='el'&&+o.wwPc>0&&o.verb>0);
+  add('Warmwasser',wwPct?'ann':(o.wwP>0?'ok':'ann'),wwPct?('pauschal '+fmt(+o.wwPc)+' % des Verbrauchs'):(o.wwP>0?'nach Personenzahl':'Pauschale'),0.5);
   add('Energiepreis',tc('p_alt')?'ok':'ann',tc('p_alt')?'angegeben':'Vorgabepreis',0.5);
   var hkOffen=!(o.hkKeine||o.hk==='fbh')&&!(tc('hk')||tc('hktyp'));
   // Auffälligkeiten (Schwellen sind Annahmen für grobe Plausibilität, keine Normwerte)
@@ -2307,7 +2315,7 @@ function srcRows(X){
   var end=(o.verb>0)?o.verb*CALC.KWH[o.einh]:0;
   var base;
   if(mode==='verbrauch'||mode==='mix'){
-    base='Jahresverbrauch '+r0(o.verb)+' '+o.einh+(o.verbN>1?' (Mittel aus '+o.verbN+' Jahren)':'')+(o.einh!=='kWh'?' = '+r0(end)+' kWh':'')+' × Nutzungsgrad '+Math.round(I.eta*100)+' % = '+r0(end*I.eta)+' kWh Wärme'+(o.wwArt==='el'?' (das Warmwasser ist elektrisch und steckt nicht im Verbrauch)':', minus Warmwasser ('+fmt(R.ww,1)+' kWh/m²a × '+r0(wf)+' m² = '+r0(R.ww*wf)+' kWh)')+', geteilt durch '+r0(wf)+' m²'+(o.kf!==1?', mal Klimafaktor '+fmt(o.kf,2)+' (Witterungsbereinigung der Heizwärme)':'')+' = '+fmt(R.qVerb)+' kWh/m²a.';
+    base='Jahresverbrauch '+r0(o.verb)+' '+o.einh+(o.verbN>1?' (Mittel aus '+o.verbN+' Jahren)':'')+(o.einh!=='kWh'?' = '+r0(end)+' kWh':'')+' × Nutzungsgrad '+Math.round(I.eta*100)+' % = '+r0(end*I.eta)+' kWh Wärme'+(o.wwArt==='el'?' (das Warmwasser ist elektrisch und steckt nicht im Verbrauch)':', minus Warmwasser ('+((o.wwM==='pct'&&+o.wwPc>0)?fmt(+o.wwPc)+' % der Wärme, pauschal angesetzt = ':fmt(R.ww,1)+' kWh/m²a × '+r0(wf)+' m² = ')+r0(R.ww*wf)+' kWh)')+', geteilt durch '+r0(wf)+' m²'+(o.kf!==1?', mal Klimafaktor '+fmt(o.kf,2)+' (Witterungsbereinigung der Heizwärme)':'')+' = '+fmt(R.qVerb)+' kWh/m²a.';
     if(mode==='mix') base+=' Aus den Bauteilen ergeben sich '+fmt(R.qBT)+' kWh/m²a. Gerechnet wird mit dem Mittelwert, '+fmt(I.qh)+' kWh/m²a.';
   }else{
     var A=R.areas,U=R.uIst||{};
@@ -2335,7 +2343,7 @@ function srcRows(X){
     if(sp&&sp.kwp>0) tx.push('Photovoltaik '+fmt(sp.kwp,1)+' kWp ('+SOT(sp.st)+'): '+fmt(sp.kwp,1)+' × '+r0(sp.pvy)+' = '+r0(sp.Y)+' kWh Ertrag. Davon geht ein Teil direkt oder über den Speicher in den Wärmepumpenstrom ('+r0(sp.covE)+' kWh = '+Math.round(sp.pct*100)+' %). Bewertet mit Wärmepumpen-Strompreis minus Einspeisevergütung.');
     if(tx.length) rows.push(['Solar in den Varianten',tx.join(' ')+' Vorhandene Anlagen gelten im Bestand und in den Varianten, geplante nur in den Varianten. Geplante Anlagen werden getrennt amortisiert: Investition ÷ Gesamtnutzen (Wärmepumpenstrom und Haushaltsstrom), die Wärmepumpe rechnet ohne deren Vorteil.']);
   }
-  rows.push(['Varianten mit Sanierung','Gleiche Rechnung mit besseren U-Werten. Aktueller Stand: Außenwand U 0,22, Dach 0,16, Kellerdecke 0,30, Fenster Uw 0,95 W/m²K. Bereits bessere Bauteile bleiben erhalten. Heizlast V3: '+fmt(s3.kw,1)+' kW, Vorlauf '+Math.round(s3.vl)+' °C.']);
+  rows.push(['Varianten mit Sanierung','Gleiche Rechnung mit besseren U-Werten. Zielwerte der Sanierungsvarianten: Außenwand U 0,22, Dach 0,16, '+((o.kShare>0&&o.kArt!=='bh')?'Kellerdecke 0,30, ':'')+'Fenster Uw 0,95 W/m²K. Bauteile, die schon besser sind, bleiben unverändert. Heizlast V3: '+fmt(s3.kw,1)+' kW, Vorlauf '+Math.round(s3.vl)+' °C.']);
   if(o.geo){
     var G=o.geo,yy=o.verbY||[],ky=Object.keys(G.kf||{}).filter(function(k){return yy.indexOf(+k)>=0}).sort().map(function(k){return k+': '+fmt(G.kf[k],2)}).join(', ');
     rows.push(['Standort und Wetter','Adresse '+(G.prec==='Ort'?'(nur Ort gefunden)':'')+'ergibt '+fmt(G.lat,4)+' °N, '+fmt(G.lon,4)+' °O, '+r0(G.elev)+' m ü. NN. Gradtagzahl 20/15 im Mittel 1991 bis 2020: '+r0(G.gtz)+' Kd, daraus Gradtagfaktor '+fmt(G.gt,1)+' kKh (Vorgabe ohne Standort 72 = 3.000 Kd). Globalstrahlung '+r0(G.rad)+' kWh/m²a, daraus PV-Ertrag '+r0(G.pvy)+' kWh/kWp (Süd, 35° Neigung, Systemwirkungsgrad 85 %).'+(ky?' Klimafaktoren der Verbrauchsjahre (langjähriges Mittel ÷ Gradtage des Jahres): '+ky+'.':'')+' Wetterdaten aus ERA5-Reanalyse (Open-Meteo), Koordinaten von OpenStreetMap.']);
@@ -2785,7 +2793,7 @@ function render(){
   })();
   (function(){
     var h=$('wwhint');if(!h) return;
-    h.textContent=(o.wwArt==='el'?'Das Warmwasser steckt dann nicht im Brennstoffverbrauch. Der Strom dafür liegt im Haushaltsstrom und geht bei der Wärmepumpe auf diese über. ':'')+'Angesetzt: ca. '+fmt(R.ww,1)+' kWh/m²a Nutzwärme'+(o.wwP>0?' bei '+fmt(o.wwP)+' Personen':' (Pauschale, ohne Personenzahl)')+((o.wwZirk||o.wwArt==='zz')?', mit 40 % Zuschlag für die Zirkulation (Annahme, unabhängig von Art und Dämmung)':'')+'.';
+    h.textContent=(o.wwArt==='el'?'Das Warmwasser steckt dann nicht im Brennstoffverbrauch. Der Strom dafür liegt im Haushaltsstrom und geht bei der Wärmepumpe auf diese über. ':'')+'Angesetzt: ca. '+fmt(R.ww,1)+' kWh/m²a Nutzwärme'+((o.wwM==='pct'&&o.wwArt!=='el'&&+o.wwPc>0&&o.verb>0)?', pauschal '+fmt(+o.wwPc)+' % der Wärme aus dem Verbrauch (Faustwert, Zirkulation ist darin enthalten)':(o.wwP>0?' bei '+fmt(o.wwP)+' Personen':' (Pauschale, ohne Personenzahl)')+((o.wwZirk||o.wwArt==='zz')?', mit 40 % Zuschlag für die Zirkulation (Annahme, unabhängig von Art und Dämmung)':''))+'.';
   })();
   geoShow();
   var full=(document.body.getAttribute('data-mode')==='folgen')||document.body.hasAttribute('data-all');
@@ -3310,7 +3318,7 @@ function solarLines(R){
   }
   return out;
 }
-function syncWw(){var el=$('wwart').value==='el',z=$('wzirk').value==='ja';$('wzirkl').hidden=el;$('wzbox').hidden=el||!z}
+function syncWw(){var el=$('wwart').value==='el',z=$('wzirk').value==='ja',pc=($('wwm').value==='pct');$('wwmrow').hidden=el;$('wwpcl').hidden=el||!pc;$('wzirkl').hidden=el;$('wzbox').hidden=el||!z}
 function syncHk(){var f=$('hk').value==='fbh'||$('hk').value==='keine';$('hktypl').hidden=f;$('hktyph').hidden=f}
 function syncZwei(o){
   var on=(o.wTyp==='zwei'),k=$('zkern').value;
@@ -4387,6 +4395,7 @@ function initReport(){
     var c=el.cloneNode(true);c.style.cssText='width:794px;max-width:none;margin:0;box-shadow:none;position:relative';wrap.appendChild(c);document.body.appendChild(wrap);
     // Schnittstellen für lange Seiten: Oberkanten der Blöcke, eine Überschrift bleibt bei ihrem Absatz
     var cuts=[];Array.prototype.forEach.call(c.children,function(ch,i){var t=ch.offsetTop;if(i>0&&c.children[i-1].tagName==='H2') t=c.children[i-1].offsetTop;if(t>0&&cuts.indexOf(t)<0) cuts.push(t)});
+    var padB=parseFloat(getComputedStyle(c).paddingBottom)||0; // unterer Seitenrand des Blocks, wird beim Schneiden nicht mitgezählt
     return html2canvas(c,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:794}).then(function(cv){
       wrap.remove();
       var W=cv.width,H=cv.height,mm=210/W,hmm=H*mm;
@@ -4394,15 +4403,24 @@ function initReport(){
       if(hmm<=297) add(cv,0,0,210,hmm);
       else if(hmm<=297*1.12){var k=297/hmm;add(cv,(210-210*k)/2,0,210*k,297)}
       else{
-        var usable=281,sl=Math.floor(usable/mm),kk=W/794,y=0;
-        while(y<H){
-          var end=Math.min(H,y+sl);
-          if(end<H){var best=0;cuts.forEach(function(t){var tp=Math.round(t*kk);if(tp>y+sl*0.4&&tp<=y+sl&&tp>best) best=tp});if(best) end=best} // am letzten Blockanfang schneiden, der noch auf die Seite passt
-          var hh=end-y,t=document.createElement('canvas');t.width=W;t.height=hh;
-          var g=t.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,hh);g.drawImage(cv,0,y,W,hh,0,0,W,hh);
-          add(t,0,8,210,hh*mm);
-          y=end;
+        var usable=281,kk=W/794,Hc=Math.max(1,H-Math.round(padB*kk));
+        // Schnittplan: am letzten Blockanfang schneiden, der noch auf die Seite passt. f<1 verkleinert den Inhalt leicht.
+        function plan(f){
+          var sl=Math.floor(usable/(mm*f)),y=0,out=[];
+          while(y<Hc){
+            var end=Math.min(Hc,y+sl);
+            if(end<Hc){var best=0;cuts.forEach(function(t){var tp=Math.round(t*kk);if(tp>y+sl*0.4&&tp<=y+sl&&tp>best) best=tp});if(best) end=best}
+            out.push([y,end]);y=end;
+          }
+          return out;
         }
+        var f=1,pl=plan(1);
+        for(var q=98;q>=84;q-=2){var p2=plan(q/100);if(p2.length<pl.length){f=q/100;pl=p2;break}} // eine Seite sparen (z. B. nur die Fußzeile auf der letzten Seite), wenn eine Verkleinerung bis auf 84 % genügt
+        pl.forEach(function(se){
+          var hh=se[1]-se[0],t=document.createElement('canvas');t.width=W;t.height=hh;
+          var g=t.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,hh);g.drawImage(cv,0,se[0],W,hh,0,0,W,hh);
+          add(t,(210-210*f)/2,8,210*f,hh*mm*f);
+        });
       }
     },function(e){wrap.remove();throw e});
   }
@@ -4548,7 +4566,7 @@ function initHome(){
 }
 function init(){
   ['wf','fzve','fsumme','fsumme2','verb','verb2','verb3','sv1','sv2','sv3','inv1','inv2','inv3','inv4','inv5','inv6','inv7','inv8','inv9','k_wb','k_ww'].forEach(function(id){$(id).addEventListener('input',groupInput)});
-  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','fmix','fenster2','frahmen2','vvh','vvs','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','fszen','tne','n50','ldk','qenv','vn50','aen50','aenv','zh','fass','vol','abschirm','nzu','hlext','wq','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','bpd','bpes','bpesd','kbustoff','kbuwlg','kbustark','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
+  var ids=['kd_str','kd_nr','kd_plz','kd_ort','geo','objekt','typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','fmix','fenster2','frahmen2','vvh','vvs','abschlag','abgrund','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','fzve','fsumme','fsumme2','fherk','fkgb','fdatum','fszen','tne','n50','ldk','qenv','vn50','aen50','aenv','zh','fass','vol','abschirm','nzu','hlext','wq','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','hpumpe','fshut','fshutuse','lvor','lart','lwrg','wand','dstoff','wlg','dstark','dbj','dstoffD','wlgD','dstarkD','dbjD','kstoff','kwlg','kstark','kbj','kdd','kdmat','kdanteil','kbstoff','kbwlg','kbstark','kbbj','bpart','bpd','bpes','bpesd','kbustoff','kbuwlg','kbustark','kwd','kwanteil','kwstoff','kwwlg','kwstark','dka','dkh','dkf','dkfd','dkfw','dib','dab','dzs','dzd','dzw','ddb','wlgg','dach','fenster','hz_alter','hk','vlm','verb','verb2','verb3','vj1','vj2','vj3','sv1','sv2','sv3','sj1','sj2','sj3','p_hh','aw','af','ad','ak','einheit','p_alt','p_wp','p_einsp','pvst','pvkwp','pvsp','stst','stm2','stnu','inv1','inv2','inv3','inv4','inv5','inv6','inv7','kf1','kf2','kf3','wtyp','hktyp','basis','fdicht','frahmen','wwart','ofen','ofa','ofb','wzirk','wzart','wzltg','wzpu','wwp','wwm','wwpc','f_selbst','f_eink','f_kind','f_isfp','rb_ort','rb_nachb','rb_platz','rb_strom','rb_tank','rb_netz','rb_denk','rb_note','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','inv8','k_pa','k_ps','k_wb','k_ww'];
   ids.forEach(function(id){var e=$(id);e.addEventListener('input',render);e.addEventListener('change',render)});
   $('traeger').addEventListener('change',function(){
     var t=$('traeger').value;$('einheit').value=UNIT[t];$('p_alt').value=String(DEF[t]).replace('.',',');
@@ -4589,7 +4607,7 @@ function init(){
   $('wd').addEventListener('change',render);
   $('wlgg').addEventListener('change',render);
   $('hk').addEventListener('change',syncHk);
-  ['wwart','wzirk'].forEach(function(id){$(id).addEventListener('change',syncWw)});
+  ['wwart','wzirk','wwm'].forEach(function(id){$(id).addEventListener('change',syncWw)});
   $('bar').addEventListener('click',function(){if(cTab!=='all'){setTab('ergebnis');return}try{$('out').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}});
   var fm0=document.querySelector('form');if(fm0){fm0.addEventListener('input',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.auto==='1'){delete t.dataset.auto;t.classList.remove('autov')}},true);fm0.addEventListener('input',onTouch,true);fm0.addEventListener('change',onTouch,true)}
   $('wmix').addEventListener('change',function(){
@@ -4612,7 +4630,7 @@ function init(){
   syncKeller();syncWand();syncHk();syncWw();syncSolar();initGeo();initPhotos();padInit();
   // Felder, deren Wert in die Berechnung eingeht (Heizlast, Verbrauch, Kosten, Förderung): grün markiert. Alle anderen dokumentieren nur.
   (function(){
-    ['typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','fmix','fenster2','frahmen2','tne','vvh','vvs','wtyp','wd','wand','dstoff','wlg','dstark','dbj','aw','dform','dach','dka','dkh','dkf','dkfd','dkfw','dstoffD','wlgD','dstarkD','dbjD','dab','dzs','dzd','dzw','dib','ddb','ad','kshare','kart','kdmat','kdd','kstoff','kwlg','kstark','kbj','kwd','kwanteil','kwstoff','kwwlg','kwstark','bpart','bpd','bpes','bpesd','kbustoff','kbuwlg','kbustark','kbstoff','kbwlg','kbstark','kbbj','ak','fenster','frahmen','fdicht','fshut','fshutuse','af','lvor','lart','lwrg','ldk','abschirm','qenv','n50','vn50','aen50','zh','fass','vol','aenv','nzu','hlext','traeger','hz_alter','ofen','hpumpe','hk','hktyp','vlm','wwart','wwp','wzirk','wzart','wzpu','pvst','pvkwp','pvsp','stst','stm2','stnu','verb','vj1','verb2','verb3','einheit','p_alt','basis','sv1','sv2','sv3','p_wp','wq','rb_netz','f_selbst','f_kind','fzve','f_eink','fsumme','fsumme2','f_isfp','fherk','fkgb','fdatum','fszen','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','p_einsp','p_hh','inv1','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_pa','k_ps','k_wb','k_ww','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','wlgg','kdanteil','kf1','kf2','kf3','vj2','vj3','abschlag','abgrund','kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){
+    ['typ','baujahr','wf','gesch','wmix','wtyp2','wd2','wand2','fmix','fenster2','frahmen2','tne','vvh','vvs','wtyp','wd','wand','dstoff','wlg','dstark','dbj','aw','dform','dach','dka','dkh','dkf','dkfd','dkfw','dstoffD','wlgD','dstarkD','dbjD','dab','dzs','dzd','dzw','dib','ddb','ad','kshare','kart','kdmat','kdd','kstoff','kwlg','kstark','kbj','kwd','kwanteil','kwstoff','kwwlg','kwstark','bpart','bpd','bpes','bpesd','kbustoff','kbuwlg','kbustark','kbstoff','kbwlg','kbstark','kbbj','ak','fenster','frahmen','fdicht','fshut','fshutuse','af','lvor','lart','lwrg','ldk','abschirm','qenv','n50','vn50','aen50','zh','fass','vol','aenv','nzu','hlext','traeger','hz_alter','ofen','hpumpe','hk','hktyp','vlm','wwart','wwp','wwm','wwpc','wzirk','wzart','wzpu','pvst','pvkwp','pvsp','stst','stm2','stnu','verb','vj1','verb2','verb3','einheit','p_alt','basis','sv1','sv2','sv3','p_wp','wq','rb_netz','f_selbst','f_kind','fzve','f_eink','fsumme','fsumme2','f_isfp','fherk','fkgb','fdatum','fszen','cv_dach','cv_keller','cv_wand','cv_fen','cv_hk','p_einsp','p_hh','inv1','inv9','jazl','jazs','wartl','warts','pumps','lebl','lebs','inv2','inv3','inv4','inv5','inv6','inv7','inv8','k_pa','k_ps','k_wb','k_ww','ztm','ztd','zverb','zlu','zbel','zkern','zkds','zkw','zkd','wlgg','kdanteil','kf1','kf2','kf3','vj2','vj3','abschlag','abgrund','kd_str','kd_nr','kd_plz','kd_ort'].forEach(function(id){
       var e=$(id);if(!e) return;
       var l=e.closest('label');
       if(l&&l.querySelectorAll('input,select,textarea').length===1) l.classList.add('calc');
@@ -4647,7 +4665,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-20 08:22',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-20 09:13',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

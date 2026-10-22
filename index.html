@@ -325,7 +325,7 @@ body[data-mode="mfh"] #mfhbox>[data-mtab]:not(.ctab-on),body[data-mode="mfh"] #k
 body[data-mode="mfh"] .ctabs{flex-wrap:wrap;overflow:visible;justify-content:center}
 body[data-mode="mfh"] .ctabs button{min-height:2.4rem;font-size:.86rem;padding:.2rem .6rem .2rem .3rem}
 @media (max-width:699px){body[data-mode="mfh"] .ctabs{position:static}}
-.kd-dt{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:.6rem}.kd-cal{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .8rem;margin-bottom:.2rem}.kd-cal .hint{margin:0}
+.kd-dt{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:.6rem}.kd-cal{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .8rem;margin-bottom:.2rem}.kd-cal .hint{margin:0}.kd-ms{margin:.2rem 0 .6rem}.kd-ms summary{cursor:pointer;font-size:.88rem;color:var(--muted)}.kd-ms[open]{display:grid;gap:.5rem}.kd-ms code{word-break:break-all;font-size:.82rem}
 button.pendf{border:2px solid #C98A00;background:rgba(201,138,0,.12)}
 .fchk{align-self:end;padding:.2rem .6rem;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
 .fchk.fpend{border:2px solid #C98A00;border-left-width:5px;background:rgba(201,138,0,.09);color:#8A5A00}
@@ -500,6 +500,13 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
     <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
     <div class="row kd-dt"><label for="kd_datum">Datum der Beratung<input id="kd_datum" type="date"></label><label for="kd_zeit">Uhrzeit<input id="kd_zeit" type="time"></label></div>
     <div class="kd-cal"><button type="button" id="kd_cal" class="ghost">In den Kalender eintragen</button><span id="kd_calst" class="hint" role="status"></span></div>
+    <details class="kd-ms" id="kd_ms"><summary>Outlook-Verbindung (Termin direkt im Kalender)</summary>
+      <p class="hint">Mit Verbindung trägt der Button den Termin direkt in den Outlook-Kalender ein und ändert ihn bei jeder Änderung von Datum oder Uhrzeit. Einmalig bei Microsoft eine App registrieren (Entra, Einzelseiten-Anwendung, Berechtigung Calendars.ReadWrite) und die Client-ID hier eintragen.</p>
+      <label for="kd_sy_mscid">Client-ID (Anwendungs-ID)<input id="kd_sy_mscid" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
+      <p class="hint">Umleitungs-URI für die Registrierung: <code id="kd_ms_redir"></code></p>
+      <div class="row"><button type="button" id="kd_ms_login" class="ghost">Mit Outlook verbinden</button><button type="button" id="kd_ms_out" class="ghost">Trennen</button></div>
+      <span class="hint" id="kd_ms_st" role="status"></span>
+    </details>
     <label for="kd_ol">Bezeichnung des Objekts (z. B. Bestand, Alternative Typ 33)<input id="kd_ol" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="optional" maxlength="60"></label>
     <span class="kd-cap">Objektadresse (Gebäude)</span>
     <div class="row kd-a1">
@@ -3730,10 +3737,11 @@ function initKunden(backendP){
     var d=$('kd_datum').value,t=$('kd_zeit').value,c=calState;
     b.classList.remove('pendf');b.textContent='In den Kalender eintragen';
     if(!d||!t){st.textContent=c?('Im Kalender steht: '+calFmt(c.d,c.t)+'. Datum und Uhrzeit eintragen, um zu aktualisieren.'):'Datum und Uhrzeit eintragen, dann in den Kalender übernehmen.';return}
+    var ziel=c&&c.ms?'Im Outlook-Kalender':'Im Kalender';
     if(!c){st.textContent='Noch nicht im Kalender.';return}
-    if(c.d===d&&c.t===t){st.textContent='Im Kalender: '+calFmt(d,t)+'.';return}
+    if(c.d===d&&c.t===t){st.textContent=ziel+': '+calFmt(d,t)+'.';return}
     b.textContent='Kalendereintrag aktualisieren';b.classList.add('pendf');
-    st.textContent='Termin geändert. Im Kalender steht noch '+calFmt(c.d,c.t)+'.';
+    st.textContent='Termin geändert. '+(c.ms?'Outlook':'Im Kalender')+' steht noch '+calFmt(c.d,c.t)+'.';
   }
   function icsEsc(x){return String(x||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n')}
   function icsFold(l){var o=[];while(l.length>73){o.push(l.slice(0,73));l=' '+l.slice(73)}o.push(l);return o.join('\r\n')}
@@ -3754,6 +3762,7 @@ function initKunden(backendP){
     var d=$('kd_datum').value,t=$('kd_zeit').value,name=$('kd_name').value.trim(),adr=$('kd_adr').value.trim();
     if(!d||!t){msg('Für den Kalender fehlen Datum und Uhrzeit.');return}
     if(!name&&!adr){msg('Für den Kalender bitte Name oder Adresse eintragen.');return}
+    if(msCfg().cid){if(msTok()) msSync(false);else msLogin(true);return}
     save(true).then(function(ok){
       if(!ok||!curId){msg('Zuerst muss der Kunde gespeichert werden.');return}
       var same=calState&&calState.d===d&&calState.t===t,seq=calState?(same?calState.seq:calState.seq+1):0;
@@ -3770,6 +3779,104 @@ function initKunden(backendP){
       }else fallback();
     });
   }
+
+  // Outlook: direkte Verbindung über Microsoft Graph (Anmeldung mit PKCE, keine Zugangsdaten in der App).
+  // Der Termin wird einmal angelegt und danach bei jeder Änderung von Datum oder Uhrzeit am selben Eintrag geändert.
+  var MSK='ocheck.ms',MST='ocheck.ms.tok',MSR='ocheck.ms.pk',MS_SCOPE='Calendars.ReadWrite offline_access',msT=null;
+  function msCfg(){try{return JSON.parse(localStorage.getItem(MSK)||'null')||{}}catch(e){return {}}}
+  function msTok(){try{return JSON.parse(localStorage.getItem(MST)||'null')}catch(e){return null}}
+  function msRedirect(){return location.origin+location.pathname.replace(/index\.html$/,'')}
+  function b64u(a){var s='';for(var i=0;i<a.length;i++) s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+  function msRand(n){var a=new Uint8Array(n);crypto.getRandomValues(a);return b64u(a)}
+  function msUi(){
+    var cf=msCfg(),t=msTok(),st=$('kd_ms_st'),i=$('kd_sy_mscid'),r=$('kd_ms_redir');
+    if(i&&document.activeElement!==i) i.value=cf.cid||'';
+    if(r) r.textContent=msRedirect();
+    if(st) st.textContent=!cf.cid?'Nicht eingerichtet: der Button erzeugt eine Kalender-Datei.':(t&&t.rt?'Verbunden. Der Button trägt direkt in Outlook ein.':'Client-ID eingetragen, noch nicht angemeldet.');
+    var o=$('kd_ms_out');if(o) o.hidden=!(t&&t.rt);
+    var b=$('kd_cal');if(b&&!(calState&&calState.ms)) b.dataset.ms=cf.cid?'1':'';
+  }
+  function msLogin(pend){
+    var cf=msCfg();if(!cf.cid){msg('Bitte zuerst die Client-ID eintragen.');return}
+    var ver=msRand(48),sta=msRand(16);
+    Promise.all([crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver)),save(true).catch(function(){return false})]).then(function(rs){
+      var h=rs[0];
+      try{flush()}catch(e){}
+      try{localStorage.setItem(MSR,JSON.stringify({v:ver,s:sta,h:location.hash||'',pend:pend?1:0,cur:curId||''}))}catch(e){}
+      location.href='https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id='+encodeURIComponent(cf.cid)+'&response_type=code&redirect_uri='+encodeURIComponent(msRedirect())+'&response_mode=query&scope='+encodeURIComponent(MS_SCOPE)+'&state='+encodeURIComponent(sta)+'&code_challenge='+b64u(new Uint8Array(h))+'&code_challenge_method=S256';
+    });
+  }
+  function msPost(p){
+    return fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(p).toString()})
+      .then(function(r){return r.json().then(function(j){if(!r.ok||!j.access_token){var e=new Error(j.error||'token');e.login=(j.error==='invalid_grant'||j.error==='interaction_required');throw e}return j})});
+  }
+  function msStore(j){var o=msTok()||{};var t={at:j.access_token,rt:j.refresh_token||o.rt,exp:Date.now()+(j.expires_in||3600)*1000};try{localStorage.setItem(MST,JSON.stringify(t))}catch(e){}return t.at}
+  function msToken(){
+    var t=msTok();
+    if(t&&t.at&&t.exp>Date.now()+60000) return Promise.resolve(t.at);
+    if(t&&t.rt) return msPost({client_id:msCfg().cid,grant_type:'refresh_token',refresh_token:t.rt,scope:MS_SCOPE}).then(msStore,function(e){if(e.login){try{localStorage.removeItem(MST)}catch(x){}}throw e});
+    return Promise.reject(Object.assign(new Error('login'),{login:true}));
+  }
+  function msApi(method,path,body){
+    return msToken().then(function(at){
+      return fetch('https://graph.microsoft.com/v1.0'+path,{method:method,headers:{'Authorization':'Bearer '+at,'Content-Type':'application/json','Prefer':'outlook.timezone="Europe/Berlin", IdType="ImmutableId"'},body:body?JSON.stringify(body):undefined});
+    }).then(function(r){
+      if(r.status===204) return {};
+      return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error((j.error&&j.error.code)||('HTTP '+r.status));e.status=r.status;throw e}return j});
+    });
+  }
+  function calIso(d,t){
+    var p2=function(n){return String(n).padStart(2,'0')},a=d.split('-'),h=t.split(':'),st=new Date(+a[0],+a[1]-1,+a[2],+h[0],+h[1]),en=new Date(st.getTime()+CAL_MIN*60000);
+    var f=function(x){return x.getFullYear()+'-'+p2(x.getMonth()+1)+'-'+p2(x.getDate())+'T'+p2(x.getHours())+':'+p2(x.getMinutes())+':00'};
+    return [f(st),f(en)];
+  }
+  function msSync(auto){
+    var d=$('kd_datum').value,t=$('kd_zeit').value,name=$('kd_name').value.trim(),adr=$('kd_adr').value.trim();
+    if(!d||!t||(!name&&!adr)) return Promise.resolve(false);
+    return save(true).then(function(ok){
+      if(!ok||!curId){if(!auto) msg('Zuerst muss der Kunde gespeichert werden.');return false}
+      var c=calState||{},iso=calIso(d,t),ol=$('kd_ol').value.trim();
+      var body={subject:'Beratung '+(name||adr),start:{dateTime:iso[0],timeZone:'Europe/Berlin'},end:{dateTime:iso[1],timeZone:'Europe/Berlin'},location:{displayName:adr},
+        body:{contentType:'text',content:'Vor-Ort-Check, Energieberatung Lange'+(ol?'\n'+ol:'')},isReminderOn:true,reminderMinutesBeforeStart:60,showAs:'busy'};
+      var p=(c.ms&&c.id)?msApi('PATCH','/me/events/'+encodeURIComponent(c.id),body).catch(function(e){if(e.status===404) return msApi('POST','/me/events',body);throw e}):msApi('POST','/me/events',body);
+      return p.then(function(j){
+        calState={d:d,t:t,seq:(c.seq||0)+1,id:j.id||c.id,ms:1};calUpd();dirty=true;chg++;save(true);
+        msg((c.ms&&c.id?'Outlook-Termin geändert: ':'Im Outlook-Kalender eingetragen: ')+calFmt(d,t)+'.');return true;
+      });
+    }).catch(function(e){
+      if(e&&(e.login||e.status===401)){var st=$('kd_calst');if(st) st.textContent='Outlook-Anmeldung abgelaufen. Mit dem Button neu verbinden.';if(!auto) msLogin(true);return false}
+      var st2=$('kd_calst');if(st2) st2.textContent='Outlook nicht erreicht ('+(e&&e.message||'Fehler')+'). Mit dem Button erneut versuchen.';
+      return false;
+    });
+  }
+  function msBoot(){
+    var r=window.__msRet;window.__msRet=null;
+    if(r){
+      if(r.err||!r.code||r.state!==(r.pk&&r.pk.s)){msg('Outlook-Anmeldung fehlgeschlagen'+(r.err?' ('+r.err+')':'')+'.');msUi();return}
+      msPost({client_id:msCfg().cid,grant_type:'authorization_code',code:r.code,redirect_uri:msRedirect(),code_verifier:r.pk.v,scope:MS_SCOPE}).then(function(j){
+        msStore(j);msUi();msg('Mit Outlook verbunden.');
+        // Kunde wieder öffnen, sobald die Liste geladen ist, danach ggf. den Termin eintragen
+        var n=0,iv=setInterval(function(){
+          n++;
+          if(!r.pk.cur||docs[r.pk.cur]){
+            clearInterval(iv);
+            if(r.pk.cur&&curId!==r.pk.cur&&!dirty) load(r.pk.cur);
+            if(r.pk.pend) setTimeout(function(){msSync(false)},500);
+          }else if(n>40) clearInterval(iv);
+        },250);
+      },function(e){msg('Outlook-Anmeldung fehlgeschlagen ('+(e&&e.message||'Fehler')+').');msUi()});
+    }
+    msUi();
+  }
+  $('kd_sy_mscid').addEventListener('input',function(){var c=msCfg();c.cid=this.value.trim();try{localStorage.setItem(MSK,JSON.stringify(c))}catch(e){}msUi()});
+  $('kd_ms_login').addEventListener('click',function(){msLogin(false)});
+  $('kd_ms_out').addEventListener('click',function(){try{localStorage.removeItem(MST)}catch(e){}msUi();calUpd()});
+  // Änderung von Datum oder Uhrzeit: bestehender Outlook-Eintrag wird nachgezogen
+  ['kd_datum','kd_zeit'].forEach(function(id){$(id).addEventListener('change',function(){
+    clearTimeout(msT);
+    if(calState&&calState.ms&&msTok()) msT=setTimeout(function(){var c=calState;if(c&&c.ms&&($('kd_datum').value!==c.d||$('kd_zeit').value!==c.t)) msSync(true)},1500);
+  })});
+  setTimeout(msBoot,0);
   window.__calIcs=function(uid,seq,d,t,name,adr,ol){return icsBuild(uid,seq,d,t,name,adr,ol)};
   function syncRg(){var abw=$('kd_rg').value==='abw';$('kd_rgbox').hidden=!abw;$('kd_rgadr').value=rgParts().rgadr}
   function setRg(d){d=d||{};$('kd_rg').value=d.rg==='abw'?'abw':'';$('kd_rgname').value=d.rgname||'';$('kd_rgstr').value=d.rgstr||'';$('kd_rgnr').value=d.rgnr||'';$('kd_rgplz').value=d.rgplz||'';$('kd_rgort').value=d.rgort||'';syncRg()}
@@ -4586,6 +4693,15 @@ function initTabs(){
   setTab(/[?&]alltabs/.test(location.search)?'all':'kunde',true);
 }
 window.setTab=setTab;
+function msCapture(){
+  try{
+    var q=location.search,m=/[?&]code=([^&]+)/.exec(q),s=/[?&]state=([^&]+)/.exec(q),er=/[?&]error=([^&]+)/.exec(q);
+    if(!((m&&s)||er)) return;
+    var pk=JSON.parse(localStorage.getItem('ocheck.ms.pk')||'null')||{};
+    window.__msRet={code:m?decodeURIComponent(m[1]):'',state:s?decodeURIComponent(s[1]):'',err:er?decodeURIComponent(er[1]):'',pk:pk};
+    history.replaceState(null,'',location.pathname+(pk.h||''));
+  }catch(e){}
+}
 // Startseite: zwei Bereiche auf denselben Kundendaten. Der Bereich steht im Hash, damit ein Neuladen (iPad räumt Hintergrund-Apps ab) im Bereich bleibt.
 var erfLauncher=null;
 var MODES={kunden:['Kundenverwaltung','Kunden anlegen, ändern und löschen. In den anderen Bereichen stehen dieselben Kunden zur Auswahl.'],ausweis:['Ausweisart','Verbrauchs- oder Bedarfsausweis? Prüfung für Wohngebäude im Bestand, mit Begründung.'],home:['Energieberatung Lange','Bereich wählen.'],check:['Vor-Ort-Check: Istzustand','Gebäude, Hülle, Fenster, Lüftung, Heizung und Verbrauch beim Kunden erfassen. Heizlast, Heizwärme und Energieklasse ändern sich beim Tippen.'],folgen:['Sanierung und ihre Folgen','Aufbauend auf dem Istzustand des Kunden: Heizkosten gegen Strom, Wärmepumpe, Varianten und Förderung.'],erfassung:['Gebäudeerfassung','Kunde wählen oder anlegen, dann das Gebäude aufnehmen.'],mfh:['Mehrfamilienhaus: Gewerbe zu Wohnen','Erstgespräch bei Umnutzung von Gewerbe zu Wohnungen: Heizung und Warmwasser für die entstehenden Wohnungen. Die Angaben hängen am Kunden.']};
@@ -4833,6 +4949,7 @@ function init(){
     });
   })();
   render();
+  msCapture();
   initTabs();
   initHome();
   initNet();
@@ -4860,7 +4977,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-22 15:10',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-22 15:11',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

@@ -325,6 +325,8 @@ body[data-mode="mfh"] #mfhbox>[data-mtab]:not(.ctab-on),body[data-mode="mfh"] #k
 body[data-mode="mfh"] .ctabs{flex-wrap:wrap;overflow:visible;justify-content:center}
 body[data-mode="mfh"] .ctabs button{min-height:2.4rem;font-size:.86rem;padding:.2rem .6rem .2rem .3rem}
 @media (max-width:699px){body[data-mode="mfh"] .ctabs{position:static}}
+.kd-dt{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:.6rem}.kd-cal{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .8rem;margin-bottom:.2rem}.kd-cal .hint{margin:0}
+button.pendf{border:2px solid #C98A00;background:rgba(201,138,0,.12)}
 .fchk{align-self:end;padding:.2rem .6rem;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
 .fchk.fpend{border:2px solid #C98A00;border-left-width:5px;background:rgba(201,138,0,.09);color:#8A5A00}
 :root[data-theme="dark"] .fchk.fpend{color:#F0B35A}
@@ -496,7 +498,8 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
     <div class="kd-tb"><button type="button" id="kd_add">Neuen Kunden anlegen</button><button type="button" id="kd_back" class="ghost">Zurück zur Kundenliste</button></div>
     <label for="kd_list">Kunde wählen oder neu anlegen<select id="kd_list"><option value="">Neuer Eintrag</option></select></label>
     <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
-    <label for="kd_datum">Datum der Beratung<input id="kd_datum" type="date"></label>
+    <div class="row kd-dt"><label for="kd_datum">Datum der Beratung<input id="kd_datum" type="date"></label><label for="kd_zeit">Uhrzeit<input id="kd_zeit" type="time"></label></div>
+    <div class="kd-cal"><button type="button" id="kd_cal" class="ghost">In den Kalender eintragen</button><span id="kd_calst" class="hint" role="status"></span></div>
     <label for="kd_ol">Bezeichnung des Objekts (z. B. Bestand, Alternative Typ 33)<input id="kd_ol" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="optional" maxlength="60"></label>
     <span class="kd-cap">Objektadresse (Gebäude)</span>
     <div class="row kd-a1">
@@ -3714,12 +3717,65 @@ function initKunden(backendP){
     r.rgadr=abw?[r.rgname,a,b].filter(Boolean).join(', '):'';
     return r;
   }
-  function rgAssign(o){var p=rgParts();Object.keys(p).forEach(function(k){o[k]=p[k]});o.datum=$('kd_datum').value;return o}
+  function rgAssign(o){var p=rgParts();Object.keys(p).forEach(function(k){o[k]=p[k]});o.datum=$('kd_datum').value;o.zeit=$('kd_zeit').value;o.cal=calState;return o}
   function todayIso(){var d=new Date(),p=function(n){return String(n).padStart(2,'0')};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
-  function setDatum(d){d=d||{};$('kd_datum').value=d.datum||''}
+  var calState=null; // zuletzt in den Kalender übergebener Termin: {d:Datum,t:Uhrzeit,seq:Version}
+  function setDatum(d){d=d||{};$('kd_datum').value=d.datum||'';$('kd_zeit').value=d.zeit||'';calState=d.cal||null;calUpd()}
+  // Kalender: Die App kann nicht selbst in den Kalender schreiben. Sie erzeugt eine .ics-Datei mit fester Kennung (UID).
+  // Ändern sich Datum oder Uhrzeit, wird mit höherer Versionsnummer neu übergeben, der Kalender ersetzt dann den alten Eintrag.
+  var CAL_MIN=90;
+  function calFmt(d,t){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||'');return (m?m[3]+'.'+m[2]+'.'+m[1]:'')+(t?', '+t+' Uhr':'')}
+  function calUpd(){
+    var b=$('kd_cal'),st=$('kd_calst');if(!b||!st) return;
+    var d=$('kd_datum').value,t=$('kd_zeit').value,c=calState;
+    b.classList.remove('pendf');b.textContent='In den Kalender eintragen';
+    if(!d||!t){st.textContent=c?('Im Kalender steht: '+calFmt(c.d,c.t)+'. Datum und Uhrzeit eintragen, um zu aktualisieren.'):'Datum und Uhrzeit eintragen, dann in den Kalender übernehmen.';return}
+    if(!c){st.textContent='Noch nicht im Kalender.';return}
+    if(c.d===d&&c.t===t){st.textContent='Im Kalender: '+calFmt(d,t)+'.';return}
+    b.textContent='Kalendereintrag aktualisieren';b.classList.add('pendf');
+    st.textContent='Termin geändert. Im Kalender steht noch '+calFmt(c.d,c.t)+'.';
+  }
+  function icsEsc(x){return String(x||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n')}
+  function icsFold(l){var o=[];while(l.length>73){o.push(l.slice(0,73));l=' '+l.slice(73)}o.push(l);return o.join('\r\n')}
+  function icsBuild(uid,seq,d,t,name,adr,ol){
+    var p2=function(n){return String(n).padStart(2,'0')};
+    var a=d.split('-'),h=t.split(':'),st=new Date(+a[0],+a[1]-1,+a[2],+h[0],+h[1]),en=new Date(st.getTime()+CAL_MIN*60000);
+    var loc=function(x){return x.getFullYear()+p2(x.getMonth()+1)+p2(x.getDate())+'T'+p2(x.getHours())+p2(x.getMinutes())+'00'};
+    var nw=new Date(),stamp=nw.getUTCFullYear()+p2(nw.getUTCMonth()+1)+p2(nw.getUTCDate())+'T'+p2(nw.getUTCHours())+p2(nw.getUTCMinutes())+p2(nw.getUTCSeconds())+'Z';
+    var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Energieberatung Lange//Vor-Ort-Check//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+      'BEGIN:VTIMEZONE','TZID:Europe/Berlin','BEGIN:STANDARD','DTSTART:19701025T030000','TZOFFSETFROM:+0200','TZOFFSETTO:+0100','RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU','TZNAME:CET','END:STANDARD',
+      'BEGIN:DAYLIGHT','DTSTART:19700329T020000','TZOFFSETFROM:+0100','TZOFFSETTO:+0200','RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU','TZNAME:CEST','END:DAYLIGHT','END:VTIMEZONE',
+      'BEGIN:VEVENT','UID:'+uid,'SEQUENCE:'+seq,'DTSTAMP:'+stamp,'DTSTART;TZID=Europe/Berlin:'+loc(st),'DTEND;TZID=Europe/Berlin:'+loc(en),
+      'SUMMARY:'+icsEsc('Beratung '+(name||adr||'Kunde')),'LOCATION:'+icsEsc(adr),'DESCRIPTION:'+icsEsc('Vor-Ort-Check, Energieberatung Lange'+(ol?'\n'+ol:'')),
+      'STATUS:CONFIRMED','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Beratung in 1 Stunde','TRIGGER:-PT1H','END:VALARM','END:VEVENT','END:VCALENDAR'];
+    return L.map(icsFold).join('\r\n')+'\r\n';
+  }
+  function calExport(){
+    var d=$('kd_datum').value,t=$('kd_zeit').value,name=$('kd_name').value.trim(),adr=$('kd_adr').value.trim();
+    if(!d||!t){msg('Für den Kalender fehlen Datum und Uhrzeit.');return}
+    if(!name&&!adr){msg('Für den Kalender bitte Name oder Adresse eintragen.');return}
+    save(true).then(function(ok){
+      if(!ok||!curId){msg('Zuerst muss der Kunde gespeichert werden.');return}
+      var same=calState&&calState.d===d&&calState.t===t,seq=calState?(same?calState.seq:calState.seq+1):0;
+      var ics=icsBuild(curId+'@vor-ort-check.energieberatung-lange.de',seq,d,t,name,adr,$('kd_ol').value.trim());
+      var fn=('Beratung '+(name||'Kunde')+' '+d).replace(/[^\wäöüÄÖÜß\- .]/g,'').replace(/\s+/g,' ').trim()+'.ics',file=null;
+      try{file=new File([ics],fn,{type:'text/calendar'})}catch(e){}
+      function done(){calState={d:d,t:t,seq:seq};calUpd();dirty=true;chg++;save(true);msg('Kalendereintrag übergeben: '+calFmt(d,t)+'. Beim Öffnen der Datei in „Kalender“ hinzufügen bzw. den bestehenden Eintrag ersetzen.')}
+      function fallback(){
+        var u=URL.createObjectURL(new Blob([ics],{type:'text/calendar'})),a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();
+        setTimeout(function(){URL.revokeObjectURL(u);a.remove()},4000);done();
+      }
+      if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:fn}).then(done,function(e){if(!(e&&e.name==='AbortError')) fallback()});
+      }else fallback();
+    });
+  }
+  window.__calIcs=function(uid,seq,d,t,name,adr,ol){return icsBuild(uid,seq,d,t,name,adr,ol)};
   function syncRg(){var abw=$('kd_rg').value==='abw';$('kd_rgbox').hidden=!abw;$('kd_rgadr').value=rgParts().rgadr}
   function setRg(d){d=d||{};$('kd_rg').value=d.rg==='abw'?'abw':'';$('kd_rgname').value=d.rgname||'';$('kd_rgstr').value=d.rgstr||'';$('kd_rgnr').value=d.rgnr||'';$('kd_rgplz').value=d.rgplz||'';$('kd_rgort').value=d.rgort||'';syncRg()}
   $('kd_datum').value=todayIso();
+  ['kd_datum','kd_zeit'].forEach(function(id){$(id).addEventListener('input',calUpd);$(id).addEventListener('change',calUpd)});
+  $('kd_cal').addEventListener('click',calExport);
   RGI.forEach(function(id){$(id).addEventListener('input',syncRg);$(id).addEventListener('change',syncRg)});
   function clearKd(){curKid=null;$('kd_ol').value='';$('kd_name').value='';setDatum({datum:todayIso()});setAdr({});setRg({});$('kd_note').value='';PHOTOS=[];drawPhotos();$('kd_del').hidden=true;resetDel();updSnap()}
   function updSnap(){
@@ -4158,7 +4214,7 @@ function initKunden(backendP){
           return rgAssign({id:curId,name:$('kd_name').value,str:ap.str,nr:ap.nr,plz:ap.plz,ort:ap.ort,note:$('kd_note').value,list:list});
         },
         set:function(k,v){
-          var m={name:'kd_name',str:'kd_str',nr:'kd_nr',plz:'kd_plz',ort:'kd_ort',note:'kd_note',datum:'kd_datum',rg:'kd_rg',rgname:'kd_rgname',rgstr:'kd_rgstr',rgnr:'kd_rgnr',rgplz:'kd_rgplz',rgort:'kd_rgort'}[k];if(!m) return;
+          var m={name:'kd_name',str:'kd_str',nr:'kd_nr',plz:'kd_plz',ort:'kd_ort',note:'kd_note',datum:'kd_datum',zeit:'kd_zeit',rg:'kd_rg',rgname:'kd_rgname',rgstr:'kd_rgstr',rgnr:'kd_rgnr',rgplz:'kd_rgplz',rgort:'kd_rgort'}[k];if(!m) return;
           var e=$(m);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));
         },
         select:function(id,after){
@@ -4798,7 +4854,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-22 14:25',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-22 14:50',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

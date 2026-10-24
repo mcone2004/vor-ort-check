@@ -242,8 +242,8 @@ body[data-mode="check"] .ctab-nav,body[data-mode="folgen"] .ctab-nav,body[data-m
 body[data-mode="check"] form>[data-tab]:not(.ctab-on),body[data-mode="folgen"] form>[data-tab]:not(.ctab-on){display:none!important}
 body[data-mode="check"][data-ctab]:not([data-ctab="ergebnis"]):not([data-ctab="all"]) #res,body[data-mode="folgen"][data-ctab]:not([data-ctab="ergebnis"]):not([data-ctab="all"]) #res{display:none!important}
 body[data-mode="check"][data-ctab]:not([data-ctab="all"]) .wrap,body[data-mode="folgen"][data-ctab]:not([data-ctab="all"]) .wrap{grid-template-columns:minmax(0,1fr)!important}
-body[data-mode="check"][data-ctab]:not([data-ctab="all"]):not([data-ctab="ergebnis"]) form,body[data-mode="folgen"][data-ctab]:not([data-ctab="all"]):not([data-ctab="ergebnis"]) form{width:100%;max-width:max(44rem,80vw);justify-self:center}
-body[data-mode="check"][data-ctab="ergebnis"] #res,body[data-mode="folgen"][data-ctab="ergebnis"] #res{width:100%;max-width:max(64rem,80vw);justify-self:center}
+body[data-mode="check"][data-ctab]:not([data-ctab="all"]):not([data-ctab="ergebnis"]) form,body[data-mode="folgen"][data-ctab]:not([data-ctab="all"]):not([data-ctab="ergebnis"]) form{width:100%;max-width:none;justify-self:stretch}
+body[data-mode="check"][data-ctab="ergebnis"] #res,body[data-mode="folgen"][data-ctab="ergebnis"] #res{width:100%;max-width:none;justify-self:stretch}
 body[data-ctab="ergebnis"] #bar{display:none!important}
 
 .hkxbox{display:grid;gap:.8rem}.hkxbox .hint{margin:0}#hkx,#fsx{display:grid;gap:.8rem}
@@ -388,7 +388,19 @@ body[data-mode="kunden"] #kd.kd-edit #kd_back{display:inline-block}body[data-mod
 body[data-mode="kunden"] #kd:not(.kd-edit)>*:not(legend):not(.kd-tb):not(#kd_ov):not(#kd_set){display:none!important}
 body[data-mode="kunden"] #kd.kd-edit #kd_ov,body[data-mode="kunden"] #kd.kd-edit #kd_set{display:none!important}
 body[data-mode="kunden"] #kd_ov>summary{display:none}
-body[data-mode="kunden"] label[for="kd_list"],body[data-mode="kunden"] #kd_new{display:none!important}
+body[data-mode="kunden"] #kd_listl,body[data-mode="kunden"] #kd_new{display:none!important}
+.kd-pick{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%;text-align:left;font-weight:400;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;min-height:48px;justify-self:stretch}
+.kd-pick span{overflow-wrap:anywhere}.kd-pick::after{content:"▾";flex:none;color:var(--muted)}
+.kd-native{position:absolute;width:1px;height:1px;min-height:0;padding:0;border:0;opacity:0;pointer-events:none;overflow:hidden;clip:rect(0 0 0 0)}
+.kd-pop{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:max(2.5vh,env(safe-area-inset-top,0px)) 2.5vw 2.5vh}
+.kd-sheet{width:min(52rem,100%);max-height:92vh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.35);overflow:hidden}
+.kd-sh-h{display:flex;gap:.6rem;padding:.7rem;border-bottom:1px solid var(--line)}.kd-sh-h input{flex:1}
+.kd-sh-h button{background:transparent;color:var(--ink);border:1.5px solid var(--line);flex:none}
+#kd_items{list-style:none;margin:0;padding:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.kd-it{display:grid;gap:.1rem;width:100%;text-align:left;font-weight:400;background:none;color:var(--ink);border:0;border-top:1px solid var(--line);border-radius:0;padding:.75rem 1rem;min-height:3.4rem;justify-self:stretch}
+.kd-it strong{font-size:1.05rem;font-weight:800;overflow-wrap:anywhere}.kd-it span{font-size:.9rem;color:var(--muted);overflow-wrap:anywhere}
+.kd-it[aria-selected="true"]{background:var(--surface)}.kd-it[aria-selected="true"] strong::before{content:"✓ ";color:var(--green)}
+.kd-it.kd-new strong{color:var(--green)}.kd-empty{padding:1rem;color:var(--muted)}
 
 /* Gebäudehülle: zwei Spalten ab Tablet quer und am PC, Tabs mittig über dem Formular */
 .ctabs>button:first-child{margin-left:auto}.ctabs>button:last-child{margin-right:auto}
@@ -496,7 +508,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
   <p class="calc-leg" id="calcleg"><span class="calc-key" aria-hidden="true"></span>Grüner Rand: geht in die Berechnung ein. <span class="calc-key pend" aria-hidden="true"></span><span>Orange: Pflichtangabe noch offen, bis dahin gilt die Vorgabe.</span> <span><i>Kursiv</i>: automatisch ermittelt, lässt sich überschreiben.</span> <span>Die übrigen Felder dokumentieren nur.</span></p>
   <fieldset id="kd" hidden class="kdbox" data-tab="kunde"><legend>Kunde</legend>
     <div class="kd-tb"><button type="button" id="kd_add">Neuen Kunden anlegen</button><button type="button" id="kd_back" class="ghost">Zurück zur Kundenliste</button></div>
-    <label for="kd_list">Kunde wählen oder neu anlegen<select id="kd_list"><option value="">Neuer Eintrag</option></select></label>
+    <label id="kd_listl">Kunde wählen oder neu anlegen<button type="button" id="kd_pick" class="kd-pick" aria-haspopup="dialog"><span id="kd_picktxt">Neuer Eintrag</span></button><select id="kd_list" class="kd-native" tabindex="-1" aria-hidden="true"><option value="">Neuer Eintrag</option></select></label>
     <label for="kd_name">Name<input id="kd_name" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Name des Kunden"></label>
     <div class="row kd-dt"><label for="kd_datum">Datum der Beratung<input id="kd_datum" type="date"></label><label for="kd_zeit">Uhrzeit<input id="kd_zeit" type="time"></label></div>
     <div class="kd-cal"><button type="button" id="kd_cal" class="ghost">In den Kalender eintragen</button><span id="kd_calst" class="hint" role="status"></span></div>
@@ -1132,6 +1144,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
   <div id="rep_body"></div>
 </div>
 
+<div id="kd_pop" class="kd-pop" hidden><div class="kd-sheet" role="dialog" aria-label="Kunde wählen"><div class="kd-sh-h"><input id="kd_find" type="search" placeholder="Suchen (Name, Adresse)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><button type="button" id="kd_pop_x">Schließen</button></div><ul id="kd_items"></ul></div></div>
 <div id="bar" class="mbar" role="status" hidden></div>
 
 <script src="erfassung-calc.js"></script>
@@ -3685,13 +3698,49 @@ function initKunden(backendP){
     syncWw();render();awDrawSan();awRender();if(typeof mfhDraw==='function') mfhDraw();
   }
   function fmtDate(iso){try{return new Date(iso).toLocaleDateString('de-DE')}catch(e){return ''}}
+  // Kundenauswahl: eigene breite Liste mit Suche statt des schmalen System-Popovers (iPad). Das Auswahlfeld kd_list bleibt unsichtbar die Datenquelle.
+  var KIT=[];
+  function kdPickSync(){var t=$('kd_picktxt'),s=$('kd_list');if(!t||!s) return;var o=s.options[s.selectedIndex];t.textContent=o?o.textContent:'Neuer Eintrag'}
+  (function(){var s=$('kd_list'),nv=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
+    Object.defineProperty(s,'value',{configurable:true,get:function(){return nv.get.call(this)},set:function(v){nv.set.call(this,v);kdPickSync()}})})();
+  function kdPopClose(){$('kd_pop').hidden=true}
+  function kdPopDraw(){
+    var q=($('kd_find').value||'').trim().toLowerCase(),ul=$('kd_items'),cur=$('kd_list').value,n=0;ul.innerHTML='';
+    KIT.forEach(function(k){
+      if(q&&(k.neu||(k.name+' '+k.sub).toLowerCase().indexOf(q)<0)) return;
+      var li=document.createElement('li'),b=document.createElement('button'),a=document.createElement('strong');
+      b.type='button';b.className='kd-it'+(k.neu?' kd-new':'');b.setAttribute('role','option');b.setAttribute('aria-selected',k.id===cur?'true':'false');b.setAttribute('data-id',k.id);
+      a.textContent=k.name;b.appendChild(a);
+      if(k.sub){var sp=document.createElement('span');sp.textContent=k.sub;b.appendChild(sp)}
+      li.appendChild(b);ul.appendChild(li);if(!k.neu) n++;
+    });
+    if(q&&!n){var e=document.createElement('li');e.className='kd-empty';e.textContent='Kein Kunde gefunden.';ul.appendChild(e)}
+  }
+  function kdPopOpen(){
+    $('kd_find').value='';kdPopDraw();$('kd_pop').hidden=false;
+    var a=$('kd_items').querySelector('[aria-selected="true"]');if(a&&a.scrollIntoView) a.scrollIntoView({block:'center'});
+    try{if(!window.matchMedia('(pointer:coarse)').matches) $('kd_find').focus()}catch(e){}
+  }
+  $('kd_pick').addEventListener('click',kdPopOpen);
+  $('kd_pop_x').addEventListener('click',kdPopClose);
+  $('kd_pop').addEventListener('click',function(e){if(e.target===$('kd_pop')) kdPopClose()});
+  $('kd_find').addEventListener('input',kdPopDraw);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('kd_pop').hidden) kdPopClose()});
+  $('kd_items').addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('.kd-it'):null;if(!b) return;
+    var id=b.getAttribute('data-id'),s=$('kd_list');kdPopClose();
+    if(id===s.value) return;
+    s.value=id;s.dispatchEvent(new Event('change',{bubbles:true}));
+  });
   function fillList(){
     var sel=$('kd_list'),ids=Object.keys(docs);
     ids.sort(function(a,b){return String(docs[a].name||'').localeCompare(String(docs[b].name||''),'de')});
     sel.innerHTML='';
     var o0=document.createElement('option');o0.value='';o0.textContent=ids.length?'Neuer Eintrag':'Noch keine Kunden gespeichert';sel.appendChild(o0);
+    KIT=[{id:'',name:o0.textContent,sub:'',neu:true}];
     ids.forEach(function(id){
       var d=docs[id],o=document.createElement('option');o.value=id;
+      KIT.push({id:id,name:d.name||'Ohne Name',sub:[d.olabel,d.adr,d.updated?fmtDate(d.updated):''].filter(Boolean).join(' · ')});
       o.textContent=(d.name||'Ohne Name')+(d.olabel?' – '+d.olabel:'')+(d.adr?', '+d.adr:'')+(d.updated?' ('+fmtDate(d.updated)+')':'');
       sel.appendChild(o);
     });
@@ -3925,7 +3974,7 @@ function initKunden(backendP){
     return save(true);
   }
   function onEdit(e){
-    var id=e.target&&e.target.id;if(!id||/^(kd_list|kd_sy_|kd_pw|kd_delpw|kd_file|kd_ov|rep_)/.test(id)) return;
+    var id=e.target&&e.target.id;if(!id||/^(kd_list|kd_find|kd_pick|kd_pop|kd_sy_|kd_pw|kd_delpw|kd_file|kd_ov|rep_)/.test(id)) return;
     dirty=true;chg++;
     setAuto('warn','Änderungen noch nicht gespeichert');
     clearTimeout(draftT);draftT=setTimeout(writeDraft,400);scheduleAuto();
@@ -4346,7 +4395,7 @@ function initKunden(backendP){
     }else{$('kd_erf').hidden=true}
     $('kd_list').addEventListener('change',function(){
       var v=$('kd_list').value,prev=curId||'';
-      if(!v){guard(function(){curId=null;clearKd();msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.')},function(){$('kd_list').value=prev});return}
+      if(!v){guard(function(){curId=null;clearKd();$('kd_list').value='';msg('Neuer Eintrag. Die Eingaben unten bleiben erhalten.')},function(){$('kd_list').value=prev});return}
       guard(function(){load(v)},function(){$('kd_list').value=prev});
     });
     $('kd_save').addEventListener('click',function(){save(false)});
@@ -4978,7 +5027,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-10-22 15:12',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-10-24 13:35',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

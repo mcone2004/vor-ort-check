@@ -639,12 +639,13 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
 <label for="vb_bjw">Baujahr Wärmeerzeuger<input id="vb_bjw" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false"></label>
 <label for="vb_we">Anzahl Wohnungen<input id="vb_we" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1"></label>
 <label for="vb_plz">PLZ (für Klimakorrekturfaktor)<input id="vb_plz" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false"></label>
-</div><div class="awgrid"><label class="vbck"><input id="vb_l1" type="checkbox"><span>Fensterlüftung</span></label>
+</div><div id="vb_hhbox" class="awgrid" style="display:none"><p class="hint" style="grid-column:1/-1;margin:0">Doppelhaushälften sind einseitig angebaut, Reihenmittelhäuser beidseitig. Das Feld erscheint nur bei angebauten Gebäuden.</p><label for="vb_hh">Verkauf oder Ausweis betrifft<select id="vb_hh"><option value="">wählen</option><option>ganzes Doppelhaus</option><option>eine Hälfte</option></select></label><div id="vb_hhzbox" style="display:none"><label for="vb_hhz">Heizung und Zähler der Hälfte<select id="vb_hhz"><option value="">wählen</option><option>getrennt von der anderen Hälfte</option><option>gemeinsam mit der anderen Hälfte</option></select></label></div></div>
+    <div class="awgrid"><label class="vbck"><input id="vb_l1" type="checkbox"><span>Fensterlüftung</span></label>
 <label class="vbck"><input id="vb_l2" type="checkbox"><span>Schachtlüftung</span></label>
 <label class="vbck"><input id="vb_l3" type="checkbox"><span>Lüftungsanlage mit Wärmerückgewinnung</span></label>
 <label class="vbck"><input id="vb_l4" type="checkbox"><span>Lüftungsanlage ohne Wärmerückgewinnung</span></label>
 </div><h4 class="vb-h">Energiebezugsfläche</h4><div class="awgrid"><label for="vb_wf">Nutzfläche nach GModG (A<sub>N</sub>) in m²<input id="vb_wf" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
-</div><p class="hint">Die Nutzfläche nach GModG ist nicht die Wohnfläche. Sie wird für den Verbrauchskennwert gebraucht.</p><h4 class="vb-h">Kühlung und erneuerbare Energien</h4><div class="awgrid"><label class="vbck"><input id="vb_kuehl" type="checkbox"><span>Das Gebäude wird gekühlt</span></label>
+</div><p class="hint">Die Nutzfläche nach GModG ist nicht die Wohnfläche. Sie wird für den Verbrauchskennwert gebraucht. Bei einer Hälfte nur deren Fläche eintragen.</p><h4 class="vb-h">Kühlung und erneuerbare Energien</h4><div class="awgrid"><label class="vbck"><input id="vb_kuehl" type="checkbox"><span>Das Gebäude wird gekühlt</span></label>
 <label for="vb_kuehlm2">Gekühlte Gebäudenutzfläche in m²<input id="vb_kuehlm2" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
 <label for="vb_er_art">Erneuerbare Energien, Art<input id="vb_er_art" type="text" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"></label>
 <label for="vb_er_verw">Erneuerbare Energien, Verwendung<input id="vb_er_verw" type="text" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false"></label>
@@ -4953,10 +4954,17 @@ function vbCheck(){
   if(comp<3) miss.push('Drei vollständige Abrechnungszeiträume (36 Monate) eintragen, sonst reicht es nur für den Bedarfsausweis');
   if(units.length) warn.push('Verbrauch in '+units.join(', ')+'. Für den Verbrauchsausweis den kWh-Wert aus der Abrechnung übernehmen oder Brennwert und Zustandszahl prüfen.');
   if(vals.length>=2){var mx=Math.max.apply(null,vals),mn=Math.min.apply(null,vals);if(mn>0&&(mx-mn)/((mx+mn)/2)>0.3) warn.push('Die Abrechnungszeiträume weichen um mehr als 30 % voneinander ab. Leerstand, Nutzung oder Eingabe prüfen.')}
+  var angeb=vbVal('vb_typ').indexOf('angebaut')>=0;
+  if(angeb&&!has(vbVal('vb_hh'))) miss.push('Angeben, ob das ganze Doppelhaus oder eine Hälfte ausgewiesen wird');
+  if(angeb&&vbVal('vb_hh')==='eine Hälfte'&&!has(vbVal('vb_hhz'))) miss.push('Heizung und Zähler der Hälfte: getrennt oder gemeinsam?');
+  if(angeb&&vbVal('vb_hh')==='eine Hälfte'&&vbVal('vb_hhz')==='gemeinsam mit der anderen Hälfte') warn.push('Heizung oder Zähler gemeinsam mit der anderen Hälfte: Der Verbrauch gehört zum ganzen Gebäude. Verbrauch aufteilen oder das ganze Doppelhaus erfassen. Die Ausweisregel vorher klären.');
   if(vbVal('vb_leer')==='überwiegend leer') warn.push('Überwiegend leer: Die Verbrauchswerte zeigen dann nicht den Zustand des Gebäudes. Ausweisart prüfen.');
   return {miss:miss,warn:warn};
 }
 function vbRender(){
+  var angebT=vbVal('vb_typ').indexOf('angebaut')>=0;
+  var hb=$('vb_hhbox');if(hb){hb.style.display=angebT?'':'none';if(!angebT){$('vb_hh').value='';$('vb_hhz').value=''}}
+  var hz=$('vb_hhzbox');if(hz){var showHz=$('vb_hh')&&$('vb_hh').value==='eine Hälfte';hz.style.display=showHz?'':'none';if(!showHz) $('vb_hhz').value=''}
   var kw=$('vb_kuehl'),kl=$('vb_kuehlm2');
   if(kw&&kl){var showK=kw.checked;kl.closest('label').style.display=showK?'':'none';if(!showK) kl.value='';}
   var lm=$('vb_leerm'),lml=$('vb_leerml');

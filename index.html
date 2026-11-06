@@ -321,6 +321,10 @@ body[data-mode="erfassung"] #kd_erf{background:var(--dark);color:var(--onDark);b
 body[data-mode="erfassung"] .wrap{grid-template-columns:minmax(0,1fr)!important}
 body:not([data-mode="ausweis"]) #awbox{display:none}
 body:not([data-mode="mfh"]) #mfhbox{display:none}
+body:not([data-mode="verbrauch"]) #vbbox{display:none}
+body[data-mode="verbrauch"] form>*:not(#kd):not(#vbbox),body[data-mode="verbrauch"] #res,body[data-mode="verbrauch"] #bar,body[data-mode="verbrauch"] #kd_snap,body[data-mode="verbrauch"] #kd_erf,body[data-mode="verbrauch"] #kd_copy,body[data-mode="verbrauch"] #kd_addobj,body[data-mode="verbrauch"] #kd_cmp{display:none!important}
+body[data-mode="verbrauch"] #kd .kd-rg,body[data-mode="verbrauch"] #kd .geo-line,body[data-mode="verbrauch"] #kd label[for="kd_note"]{display:none}
+body[data-mode="verbrauch"]{--page:var(--bg-aw);--acc:var(--c-aw)}
 body[data-mode="mfh"] #mfhbox>[data-mtab]:not(.ctab-on),body[data-mode="mfh"] #kd:not(.ctab-on),body[data-mode="mfh"][data-ctab="kunde"] #mfhbox{display:none!important}
 body[data-mode="mfh"] .ctabs{flex-wrap:wrap;overflow:visible;justify-content:center}
 body[data-mode="mfh"] .ctabs button{min-height:2.4rem;font-size:.86rem;padding:.2rem .6rem .2rem .3rem}
@@ -507,6 +511,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
   <button type="button" class="hbtn" id="go_check"><strong>Vor-Ort-Check</strong><span>Istzustand beim Kunden erfassen: Gebäudehülle, Fenster, Lüftung, Heizung, Verbrauch. Mit Heizlast, Heizwärme und Energieklasse heute.</span></button>
   <button type="button" class="hbtn" id="go_folgen"><strong>Sanierung und ihre Folgen</strong><span>Aufbauend auf dem Istzustand: Heizkosten gegen Strom, Wärmepumpe, Varianten, Förderung und Kundenbericht.</span></button>
   <button type="button" class="hbtn" id="go_erf"><strong>Gebäudeerfassung</strong><span>Kunde erfassen, dann das Gebäude für den Bedarfsausweis aufnehmen: Wände, Bauteile, Anlagentechnik, Fotos und Datenblatt als PDF.</span></button>
+  <button type="button" class="hbtn" id="go_vb"><strong>Verbrauchsausweis</strong><span>Verbrauchsdaten aus drei Abrechnungsjahren aufnehmen: Zeiträume, Warmwasser, Leerstand, Fotos der Abrechnung.</span></button>
   <button type="button" class="hbtn" id="go_aw"><strong>Ausweisart</strong><span>Verbrauchs- oder Bedarfsausweis? Prüfung nach Wohnungen, Bauantrag, Sanierungen und Verbrauchsdaten, mit Begründung.</span></button>
   <button type="button" class="hbtn" id="go_mfh"><strong>Mehrfamilienhaus: Gewerbe zu Wohnen</strong><span>Umnutzung von Gewerbe zu Wohnungen: Rahmen, entstehende Wohnungen mit Heizung und Warmwasser, Hülle, Strom, Aufstellung, Förderung, Absprachen.</span></button>
   <button type="button" class="hbtn" id="go_kd"><strong>Kundenverwaltung</strong><span>Kunden anlegen, ändern und löschen, mit Suche, Löschschutz und Abgleich.</span></button>
@@ -621,6 +626,53 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
     <input type="hidden" id="aw_san" value="[]">
   </fieldset>
 
+  <fieldset id="vbbox"><legend>Verbrauchsausweis</legend>
+    <p class="hint">Verbrauchsdaten aus drei Abrechnungszeiträumen (36 Monate). Die Angaben werden beim Kunden gespeichert und stehen auch offline bereit. Fotos der Abrechnungen unten bei den Kundenfotos.</p>
+    <div id="vb_res" class="awres offen" role="status"></div>
+    <div class="awgrid">
+      <label for="vb_bj">Baujahr des Gebäudes<input id="vb_bj" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1968"></label>
+      <label for="vb_we">Wohneinheiten<input id="vb_we" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1"></label>
+      <label for="vb_wf">Wohnfläche in m²<input id="vb_wf" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+      <label for="vb_tr">Energieträger Heizung<select id="vb_tr"><option value="">wählen</option><option>Heizöl EL</option><option>Erdgas</option><option>Flüssiggas</option><option>Holzpellets</option><option>Scheitholz</option><option>Holzhackschnitzel</option><option>Strom</option><option>Fernwärme</option><option>Kohle, Koks</option><option>Sonstiges</option></select></label>
+      <label for="vb_ww">Warmwasser im Heizverbrauch<select id="vb_ww"><option value="">wählen</option><option>im Heizverbrauch enthalten</option><option>separat erfasst (eigene Zählung)</option><option>nicht im Heizverbrauch (z. B. elektrischer Durchlauferhitzer)</option></select></label>
+      <label for="vb_leer">Leerstand im Zeitraum<select id="vb_leer"><option value="">wählen</option><option>nein</option><option>teilweise</option><option>überwiegend leer</option></select></label>
+      <label for="vb_leerm">Leerstand in Monaten, falls teilweise<input id="vb_leerm" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+    </div>
+    <label for="vb_verlauf">Veränderungen im Zeitraum: Sanierung, Heizungstausch, Nutzerwechsel, Umbau<textarea id="vb_verlauf" rows="2"></textarea></label>
+    <h4 class="vb-h">Abrechnungszeiträume</h4>
+    <p class="hint">Verbrauch je Zeitraum aus der Abrechnung übertragen. Mindestens drei vollständige Zeiträume sind nötig.</p>
+    <div class="vbyr"><b>Abrechnungszeitraum 1</b>
+      <div class="awgrid">
+        <label for="vb1_von">Von (TT.MM.JJJJ)<input id="vb1_von" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="01.10.2023"></label>
+        <label for="vb1_bis">Bis (TT.MM.JJJJ)<input id="vb1_bis" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="30.09.2024"></label>
+        <label for="vb1_einh">Einheit des Verbrauchs<select id="vb1_einh"><option value="">wählen</option><option>kWh</option><option>m³</option><option>Liter</option><option>kg</option><option>Ster</option></select></label>
+        <label for="vb1_menge">Verbrauch Heizung in dieser Einheit<input id="vb1_menge" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+        <label for="vb1_ww">Warmwasser separat gemessen, kWh (nur falls getrennt)<input id="vb1_ww" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+        <label for="vb1_kf">Klimafaktor, falls bekannt<input id="vb1_kf" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+      </div>
+    </div>
+    <div class="vbyr"><b>Abrechnungszeitraum 2</b>
+      <div class="awgrid">
+        <label for="vb2_von">Von (TT.MM.JJJJ)<input id="vb2_von" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="01.10.2023"></label>
+        <label for="vb2_bis">Bis (TT.MM.JJJJ)<input id="vb2_bis" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="30.09.2024"></label>
+        <label for="vb2_einh">Einheit des Verbrauchs<select id="vb2_einh"><option value="">wählen</option><option>kWh</option><option>m³</option><option>Liter</option><option>kg</option><option>Ster</option></select></label>
+        <label for="vb2_menge">Verbrauch Heizung in dieser Einheit<input id="vb2_menge" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+        <label for="vb2_ww">Warmwasser separat gemessen, kWh (nur falls getrennt)<input id="vb2_ww" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+        <label for="vb2_kf">Klimafaktor, falls bekannt<input id="vb2_kf" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+      </div>
+    </div>
+    <div class="vbyr"><b>Abrechnungszeitraum 3</b>
+      <div class="awgrid">
+        <label for="vb3_von">Von (TT.MM.JJJJ)<input id="vb3_von" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="01.10.2023"></label>
+        <label for="vb3_bis">Bis (TT.MM.JJJJ)<input id="vb3_bis" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="30.09.2024"></label>
+        <label for="vb3_einh">Einheit des Verbrauchs<select id="vb3_einh"><option value="">wählen</option><option>kWh</option><option>m³</option><option>Liter</option><option>kg</option><option>Ster</option></select></label>
+        <label for="vb3_menge">Verbrauch Heizung in dieser Einheit<input id="vb3_menge" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+        <label for="vb3_ww">Warmwasser separat gemessen, kWh (nur falls getrennt)<input id="vb3_ww" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+        <label for="vb3_kf">Klimafaktor, falls bekannt<input id="vb3_kf" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+      </div>
+    </div>
+    <div id="vb_phslot"></div>
+  </fieldset>
   <fieldset id="mfhbox"><legend>Mehrfamilienhaus: Gewerbe zu Wohnen</legend><p class="hint">Fragen für das Erstgespräch, wenn im Mehrfamilienhaus Gewerbe zu Wohnungen umgenutzt wird. Die Wohnungen legst du nach dem Umbau an, die Angaben werden beim Kunden gespeichert und mit abgeglichen. Fotos (Typenschilder, Zählerschrank, Heizkörper, Technikraum, Aufstellfläche) im Tab Fotos ablegen.</p><p class="calc-leg"><span class="calc-key pend" aria-hidden="true"></span><span>Orange: Pflichtangabe noch offen. Ohne sie lassen sich Heizlast und Förderung nicht festlegen.</span></p><div id="mfh_st" class="awres offen" role="status"></div><section class="kd-sec" data-mtab="m1"><h4>Rahmen und Eigentümer</h4><p class="hint">Ohne diese Angaben lassen sich Förderprogramm und Umfang nicht festlegen.</p><div class="awgrid"><label for="mfh_eig">Eigentümer, entscheidet über das Förderprogramm<select id="mfh_eig"><option value="">–</option><option>Privatperson, Vermietung</option><option>Privatperson, teils selbstgenutzt</option><option>Firma (GmbH, UG, KG)</option><option>Eigentümergemeinschaft (GbR, Erbengemeinschaft, WEG)</option><option>Sonstige</option></select></label><label for="mfh_eigname">Name des Eigentümers<input id="mfh_eigname" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Person oder Firma"></label><label for="mfh_antr">Wer stellt später den Förderantrag?<input id="mfh_antr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_bewohnt">Wie viele Wohnungen sind bewohnt, laufen Mietverträge?<input id="mfh_bewohnt" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_zahler">Wer zahlt heute Heizung und Warmwasser?<input id="mfh_zahler" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Mieter direkt oder über Nebenkosten"></label><label for="mfh_bg">Baugenehmigung<select id="mfh_bg"><option value="">–</option><option>erteilt</option><option>beantragt</option><option>noch nicht beantragt</option><option>nicht erforderlich</option><option>unbekannt</option></select></label><label for="mfh_bgdat">Baugenehmigung erteilt am<input id="mfh_bgdat" type="date"></label><label for="mfh_bbeg">Baubeginn<input id="mfh_bbeg" type="date"></label><label for="mfh_bfert">Fertigstellung<input id="mfh_bfert" type="date"></label><label for="mfh_anlass">Anlass: Kosten, Defekte, Wertsteigerung, Auflage?<input id="mfh_anlass" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label></div></section><section class="kd-sec" data-mtab="m2"><h4>Entstehende Wohnungen und Heizung heute</h4><p class="hint">Zuerst die Zahl der Wohnungen nach dem Umbau eintragen, dann entsteht je Wohnung ein Eintrag. Typenschilder fotografieren (Tab Fotos), Gasrechnungen der letzten 3 Jahre erbitten.</p><div class="awgrid"><label for="mfh_wges">Wohnungen nach dem Umbau (gesamt)<input id="mfh_wges" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 8"></label><label for="mfh_wneu">davon neu aus dem Gewerbe<input id="mfh_wneu" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 3"></label></div><p class="hint" id="mfh_umsg" role="status"></p><div id="mfh_ulist"></div><input type="hidden" id="mfh_units" value="[]"><div class="awgrid"><label for="mfh_gew">Heizung der bisherigen Gewerbeeinheit: Energieträger, Gerät, Baujahr<input id="mfh_gew" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_gew"><input id="mfh_f_gew" type="checkbox"> Foto machen: Typenschild und Heizgerät der Gewerbeeinheit</label><label for="mfh_zustand">Zustand und Wartung der Geräte, Defekte?<input id="mfh_zustand" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_abgas">Abgasführung und Schornsteine: vorhanden, nutzbar?<input id="mfh_abgas" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_abgas"><input id="mfh_f_abgas" type="checkbox"> Foto machen: Schornstein und Abgasanlage</label><label for="mfh_gasanschluss">Gasanschluss bleibt oder wird stillgelegt?<input id="mfh_gasanschluss" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_gasanschluss"><input id="mfh_f_gasanschluss" type="checkbox"> Foto machen: Gaszähler und Gasanschluss</label><label for="mfh_gasrg">Gasrechnungen 3 Jahre vorhanden?<select id="mfh_gasrg"><option value="">–</option><option>ja</option><option>nein</option><option>teilweise</option></select></label></div></section><section class="kd-sec" data-mtab="m3"><h4>Gebäudehülle und Heizflächen</h4><p class="hint">Die Pläne enthalten keine Bauteilaufbauten. Diese Angaben tragen Heizlast und Vorlauftemperatur.</p><div class="awgrid"><label for="mfh_bj">Baujahr Haupthaus und Hinterhaus<input id="mfh_bj" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_wand">Außenwand: Aufbau, Dicke, Dämmung<input id="mfh_wand" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_dach">Dach, oberste Geschossdecke, Kellerdecke: Aufbau, Dämmung<input id="mfh_dach" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_fenster">Fenster: Alter, Verglasung, Rahmen, Uw<input id="mfh_fenster" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_san">Sanierungen seit Bau (Jahr, Umfang)<textarea id="mfh_san" rows="4" spellcheck="false" placeholder="je Maßnahme eine Zeile, z. B. 2008 Fenster 2-fach erneuert"></textarea></label><label for="mfh_wsn">Wärmeschutznachweis oder Energieausweis für die Umnutzung vorhanden?<select id="mfh_wsn"><option value="">–</option><option>ja</option><option>nein</option><option>unbekannt</option></select></label><label for="mfh_neudaem">Neue Wohnungen im Hinterhaus: neue Dämmung und Fenster geplant?<input id="mfh_neudaem" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_hk">Heizkörper: Typ, Größe, Thermostatventile, Zustand<input id="mfh_hk" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_hk"><input id="mfh_f_hk" type="checkbox"> Foto machen: Heizkörper mit Typenschild und Maßen</label><label for="mfh_fbh">Fußbodenheizung vorhanden?<select id="mfh_fbh"><option value="">–</option><option>ja</option><option>teilweise</option><option>nein</option><option>unbekannt</option></select></label><label for="mfh_fbhplan" id="mfh_fbhplan_l">In den neuen Wohnungen geplant?<select id="mfh_fbhplan"><option value="">–</option><option>ja</option><option>nein</option><option>noch offen</option></select></label><label for="mfh_ausl">Heutige Auslegung und Räume, die nicht warm werden<input id="mfh_ausl" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 70/55 °C"></label><label for="mfh_wunsch">Wunschtemperaturen (Bäder, Wohnräume)<input id="mfh_wunsch" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label></div></section><section class="kd-sec" data-mtab="m4"><h4>Strom und Warmwasser</h4><p class="hint">Der Hausanschluss entscheidet, ob dezentrales Warmwasser und Wärmepumpe zusammen möglich sind. Durchlauferhitzer mit 18 bis 24 kW je Wohnung gehen ohne Lastmanagement nicht.</p><div class="awgrid"><label for="mfh_ha">Hausanschluss: Absicherung in A, Netzbetreiber<input id="mfh_ha" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_ha"><input id="mfh_f_ha" type="checkbox"> Foto machen: Hausanschlusskasten mit Sicherungen</label><label for="mfh_zs">Zählerschrank: Zählerplätze, Reserve, Platz für Wärmepumpenzähler<input id="mfh_zs" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_zs"><input id="mfh_f_zs" type="checkbox"> Foto machen: Zählerschrank offen, Zählerplätze und Reserve</label><label for="mfh_dreh">Drehstrom in allen Wohnungen? Leitungsquerschnitt<input id="mfh_dreh" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_nanf">Netzanschlussanfrage schon gestellt?<select id="mfh_nanf"><option value="">–</option><option>ja</option><option>nein</option><option>unbekannt</option></select></label><label for="mfh_boiler">Die vorhandenen Warmwasserboiler: Wohnung, Liter, kW, Alter<input id="mfh_boiler" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_boiler"><input id="mfh_f_boiler" type="checkbox"> Foto machen: Typenschilder der Boiler</label><label for="mfh_wwplan">Geplant je Wohnung: Kleinspeicher (80 bis 120 l) oder Durchlauferhitzer (kW)?<input id="mfh_wwplan" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_pv">PV vorhanden oder geplant?<input id="mfh_pv" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label></div></section><section class="kd-sec" data-mtab="m5"><h4>Aufstellung und Standort</h4><p class="hint">Fläche, Abstände und Schall entscheiden über Luft/Wasser, Sonden und Kollektor.</p><div class="awgrid"><label for="mfh_tr">Technikraum: Lage, Größe, Raumhöhe, Zugang, Platz für Puffer und Verteilung<input id="mfh_tr" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_tr"><input id="mfh_f_tr" type="checkbox"> Foto machen: Technikraum gesamt</label><label for="mfh_aussen">Außenaufstellung möglich: wo, Abstand zu Grenze und Nachbarfenstern in m<input id="mfh_aussen" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label class="cb fchk" for="mfh_f_aussen"><input id="mfh_f_aussen" type="checkbox"> Foto machen: Aufstellfläche außen mit Grenzabständen</label><label for="mfh_gebiet">Gebietsart oder Bebauungsplan, Schallauflagen bekannt?<input id="mfh_gebiet" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. Kurgebiet, allgemeines Wohngebiet"></label><label for="mfh_leit">Leitungsweg Hinterhaus zu Haupthaus: Keller, Erdleitung, Schacht<input id="mfh_leit" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_schacht">Steigschacht für zentrale Verteilung denkbar?<input id="mfh_schacht" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_boden">Bodenart und Grundwasser im Garten<input id="mfh_boden" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. sandig, hoch anstehend"></label><label for="mfh_netz">Wärmenetz oder Anschlusszwang vor Ort bekannt?<input id="mfh_netz" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_garten">Bestehende Leitungen und Bäume im Garten<input id="mfh_garten" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label></div></section><section class="kd-sec" data-mtab="m6"><h4>Förderung und Zeitplan</h4><p class="hint">Wärmepumpen-Grundförderung der KfW sinkt im 1. Quartal 2027 von 30 % auf 15 %. Stichtag bei der KfW klären. Keine Summen zusagen.</p><div class="awgrid"><label for="mfh_beauf">Schon etwas beauftragt oder bestellt? (Vorhabenbeginn)<select id="mfh_beauf"><option value="">–</option><option>ja</option><option>nein</option><option>unbekannt</option></select></label><label for="mfh_ang">Liegen Angebote von Heizungsbauern vor?<input id="mfh_ang" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_frist">Entscheidung bis wann, Antrag noch 2026 realistisch?<input id="mfh_frist" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_ibn">Gewünschte Inbetriebnahme<input id="mfh_ibn" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_budget">Budgetrahmen in €<input id="mfh_budget" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 250.000"></label><label for="mfh_hinw">Hinweis gegeben: Vertrag nur mit aufschiebender Bedingung, BzA ist noch kein Antrag<select id="mfh_hinw"><option value="">–</option><option>ja</option><option>nein</option><option>unbekannt</option></select></label></div></section><section class="kd-sec" data-mtab="m7"><h4>Absprachen</h4><p class="hint">Am Ende des Gesprächs ausfüllen.</p><div class="awgrid"><label for="mfh_a_unt">Unterlagen vom Kunden: was, wer, bis wann<input id="mfh_a_unt" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_a_beg">Begehung und Aufmaß: Termin<input id="mfh_a_beg" type="date"></label><label for="mfh_a_hl">Raumweise Heizlast: Zeitrahmen<input id="mfh_a_hl" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label><label for="mfh_a_ang">Angebot an den Kunden: bis wann<input id="mfh_a_ang" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. in 2 bis 3 Werktagen"></label><label for="mfh_a_nach">Nachfassen am<input id="mfh_a_nach" type="date" autocomplete="off" autocorrect="off" spellcheck="false" placeholder=""></label></div></section><section class="kd-sec" data-mtab="m8"><h4>Fotos</h4><p class="hint">Typenschilder, Zählerschrank, Technikraum, Aufstellfläche und Weiteres. Jedes Foto bekommt eine Beschriftung. Die Haken „Foto machen“ in den Abschnitten setzt du selbst, wenn das Foto gemacht ist.</p><div id="mfh_phslot"></div></section></fieldset>
 
   <fieldset data-tab="objekt"><legend>Objekt</legend>
@@ -3686,7 +3738,7 @@ function initKunden(backendP){
   function erfInfo(){var el=$('kd_erfs');if(!el||!window.ERF) return;var n=ERF.openCount();el.textContent=(n==null)?'':(n>0?'Gebäudeerfassung: '+n+' Angaben fehlen noch.':'Gebäudeerfassung: alle Pflichtangaben vorhanden.')}
   function erfSet(d){if(!window.ERF) return;if(d) ERF.setData(d);else ERF.reset();erfInfo()}
   function fields(){
-    var out=[],els=document.querySelectorAll('form input,form select,form textarea[id^="mfh_"]');
+    var out=[],els=document.querySelectorAll('form input,form select,form textarea[id^="mfh_"],form textarea[id^="vb"]');
     for(var i=0;i<els.length;i++){var e=els[i];if(e.id&&e.id.indexOf('kd_')!==0&&e.id.indexOf('ph_')!==0&&e.type!=='file') out.push(e)}
     return out;
   }
@@ -4841,7 +4893,7 @@ function msCapture(){
 }
 // Startseite: zwei Bereiche auf denselben Kundendaten. Der Bereich steht im Hash, damit ein Neuladen (iPad räumt Hintergrund-Apps ab) im Bereich bleibt.
 var erfLauncher=null;
-var MODES={kunden:['Kundenverwaltung','Kunden anlegen, ändern und löschen. In den anderen Bereichen stehen dieselben Kunden zur Auswahl.'],ausweis:['Ausweisart','Verbrauchs- oder Bedarfsausweis? Prüfung für Wohngebäude im Bestand, mit Begründung.'],home:['Energieberatung Lange','Bereich wählen.'],check:['Vor-Ort-Check: Istzustand','Gebäude, Hülle, Fenster, Lüftung, Heizung und Verbrauch beim Kunden erfassen. Heizlast, Heizwärme und Energieklasse ändern sich beim Tippen.'],folgen:['Sanierung und ihre Folgen','Aufbauend auf dem Istzustand des Kunden: Heizkosten gegen Strom, Wärmepumpe, Varianten und Förderung.'],erfassung:['Gebäudeerfassung','Kunde wählen oder anlegen, dann das Gebäude aufnehmen.'],mfh:['Mehrfamilienhaus: Gewerbe zu Wohnen','Erstgespräch bei Umnutzung von Gewerbe zu Wohnungen: Heizung und Warmwasser für die entstehenden Wohnungen. Die Angaben hängen am Kunden.']};
+var MODES={verbrauch:['Verbrauchsausweis','Verbrauchsdaten aus drei Abrechnungszeiträumen für den Verbrauchsausweis. Die Angaben werden beim Kunden gespeichert.'],kunden:['Kundenverwaltung','Kunden anlegen, ändern und löschen. In den anderen Bereichen stehen dieselben Kunden zur Auswahl.'],ausweis:['Ausweisart','Verbrauchs- oder Bedarfsausweis? Prüfung für Wohngebäude im Bestand, mit Begründung.'],home:['Energieberatung Lange','Bereich wählen.'],check:['Vor-Ort-Check: Istzustand','Gebäude, Hülle, Fenster, Lüftung, Heizung und Verbrauch beim Kunden erfassen. Heizlast, Heizwärme und Energieklasse ändern sich beim Tippen.'],folgen:['Sanierung und ihre Folgen','Aufbauend auf dem Istzustand des Kunden: Heizkosten gegen Strom, Wärmepumpe, Varianten und Förderung.'],erfassung:['Gebäudeerfassung','Kunde wählen oder anlegen, dann das Gebäude aufnehmen.'],mfh:['Mehrfamilienhaus: Gewerbe zu Wohnen','Erstgespräch bei Umnutzung von Gewerbe zu Wohnungen: Heizung und Warmwasser für die entstehenden Wohnungen. Die Angaben hängen am Kunden.']};
 function setKview(edit){var k=document.getElementById('kd');if(k) k.classList.toggle('kd-edit',!!edit);try{window.scrollTo(0,0)}catch(e){}}
 window.setKview=setKview;
 function mfhPhotoMove(on){
@@ -4853,6 +4905,7 @@ function setMode(m,noScroll){
   if(!MODES[m]) m='home';
   document.body.setAttribute('data-mode',m);
   mfhPhotoMove(m==='mfh');
+  vbPhotoMove(m==='verbrauch');if(m==='verbrauch') vbRender();
   if(m==='check'||m==='folgen'||m==='mfh'){buildTabs();if(cTab!=='all'&&!TABS.some(function(t){return t[0]===cTab})) cTab='kunde';setTab(cTab,true);if(m!=='mfh'){try{render()}catch(e){}}}
   if(m==='kunden'){var ov0=$('kd_ov');if(ov0) ov0.open=true;setKview(false)}
   $('hdr_t').textContent=MODES[m][0];$('hdr_p').textContent=MODES[m][1];
@@ -4860,6 +4913,47 @@ function setMode(m,noScroll){
   if(!noScroll){try{window.scrollTo(0,0)}catch(e){}}
 }
 
+// Verbrauchsausweis: eigener Tab, Daten liegen im Formular (vb*) und damit am Kunden
+function vbNum(v){var s=String(v==null?'':v).trim().replace(/\s/g,'');if(/^\d{1,3}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');return parseFloat(s.replace(',','.'))||0}
+function vbVal(id){var e=$(id);return e?e.value:''}
+function vbCheck(){
+  var miss=[],warn=[],comp=0,vals=[],units=[];
+  var has=function(v){return String(v||'').trim()!==''};
+  if(!has(vbVal('vb_bj'))) miss.push('Baujahr eintragen');
+  if(!has(vbVal('vb_we'))) miss.push('Anzahl Wohneinheiten eintragen');
+  if(!has(vbVal('vb_wf'))) miss.push('Wohnfläche eintragen');
+  if(!has(vbVal('vb_tr'))) miss.push('Energieträger Heizung wählen');
+  if(!has(vbVal('vb_ww'))) miss.push('Warmwasser: angeben, ob er im Heizverbrauch steckt');
+  if(!has(vbVal('vb_leer'))) miss.push('Leerstand im Zeitraum angeben');
+  [1,2,3].forEach(function(n){
+    var y={von:vbVal('vb'+n+'_von'),bis:vbVal('vb'+n+'_bis'),einh:vbVal('vb'+n+'_einh'),menge:vbVal('vb'+n+'_menge'),ww:vbVal('vb'+n+'_ww')},t='Abrechnungszeitraum '+n+': ';
+    var any=['von','bis','einh','menge','ww','kf'].some(function(k){return has(vbVal('vb'+n+'_'+k))});
+    if(!any) return;
+    if(!has(y.von)||!has(y.bis)) miss.push(t+'Zeitraum von und bis eintragen');
+    if(!(vbNum(y.menge)>0)) miss.push(t+'Verbrauch Heizung eintragen');
+    if(!has(y.einh)) miss.push(t+'Einheit wählen');
+    if(has(y.von)&&has(y.bis)&&vbNum(y.menge)>0&&has(y.einh)){comp++;vals.push(vbNum(y.menge))}
+    if(has(y.einh)&&y.einh!=='kWh'&&vbNum(y.menge)>0&&units.indexOf(y.einh)<0) units.push(y.einh);
+    if(y.einh==='kWh'&&vbNum(y.ww)>vbNum(y.menge)&&vbNum(y.menge)>0) warn.push(t+'Warmwasser ist größer als der Gesamtverbrauch. Eingabe prüfen.');
+  });
+  if(comp<3) miss.push('Drei vollständige Abrechnungszeiträume (36 Monate) eintragen, sonst reicht es nur für den Bedarfsausweis');
+  if(units.length) warn.push('Verbrauch in '+units.join(', ')+'. Für den Verbrauchsausweis den kWh-Wert aus der Abrechnung übernehmen oder Brennwert und Zustandszahl prüfen.');
+  if(vals.length>=2){var mx=Math.max.apply(null,vals),mn=Math.min.apply(null,vals);if(mn>0&&(mx-mn)/((mx+mn)/2)>0.3) warn.push('Die Abrechnungszeiträume weichen um mehr als 30 % voneinander ab. Leerstand, Nutzung oder Eingabe prüfen.')}
+  if(vbVal('vb_leer')==='überwiegend leer') warn.push('Überwiegend leer: Die Verbrauchswerte zeigen dann nicht den Zustand des Gebäudes. Ausweisart prüfen.');
+  return {miss:miss,warn:warn};
+}
+function vbRender(){
+  var box=$('vb_res');if(!box) return;
+  var r=vbCheck();
+  box.className='awres '+(r.miss.length?'offen':'wahl');
+  box.innerHTML=(r.miss.length?'<b>Noch offen ('+r.miss.length+')</b><ul>'+r.miss.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>':'<b>Alle Pflichtangaben vorhanden.</b>')+
+    (r.warn.length?'<p class="hint">Hinweise</p><ul>'+r.warn.map(function(t){return '<li>'+esc(t)+'</li>'}).join('')+'</ul>':'');
+}
+function vbPhotoMove(on){
+  var pb=document.querySelector('.ph-box'),slot=$('vb_phslot'),an=document.querySelector('label[for="kd_note"]');
+  if(!pb||!slot||!an) return;
+  if(on){if(pb.parentNode!==slot) slot.appendChild(pb)}else if(pb.parentNode===slot) an.parentNode.insertBefore(pb,an);
+}
 // Ausweisart: eigener Bereich, Daten liegen im Formular (aw_*) und damit am Kunden
 function awSan(){var a=[];try{a=JSON.parse($('aw_san').value||'[]')}catch(e){}return Array.isArray(a)?a:[]}
 function awSetSan(a){var h=$('aw_san');h.value=JSON.stringify(a);h.dispatchEvent(new Event('input',{bubbles:true}))}
@@ -5001,12 +5095,14 @@ function initMfh(){
 }
 function initHome(){
   var h=(location.hash||'').replace('#','');
-  setMode(h==='check'||h==='folgen'||h==='erfassung'||h==='ausweis'||h==='mfh'||h==='kunden'?h:'home',true);
+  setMode(h==='check'||h==='folgen'||h==='erfassung'||h==='ausweis'||h==='mfh'||h==='kunden'||h==='verbrauch'?h:'home',true);
   $('go_check').addEventListener('click',function(){setMode('check')});
   $('go_folgen').addEventListener('click',function(){setMode('folgen')});
   $('hkx_edit').addEventListener('click',function(){setMode('check');setTab('heizung')});
   $('go_erf').addEventListener('click',function(){setMode('erfassung');if(erfLauncher) erfLauncher()});
   $('go_aw').addEventListener('click',function(){setMode('ausweis')});
+  $('go_vb').addEventListener('click',function(){setMode('verbrauch')});
+  $('vbbox').addEventListener('input',vbRender);$('vbbox').addEventListener('change',vbRender);
   $('go_mfh').addEventListener('click',function(){setMode('mfh')});
   $('go_kd').addEventListener('click',function(){setMode('kunden')});
   initAw();initMfh();

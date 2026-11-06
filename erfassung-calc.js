@@ -233,21 +233,11 @@ var SURF={
 var WTYPE={aussen:'Außenluft',unbeh:'unbeheizter Raum',erd:'Erdreich',nachbar:'beheizter Nachbar'};
 
 /* ---------- Datenmodell ---------- */
-/* Verbrauchsdaten für den Verbrauchsausweis: drei Abrechnungszeiträume (36 Monate), je Zeitraum Verbrauch in der Abrechnungseinheit */
-function newVb(){
-  var j={};
-  ['j1','j2','j3'].forEach(function(k){j[k]={von:'',bis:'',menge:'',einh:'',ww:'',kf:''}});
-  return {an:'',ww:'',leer:'',leerm:'',verlauf:'',j:j};
-}
-function vbY(e,j){return ((e.vb||{}).j||{})[j]||{}}
-/* Tausenderpunkt wie bei 2.800 kWh zählt als Tausender, nicht als Komma */
-function vbNum(v){var s=String(v==null?'':v).replace(/\s/g,'');if(/^\d{1,3}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');return N(s)}
-function vbComplete(y){return has(y.von)&&has(y.bis)&&vbNum(y.menge)>0&&has(y.einh)}
 function newErf(){
   return {v:1,
     g:{typ:'',bj:'',antrag:'',we:'1',vg:'',keller:'',dachform:'',dg:'',anbau:'',bem:'',h0:'90',denk:'nein',wf:''},
     unterl:{},
-    kat:[],gesch:[],surf:[],anl:{},vb:newVb(),photos:{},abs:{maengel:'',empf:'',offen:''}
+    kat:[],gesch:[],surf:[],anl:{},photos:{},abs:{maengel:'',empf:'',offen:''}
   };
 }
 function normalize(e){
@@ -431,7 +421,6 @@ var STEPS=[
   {k:'bt',n:'Bauteile'},
   {k:'fl',n:'Dach, Decke, Boden'},
   {k:'anl',n:'Anlagentechnik'},
-  {k:'vb',n:'Verbrauch'},
   {k:'abs',n:'Abschluss'},
   {k:'blatt',n:'Datenblatt'}
 ];
@@ -571,23 +560,6 @@ function missing(e){
       if(!has(v)) m('anl',sec.t+': '+f.l+' angeben',null,['anl/'+sec.k+'/'+f.k]);
     });
   });
-  // Verbrauchsausweis: nur prüfen, wenn der Nutzer die Verbrauchsdaten aufnehmen will
-  var V=e.vb||{};
-  if(V.an==='ja'){
-    var comp=0;
-    ['j1','j2','j3'].forEach(function(j,i){
-      var y=vbY(e,j),tag='Abrechnungszeitraum '+(i+1)+': ',p='vb/j/'+j+'/';
-      if(!['von','bis','menge','einh','ww','kf'].some(function(k){return has(y[k])})) return;
-      if(!has(y.von)||!has(y.bis)) m('vb',tag+'Zeitraum von und bis eintragen',null,[p+'von',p+'bis']);
-      if(!(vbNum(y.menge)>0)) m('vb',tag+'Verbrauch Heizung eintragen',null,[p+'menge']);
-      if(!has(y.einh)) m('vb',tag+'Einheit wählen',null,[p+'einh']);
-      if(vbComplete(y)) comp++;
-    });
-    if(comp<3) m('vb','Drei vollständige Abrechnungszeiträume (36 Monate) eintragen, sonst reicht es nur für den Bedarfsausweis');
-    if(!has(V.ww)) m('vb','Warmwasser: angeben, ob er im Heizverbrauch steckt',null,['vb/ww']);
-    if(!has(V.leer)) m('vb','Leerstand im Zeitraum angeben',null,['vb/leer']);
-    if(!has(g.wf)) m('stamm','Wohnfläche eintragen (Bezug für den Verbrauchskennwert)',null,['g/wf']);
-  }
   return M;
 }
 function warnings(e){
@@ -635,25 +607,12 @@ function warnings(e){
   if(has(hz.bj)&&(N(hz.bj)<1950||N(hz.bj)>year(new Date().toISOString())+1)) w('anl','Baujahr des Erzeugers '+hz.bj+' unplausibel');
   var ue=(e.anl.ue||{}),ver=(e.anl.ver||{});
   if(ue.art==='Fußbodenheizung'&&ver.temp&&(ver.temp==='90/70'||ver.temp==='70/55')) w('anl','Fußbodenheizung mit Auslegung '+ver.temp+' ist ungewöhnlich');
-  var VB=e.vb||{};
-  if(VB.an==='ja'){
-    var vals=[],units=[];
-    ['j1','j2','j3'].forEach(function(j,i){
-      var y=vbY(e,j),tg='Abrechnungszeitraum '+(i+1)+': ';
-      if(vbComplete(y)) vals.push(vbNum(y.menge));
-      if(has(y.einh)&&y.einh!=='kWh'&&vbNum(y.menge)>0&&units.indexOf(y.einh)<0) units.push(y.einh);
-      if(y.einh==='kWh'&&vbNum(y.ww)>vbNum(y.menge)&&vbNum(y.menge)>0) w('vb',tg+'Warmwasser ist größer als der Gesamtverbrauch. Eingabe prüfen.');
-    });
-    if(units.length) w('vb','Verbrauch in '+units.join(', ')+'. Für den Verbrauchsausweis den kWh-Wert aus der Abrechnung übernehmen oder Brennwert und Zustandszahl prüfen.');
-    if(vals.length>=2){var mx=Math.max.apply(null,vals),mn=Math.min.apply(null,vals);if(mn>0&&(mx-mn)/((mx+mn)/2)>0.3) w('vb','Die Abrechnungszeiträume weichen um mehr als 30 % voneinander ab. Leerstand, Nutzung oder Eingabe prüfen.')}
-    if(VB.leer==='überwiegend leer') w('vb','Überwiegend leer: Die Verbrauchswerte zeigen dann nicht den Zustand des Gebäudes. Ausweisart prüfen.');
-  }
   return W;
 }
 function openCount(e){return missing(e).length}
 
 var api={ausweisart:ausweisart,sanHuelle:sanHuelle,newSan:newSan,SAN_BT:SAN_BT,SAN_STD:SAN_STD,SAN_GES:SAN_GES,SAN_HUELLE:SAN_HUELLE,SAN_BELEG:SAN_BELEG,SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
-  newErf:newErf,vbY:vbY,vbNum:vbNum,vbComplete:vbComplete,normalize:normalize,newFloor:newFloor,newWall:newWall,newOpening:newOpening,newSurface:newSurface,newKat:newKat,findKat:findKat,
+  newErf:newErf,normalize:normalize,newFloor:newFloor,newWall:newWall,newOpening:newOpening,newSurface:newSurface,newKat:newKat,findKat:findKat,
   trace:trace,wallBearing:wallBearing,sector:sector,dirName:dirName,closeFix:closeFix,oArea:oArea,wallGeom:wallGeom,summary:summary,suggestArea:suggestArea,
   missing:missing,warnings:warnings,openCount:openCount,bauantragVor1977:bauantragVor1977,year:year};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.ERFCALC=api;

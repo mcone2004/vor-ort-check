@@ -329,6 +329,10 @@ body[data-mode="verbrauch"]{--page:var(--bg-aw);--acc:var(--c-aw)}
 #vbbox .vbchecks{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1.5rem;margin:.5rem 0}
 #vbbox .vbcap{font-size:.9rem;opacity:.75;margin-right:.2rem}
 #vbbox .vbck{display:flex;align-items:center;gap:.55rem;cursor:pointer;margin:0}
+.ph-btns{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0}
+.ph-btn{display:inline-block;padding:.65rem 1rem;border:1.5px solid var(--acc);border-radius:999px;cursor:pointer;font-weight:600;color:var(--acc);background:transparent}
+.ph-hid{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.ph-cap{display:block;font-size:.9rem;opacity:.8;margin-bottom:.2rem}
 #vbbox .vbck input{width:1.15rem;height:1.15rem;margin:0;flex:none;accent-color:var(--acc)}
 body[data-mode="verbrauch"] .wrap{grid-template-columns:minmax(0,1fr)!important}
 @media (min-width:1000px){body[data-mode="verbrauch"] form{grid-template-columns:minmax(0,25rem) minmax(0,1fr);align-items:start}}
@@ -570,8 +574,10 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
       </div>
       <input type="hidden" id="kd_rgadr">
     </div>
-    <div class="ph-box"><label for="ph_in">Fotos (Typenschild, Heizraum, Zähler, Fassade)<input id="ph_in" type="file" accept="image/*" multiple></label>
-    <div id="ph_list" class="ph-list"></div><span class="hint" id="ph_hint">Bis zu 8 Fotos je Kunde, verkleinert gespeichert. Sie stehen nur auf der internen Seite.</span></div>
+    <div class="ph-box"><span class="ph-cap">Fotos (Typenschild, Heizraum, Zähler, Abrechnung, Fassade)</span>
+    <div class="ph-btns"><label class="ph-btn" for="ph_cam">Foto aufnehmen</label><label class="ph-btn" for="ph_in">Aus Mediathek wählen</label></div>
+    <input id="ph_in" class="ph-hid" type="file" accept="image/*" multiple><input id="ph_cam" class="ph-hid" type="file" accept="image/*" capture="environment">
+    <div id="ph_list" class="ph-list"></div><span class="hint" id="ph_hint">Bis zu 16 Fotos je Kunde, verkleinert gespeichert. Sie stehen nur auf der internen Seite.</span></div>
     <label for="kd_note">Notiz<textarea id="kd_note" rows="2" placeholder="Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
     <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_erf" class="ghost">Gebäudeerfassung</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_addobj" class="ghost" hidden>Weiteres Objekt für diesen Kunden</button><button type="button" id="kd_copy" class="ghost" hidden>Objekt als Alternative kopieren</button><button type="button" id="kd_cmp" class="ghost" hidden>Objekte vergleichen</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
     <div class="delbox" id="kd_delbox" hidden>
@@ -2423,14 +2429,16 @@ function shrink(file){
 }
 function initPhotos(){
   var inp=$('ph_in'),l=$('ph_list');if(!inp||!l) return;
-  inp.addEventListener('change',function(){
-    var files=Array.prototype.slice.call(inp.files||[],0,Math.max(0,PH_MAX-PHOTOS.length));
-    var skipped=(inp.files?inp.files.length:0)-files.length;
+  var addFiles=function(src){
+    var files=Array.prototype.slice.call(src.files||[],0,Math.max(0,PH_MAX-PHOTOS.length));
+    var skipped=(src.files?src.files.length:0)-files.length;
     files.reduce(function(p,f){return p.then(function(){return shrink(f).then(function(d){PHOTOS.push({d:d,c:''})},function(){skipped++})})},Promise.resolve()).then(function(){
-      inp.value='';drawPhotos();photoChanged();
+      src.value='';drawPhotos();photoChanged();
       if(skipped>0){var h=$('ph_hint');if(h) h.textContent+=' '+skipped+' Foto(s) nicht übernommen (Grenze '+PH_MAX+' oder nicht lesbar).'}
     });
-  });
+  };
+  inp.addEventListener('change',function(){addFiles(inp)});
+  var cam=$('ph_cam');if(cam) cam.addEventListener('change',function(){addFiles(cam)});
   l.addEventListener('click',function(e){var b=e.target.closest?e.target.closest('button[data-ph]'):null;if(!b) return;PHOTOS.splice(+b.getAttribute('data-ph'),1);drawPhotos();photoChanged()});
   l.addEventListener('input',function(e){var t=e.target;if(t&&t.getAttribute&&t.getAttribute('data-phc')!=null){var i=+t.getAttribute('data-phc');if(PHOTOS[i]) PHOTOS[i].c=t.value}});
   drawPhotos();

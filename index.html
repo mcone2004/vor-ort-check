@@ -4957,6 +4957,8 @@ function vbCheck(){
   return {miss:miss,warn:warn};
 }
 function vbRender(){
+  var kw=$('vb_kuehl'),kl=$('vb_kuehlm2');
+  if(kw&&kl){var showK=kw.checked;kl.closest('label').style.display=showK?'':'none';if(!showK) kl.value='';}
   var lm=$('vb_leerm'),lml=$('vb_leerml');
   if(lm&&lml){var showLm=['teilweise','überwiegend leer'].indexOf(vbVal('vb_leer'))>=0;lml.style.display=showLm?'':'none';if(!showLm) lm.value='';}
   var box=$('vb_res');if(!box) return;

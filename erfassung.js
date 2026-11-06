@@ -5,6 +5,7 @@
 'use strict';
 var C=window.ERFCALC;if(!C) return;
 var N=C.N,has=C.has,f2=C.f2,f3=C.f3;
+var vbY=C.vbY;
 var E=C.newErf();
 var step='kunde',KD=null,curFloor=null,selWall=null,selKat=null,selSurf=null,root=null,main=null,nav=null,onChange=function(){},onClose=function(){},isOpen=false,kdName='';
 var PH_MAX=30;
@@ -717,6 +718,34 @@ function viewKunde(){
     '<div class="erf-hint">Nur ausfüllen, wenn die Rechnung nicht an die Objektadresse geht, zum Beispiel bei Vermietung oder Verkauf.</div>');
   return h;
 }
+var VB_EINH=['kWh','m³','Liter','kg','Ster'];
+var VB_WW=['im Heizverbrauch enthalten','separat erfasst (eigene Zählung)','nicht im Heizverbrauch (z. B. elektrischer Durchlauferhitzer)'];
+var VB_LEER=['nein','teilweise','überwiegend leer'];
+function vbYearHTML(j,i){
+  var p='vb/j/'+j+'/';
+  return '<div class="erf-hint" style="margin-top:.6rem"><b>Abrechnungszeitraum '+(i+1)+'</b></div>'+
+    '<div class="erf-g">'+F(p+'von','Von (TT.MM.JJJJ)',{text:1,ph:'01.10.2023'})+F(p+'bis','Bis (TT.MM.JJJJ)',{text:1,ph:'30.09.2024'})+
+    S(p+'einh','Einheit des Verbrauchs',VB_EINH)+F(p+'menge','Verbrauch Heizung in dieser Einheit')+
+    F(p+'ww','Warmwasser separat gemessen, kWh (nur falls getrennt)')+F(p+'kf','Klimafaktor, falls bekannt')+'</div>'+
+    photoBox('vb:'+j,'Foto der Abrechnung oder des Zählerstands');
+}
+function viewVb(){
+  var V=E.vb||{},tr=(E.anl.hz||{}).tr;
+  var h=sec('Verbrauchsausweis',
+    '<div class="erf-g w2">'+S('vb/an','Verbrauchsdaten für den Verbrauchsausweis aufnehmen',['ja','nein'],{r:1})+'</div>'+
+    '<div class="erf-hint">Der Verbrauchsausweis stützt sich auf den Verbrauch aus drei Abrechnungsjahren (36 Monate). Bei „nein“ bleibt nur die Gebäudeerfassung für den Bedarfsausweis.</div>');
+  if(V.an==='ja'){
+    h+=sec('Heizung und Warmwasser',
+      '<div class="erf-hint">Energieträger laut Anlagentechnik: '+(has(tr)?'<b>'+esc(tr)+'</b>':'noch nicht erfasst (Anlagentechnik, Erzeuger 1)')+'</div>'+
+      '<div class="erf-g w2">'+S('vb/ww','Warmwasser im Heizverbrauch',VB_WW)+S('vb/leer','Leerstand im Zeitraum',VB_LEER)+F('vb/leerm','Leerstand in Monaten, falls teilweise')+'</div>'+
+      TA('vb/verlauf','Veränderungen im Zeitraum: Sanierung, Heizungstausch, Nutzerwechsel, Umbau',3));
+    h+=sec('Abrechnungszeiträume',
+      '<div class="erf-hint">Verbrauch je Zeitraum aus der Abrechnung übertragen. Die Abrechnung oder den Zählerstand fotografieren. Mindestens drei vollständige Zeiträume sind nötig.</div>'+
+      ['j1','j2','j3'].map(vbYearHTML).join(''));
+  }
+  return h;
+}
+
 function viewAbs(){
   var M=C.missing(E),W=C.warnings(E);
   var h=sec('Mängel, Empfehlungen, offene Punkte',TA('abs/maengel','Mängel und Auffälligkeiten (Feuchte, Wärmebrücken, Undichtigkeiten, Bauschäden)',4)+TA('abs/empf','Sanierungsmöglichkeiten für die Modernisierungsempfehlungen',4)+TA('abs/offen','Offene Punkte: was noch nachgereicht oder geklärt werden muss',3)+photoBox('abs','Fotos zu Mängeln'));
@@ -791,7 +820,19 @@ function sheetHTML(){
   });
   h+='</section>';
   var a=E.abs;
-  h+='<section><h4>7. Mängel, Empfehlungen, offene Punkte</h4>'+kv([['Mängel',a.maengel],['Sanierungsmöglichkeiten',a.empf],['Offene Punkte',a.offen]])+photosHTML('abs')+'</section>';
+  var V=E.vb||{};
+  if(V.an==='ja'){
+    h+='<section><h4>7. Verbrauchsdaten (Verbrauchsausweis)</h4>'+kv([['Energieträger (Anlagentechnik)',(E.anl.hz||{}).tr],['Warmwasser im Heizverbrauch',V.ww],['Leerstand im Zeitraum',V.leer],['Leerstand in Monaten',V.leerm],['Veränderungen im Zeitraum',V.verlauf]]);
+    var rows=['j1','j2','j3'].map(function(j,i){return {i:i,y:vbY(E,j)}}).filter(function(r){return ['von','bis','menge','einh','ww','kf'].some(function(k){return has(r.y[k])})});
+    if(rows.length){
+      h+='<div class="erf-wrapx"><table class="erf-tb"><thead><tr><th>Zeitraum</th><th>Von</th><th>Bis</th><th class="r">Verbrauch</th><th>Einheit</th><th class="r">Warmwasser separat kWh</th><th class="r">Klimafaktor</th></tr></thead><tbody>';
+      rows.forEach(function(r){h+='<tr><td>'+(r.i+1)+'</td><td>'+esc(r.y.von)+'</td><td>'+esc(r.y.bis)+'</td><td class="r">'+esc(r.y.menge)+'</td><td>'+esc(r.y.einh)+'</td><td class="r">'+esc(r.y.ww)+'</td><td class="r">'+esc(r.y.kf)+'</td></tr>'});
+      h+='</tbody></table></div>';
+    }else h+='<div>Keine Abrechnungszeiträume erfasst.</div>';
+    ['j1','j2','j3'].forEach(function(j){h+=photosHTML('vb:'+j)});
+    h+='</section>';
+  }
+  h+='<section><h4>8. Mängel, Empfehlungen, offene Punkte</h4>'+kv([['Mängel',a.maengel],['Sanierungsmöglichkeiten',a.empf],['Offene Punkte',a.offen]])+photosHTML('abs')+'</section>';
   var M=C.missing(E);
   if(M.length) h+='<section><h4>Noch fehlende Angaben</h4><div>'+M.map(function(m){return '• '+esc(m.t)}).join('<br>')+'</div></section>';
   return h+'</div>';
@@ -869,7 +910,7 @@ function viewBlatt(){
   return '<div class="erf-row erf-noprint">'+btn('sheet-pdf',pdfBlob?'PDF teilen, drucken oder sichern':'PDF erstellen',{cls:''})+(standalone?'':btn('sheet-print','Drucken'))+btn('sheet-copy','Als Text kopieren')+'<span class="erf-hint" id="erf-cpmsg"></span></div>'+sheetHTML();
 }
 
-var MISSSTEPS=['stamm','geo','bt','fl','anl'];
+var MISSSTEPS=['stamm','geo','bt','fl','anl','vb'];
 function missBox(){
   var M=C.missing(E).filter(function(m){return m.step===step});
   if(!M.length) return '<span class="erf-okt">✓ In diesem Bereich ist alles Wichtige eingetragen.</span>';
@@ -902,6 +943,7 @@ function render(){
     case 'bt':h=viewBt();break;
     case 'fl':h=viewFl();break;
     case 'anl':h=viewAnl();break;
+    case 'vb':h=viewVb();break;
     case 'abs':h=viewAbs();break;
     case 'blatt':h=viewBlatt();break;
     default:h='';
@@ -1155,6 +1197,7 @@ function hasData(){
   if(E.gesch.length||E.kat.length||E.surf.length) return true;
   for(var s in E.anl) for(var f in E.anl[s]) if(has(E.anl[s][f])) return true;
   for(var u in E.unterl) if(E.unterl[u]==='1') return true;
+  if(JSON.stringify(E.vb)!==JSON.stringify(C.newErf().vb)) return true;
   if(photoCount()) return true;
   for(var a in E.abs) if(has(E.abs[a])) return true;
   return false;

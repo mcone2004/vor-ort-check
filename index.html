@@ -325,6 +325,9 @@ body:not([data-mode="verbrauch"]) #vbbox{display:none}
 body[data-mode="verbrauch"] form>*:not(#kd):not(#vbbox),body[data-mode="verbrauch"] #res,body[data-mode="verbrauch"] #bar,body[data-mode="verbrauch"] #kd_snap,body[data-mode="verbrauch"] #kd_erf,body[data-mode="verbrauch"] #kd_copy,body[data-mode="verbrauch"] #kd_addobj,body[data-mode="verbrauch"] #kd_cmp{display:none!important}
 body[data-mode="verbrauch"] #kd .kd-rg,body[data-mode="verbrauch"] #kd .geo-line,body[data-mode="verbrauch"] #kd label[for="kd_note"]{display:none}
 body[data-mode="verbrauch"]{--page:var(--bg-aw);--acc:var(--c-aw)}
+body[data-mode="verbrauch"] .wrap{grid-template-columns:minmax(0,1fr)!important}
+@media (min-width:1000px){body[data-mode="verbrauch"] form{grid-template-columns:minmax(0,25rem) minmax(0,1fr);align-items:start}}
+@media (min-width:1280px){body[data-mode="verbrauch"] form{grid-template-columns:minmax(0,27rem) minmax(0,1fr)}}
 body[data-mode="mfh"] #mfhbox>[data-mtab]:not(.ctab-on),body[data-mode="mfh"] #kd:not(.ctab-on),body[data-mode="mfh"][data-ctab="kunde"] #mfhbox{display:none!important}
 body[data-mode="mfh"] .ctabs{flex-wrap:wrap;overflow:visible;justify-content:center}
 body[data-mode="mfh"] .ctabs button{min-height:2.4rem;font-size:.86rem;padding:.2rem .6rem .2rem .3rem}

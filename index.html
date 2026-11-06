@@ -639,7 +639,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
       <label for="vb_tr">Energieträger Heizung<select id="vb_tr"><option value="">wählen</option><option>Heizöl EL</option><option>Erdgas</option><option>Flüssiggas</option><option>Holzpellets</option><option>Scheitholz</option><option>Holzhackschnitzel</option><option>Strom</option><option>Fernwärme</option><option>Kohle, Koks</option><option>Sonstiges</option></select></label>
       <label for="vb_ww">Warmwasser im Heizverbrauch<select id="vb_ww"><option value="">wählen</option><option>im Heizverbrauch enthalten</option><option>separat erfasst (eigene Zählung)</option><option>nicht im Heizverbrauch (z. B. elektrischer Durchlauferhitzer)</option></select></label>
       <label for="vb_leer">Leerstand im Zeitraum<select id="vb_leer"><option value="">wählen</option><option>nein</option><option>teilweise</option><option>überwiegend leer</option></select></label>
-      <label for="vb_leerm">Leerstand in Monaten, falls teilweise<input id="vb_leerm" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false"></label>
+      <label for="vb_leerm" id="vb_leerml">Leerstand in Monaten<input id="vb_leerm" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false"></label>
     </div>
     <label for="vb_verlauf">Veränderungen im Zeitraum: Sanierung, Heizungstausch, Nutzerwechsel, Umbau<textarea id="vb_verlauf" rows="2"></textarea></label>
     <h4 class="vb-h">Abrechnungszeiträume</h4>
@@ -4946,6 +4946,8 @@ function vbCheck(){
   return {miss:miss,warn:warn};
 }
 function vbRender(){
+  var lm=$('vb_leerm'),lml=$('vb_leerml');
+  if(lm&&lml){var showLm=['teilweise','überwiegend leer'].indexOf(vbVal('vb_leer'))>=0;lml.style.display=showLm?'':'none';if(!showLm) lm.value='';}
   var box=$('vb_res');if(!box) return;
   var r=vbCheck();
   box.className='awres '+(r.miss.length?'offen':'wahl');

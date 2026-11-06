@@ -323,7 +323,7 @@ body:not([data-mode="ausweis"]) #awbox{display:none}
 body:not([data-mode="mfh"]) #mfhbox{display:none}
 body:not([data-mode="verbrauch"]) #vbbox{display:none}
 body[data-mode="verbrauch"] form>*:not(#kd):not(#vbbox),body[data-mode="verbrauch"] #res,body[data-mode="verbrauch"] #bar,body[data-mode="verbrauch"] #kd_snap,body[data-mode="verbrauch"] #kd_erf,body[data-mode="verbrauch"] #kd_copy,body[data-mode="verbrauch"] #kd_addobj,body[data-mode="verbrauch"] #kd_cmp{display:none!important}
-body[data-mode="verbrauch"] #kd .kd-rg,body[data-mode="verbrauch"] #kd .geo-line,body[data-mode="verbrauch"] #kd label[for="kd_note"]{display:none}
+body[data-mode="verbrauch"] #kd .geo-line,body[data-mode="verbrauch"] #kd label[for="kd_note"]{display:none}
 body[data-mode="verbrauch"]{--page:var(--bg-aw);--acc:var(--c-aw)}
 #vbbox .vb-h{margin:1.2rem 0 .45rem}
 #vbbox .vbchecks{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1.5rem;margin:.5rem 0}
@@ -5104,7 +5104,7 @@ function vbReportHTML(){
   var offen=$('vb_res')?$('vb_res').innerHTML:'';
   var date=new Date().toLocaleDateString('de-DE');
   var head='<div class="rep-head"><img class="rep-logo" src="logo.jpg" alt="" onerror="this.remove()"><div class="rep-title"><h1>Verbrauchsausweis</h1><p style="color:#555;margin:0">Zusammenfassung der Verbrauchsangaben</p></div></div>'+
-    '<dl class="rep-meta"><dt>Kunde</dt><dd>'+(nm?esc(nm):'&nbsp;')+'</dd><dt>Objekt</dt><dd>'+(ad?esc(ad):'&nbsp;')+'</dd><dt>Stand</dt><dd>'+esc(vbVal('vb_datum')||date)+'</dd></dl>';
+    '<dl class="rep-meta"><dt>Kunde</dt><dd>'+(nm?esc(nm):'&nbsp;')+'</dd><dt>Objekt</dt><dd>'+(ad?esc(ad):'&nbsp;')+'</dd>'+(($('kd_rg')&&$('kd_rg').value==='abw')?'<dt>Rechnungsadresse</dt><dd>'+esc(($('kd_rgname')?$('kd_rgname').value.trim()+', ':'')+($('kd_rgadr')?$('kd_rgadr').value:''))+'</dd>':'')+'<dt>Stand</dt><dd>'+esc(vbVal('vb_datum')||date)+'</dd></dl>';
   var p1='<div class="rep-page">'+head+
     '<h2>Gebäude</h2>'+vbPairs([['Gebäudeart',vbVal('vb_art')],['Gebäudetyp',vbVal('vb_typ')],['Gebäudeteil',vbVal('vb_teil')],['Baujahr Gebäude',vbVal('vb_bj')],['Baujahr Wärmeerzeuger',vbVal('vb_bjw')],['Anzahl Wohnungen',vbVal('vb_we')],['PLZ',vbVal('vb_plz')],['Nutzfläche nach GModG (m²)',vbVal('vb_wf')],['Doppelhaus: Ausweis betrifft',vbVal('vb_hh')],['Heizung und Zähler der Hälfte',vbVal('vb_hhz')]])+
     '<h2>Lüftung und Kühlung</h2>'+vbPairs([['Lüftung',lf],['Kühlung',yes('vb_kuehl')?('ja, gekühlte Nutzfläche '+vbVal('vb_kuehlm2')+' m²'):''],['Erneuerbare Energien: Art',vbVal('vb_er_art')],['Erneuerbare Energien: Verwendung',vbVal('vb_er_verw')]])+
@@ -5386,7 +5386,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-11-06 22:43',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-11-06 22:58',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

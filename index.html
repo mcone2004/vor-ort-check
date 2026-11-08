@@ -651,15 +651,15 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
       <label for="aw_typ">Gebäudetyp<select id="aw_typ"><option value="">wählen</option><option>Einfamilienhaus</option><option>Zweifamilienhaus</option><option>Doppelhaus</option><option>Mehrfamilienhaus</option><option>sonstiges Wohngebäude</option></select></label>
       <label for="aw_teil" id="aw_teil_lbl" style="display:none">Gebäudeteil<select id="aw_teil"><option value="">wählen</option><option>Ganzes Gebäude</option><option>Teil des Gebäudes (z. B. eine Hälfte)</option></select></label>
       <label for="aw_zaehler" id="aw_zaehler_lbl" style="display:none">Getrennte Zähler oder ein Zähler?<select id="aw_zaehler"><option value="">noch unbekannt</option><option value="getrennt">getrennte Zähler, jede Wohnung hat ihren eigenen</option><option value="ein">ein Zähler für das ganze Gebäude</option></select></label>
-      <label for="aw_we" id="aw_we_lbl">Anzahl der Wohnungen<input id="aw_we" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 2"></label>
+      <label for="aw_we" id="aw_we_lbl">Um wie viele Wohnungen geht es für den Ausweis?<input id="aw_we" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 2"></label>
       <label for="aw_bj">Baujahr des Gebäudes (Jahr)<input id="aw_bj" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1950"></label>
       <label for="aw_ba">Bauantrag, Datum oder Jahr<input id="aw_ba" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 14.05.1967"></label>
-      <label for="aw_neu">Neubau oder Änderung mit Berechnung des ganzen Gebäudes<select id="aw_neu"><option value="">wählen</option><option value="nein">nein, Bestandsgebäude</option><option value="ja">ja</option></select></label>
+      <label for="aw_neu">Altbau oder Neubau?<select id="aw_neu"><option value="">wählen</option><option value="nein">Altbau (Bestand)</option><option value="ja">Neubau oder Änderung mit Berechnung des ganzen Gebäudes</option></select></label>
       <label for="aw_nw">Niveau der Wärmeschutzverordnung 1977 nachgewiesen<select id="aw_nw"><option value="">wählen</option><option value="nein">nein / nicht angegeben</option><option value="ja">ja, Nachweis liegt vor</option></select></label>
       <label for="aw_leer">Leerstand in den letzten drei Jahren<select id="aw_leer"><option value="">wählen</option><option value="nein">nein</option><option value="teil">teilweise oder zeitweise</option><option value="lang">überwiegend leer, mehrere Jahre</option></select></label>
       <label for="aw_vd">Verbrauchsdaten für mindestens 36 Monate vorhanden<select id="aw_vd"><option value="">noch unbekannt</option><option value="ja">ja</option><option value="nein">nein</option></select></label>
     </div>
-    <p class="hint">Das Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Bei Bauantrag vor 1977 wird aus der Sanierungsliste abgeleitet: Gesamtsanierung der Hülle oder alle vier Bauteile (Außenwand, Dach, Kellerdecke, Fenster) ab 1978, nach damals gültiger Vorschrift, mit Beleg. Waren Bauteile schon ursprünglich ausreichend, hier „Nachweis liegt vor“ wählen.</p>
+    <p class="hint" id="aw_niv_hint">Das Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Bei Bauantrag vor 1977 wird aus der Sanierungsliste abgeleitet: Gesamtsanierung der Hülle oder alle vier Bauteile (Außenwand, Dach, Kellerdecke, Fenster) ab 1978, nach damals gültiger Vorschrift, mit Beleg. Waren Bauteile schon ursprünglich ausreichend, hier „Nachweis liegt vor“ wählen.</p>
     <section class="kd-sec"><h4>Bisherige Sanierungen</h4>
       <p class="hint">Das Jahr darf „unbekannt“ lauten, wird dann aber nicht angerechnet. Ohne Beleg (Befund oder Unterlage) zählt eine Sanierung ebenfalls nicht.</p>
       <div id="aw_sanlist"></div>
@@ -5179,13 +5179,40 @@ function awMap(r){
   h+='<div class="mm-res '+cls+'">'+esc(r.head||'Ausweisart')+'</div>';
   box.innerHTML=h;
 }
+// Schrittweise Eingabe: jede Frage erscheint, wenn die vorige beantwortet ist.
+// Nicht zutreffende Fragen (Wohnungen bei EFH, Gebäudeteil/Zähler ohne Mehrfamilien-, Zwei- oder Doppelhaus) bleiben aus.
+function awSteps(){
+  var typ=$('aw_typ').value,efh=typ==='Einfamilienhaus',mfh=['Mehrfamilienhaus','Zweifamilienhaus','Doppelhaus'].indexOf(typ)>=0;
+  var items=[
+    {id:'aw_typ',on:true},
+    {id:'aw_we',on:!!typ&&!efh},
+    {id:'aw_neu',on:true},
+    {id:'aw_teil',on:mfh},
+    {id:'aw_zaehler',on:mfh},
+    {id:'aw_bj',on:true},
+    {id:'aw_ba',on:true},
+    {id:'aw_nw',on:true},
+    {id:'aw_leer',on:true},
+    {id:'aw_vd',on:true}
+  ];
+  var ok=true;
+  items.forEach(function(it){
+    var el=$(it.id),lb=el&&el.closest('label');if(!lb) return;
+    var show=it.on&&ok;
+    lb.style.display=show?'':'none';
+    if(show&&!(el.value||'').trim()) ok=false;
+  });
+  // Abschluss: Hinweis und Sanierungsliste erst, wenn alle Fragen beantwortet sind
+  var rest=ok;
+  var hint=$('aw_niv_hint'),sec=$('aw_sanlist')&&$('aw_sanlist').closest('section');
+  if(hint) hint.style.display=rest?'':'none';
+  if(sec) sec.style.display=rest?'':'none';
+}
 function awRender(){
   if(!window.ERFCALC||!$('aw_res')) return;
   var mfh=['Mehrfamilienhaus','Zweifamilienhaus','Doppelhaus'].indexOf($('aw_typ').value)>=0;
   var efh=$('aw_typ').value==='Einfamilienhaus';
-  $('aw_teil_lbl').style.display=mfh?'':'none';
-  $('aw_zaehler_lbl').style.display=(mfh&&$('aw_teil').value)?'':'none';
-  $('aw_we_lbl').style.display=efh?'none':'';
+  awSteps();
   var r=ERFCALC.ausweisart(awState());
   awMap(r);
   $('aw_res').className='awres '+((r.art==='wahl'||r.art==='verbrauch')?'wahl':(r.art==='offen'?'offen':'bed'));

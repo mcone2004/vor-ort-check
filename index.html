@@ -636,9 +636,9 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
     <div id="aw_res" class="awres offen" role="status"></div>
     <div class="awgrid">
       <label for="aw_typ">Gebäudetyp<select id="aw_typ"><option value="">wählen</option><option>Einfamilienhaus</option><option>Zweifamilienhaus</option><option>Doppelhaus</option><option>Mehrfamilienhaus</option><option>sonstiges Wohngebäude</option></select></label>
-      <label for="aw_we">Wohnungen im Gebäude<input id="aw_we" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1"></label>
       <label for="aw_teil" id="aw_teil_lbl" style="display:none">Gebäudeteil<select id="aw_teil"><option value="">wählen</option><option>Ganzes Gebäude</option><option>Teil des Gebäudes (z. B. eine Hälfte)</option></select></label>
-      <label for="aw_zahl" id="aw_zahl_lbl" style="display:none">Zähleranzahl für Gas oder Strom (je Wohnung ein Zähler)<input id="aw_zahl" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 2"></label>
+      <label for="aw_zaehler" id="aw_zaehler_lbl" style="display:none">Getrennte Zähler oder ein Zähler?<select id="aw_zaehler"><option value="">noch unbekannt</option><option value="getrennt">getrennte Zähler, jede Wohnung hat ihren eigenen</option><option value="ein">ein Zähler für das ganze Gebäude</option></select></label>
+      <label for="aw_we" id="aw_we_lbl">Anzahl der Wohnungen<input id="aw_we" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 2"></label>
       <label for="aw_bj">Baujahr des Gebäudes (Jahr)<input id="aw_bj" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1950"></label>
       <label for="aw_ba">Bauantrag, Datum oder Jahr<input id="aw_ba" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 14.05.1967"></label>
       <label for="aw_neu">Neubau oder Änderung mit Berechnung des ganzen Gebäudes<select id="aw_neu"><option value="nein">nein, Bestandsgebäude</option><option value="ja">ja</option></select></label>
@@ -5151,12 +5151,14 @@ function vbPhotoMove(on){
 // Ausweisart: eigener Bereich, Daten liegen im Formular (aw_*) und damit am Kunden
 function awSan(){var a=[];try{a=JSON.parse($('aw_san').value||'[]')}catch(e){}return Array.isArray(a)?a:[]}
 function awSetSan(a){var h=$('aw_san');h.value=JSON.stringify(a);h.dispatchEvent(new Event('input',{bubbles:true}))}
-function awState(){return {g:{we:$('aw_we').value,bj:$('aw_bj').value,antrag:$('aw_ba').value},aw:{neu:$('aw_neu').value,nw:$('aw_nw').value,vd:$('aw_vd').value,leer:$('aw_leer').value,typ:$('aw_typ').value,teil:$('aw_teil').value,zaehlerAnzahl:$('aw_zahl').value},san:awSan()}}
+function awState(){return {g:{we:$('aw_we').value,bj:$('aw_bj').value,antrag:$('aw_ba').value},aw:{neu:$('aw_neu').value,nw:$('aw_nw').value,vd:$('aw_vd').value,leer:$('aw_leer').value,typ:$('aw_typ').value,teil:$('aw_teil').value,zaehler:$('aw_zaehler').value},san:awSan()}}
 function awRender(){
   if(!window.ERFCALC||!$('aw_res')) return;
   var mfh=['Mehrfamilienhaus','Zweifamilienhaus','Doppelhaus'].indexOf($('aw_typ').value)>=0;
+  var efh=$('aw_typ').value==='Einfamilienhaus';
   $('aw_teil_lbl').style.display=mfh?'':'none';
-  $('aw_zahl_lbl').style.display=(mfh&&$('aw_teil').value)?'':'none';
+  $('aw_zaehler_lbl').style.display=(mfh&&$('aw_teil').value)?'':'none';
+  $('aw_we_lbl').style.display=efh?'none':'';
   var r=ERFCALC.ausweisart(awState());
   $('aw_res').className='awres '+((r.art==='wahl'||r.art==='verbrauch')?'wahl':(r.art==='offen'?'offen':'bed'));
   $('aw_res').innerHTML='<b>'+esc(r.head||'Ausweisart')+'</b>'+r.lines.map(function(t){return '<p>'+esc(t)+'</p>'}).join('')+'<p class="hint">Orientierung nach § 80 GEG für Wohngebäude, keine Rechtsberatung. Nichtwohngebäude sind hier nicht abgedeckt. Maßgeblich ist der aktuelle Gesetzestext.</p>';

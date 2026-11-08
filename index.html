@@ -635,16 +635,16 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
     <p class="hint">Verbrauchs- oder Bedarfsausweis? Die Prüfung gilt für Wohngebäude im Bestand und ändert sich beim Tippen. Die Angaben werden beim Kunden gespeichert.</p>
     <div id="aw_res" class="awres offen" role="status"></div>
     <div class="awgrid">
+      <label for="aw_typ">Gebäudetyp<select id="aw_typ"><option value="">wählen</option><option>Einfamilienhaus</option><option>Zweifamilienhaus</option><option>Doppelhaus</option><option>Mehrfamilienhaus</option><option>sonstiges Wohngebäude</option></select></label>
       <label for="aw_we">Wohnungen im Gebäude<input id="aw_we" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1"></label>
+      <label for="aw_teil" id="aw_teil_lbl" style="display:none">Gebäudeteil<select id="aw_teil"><option value="">wählen</option><option>Ganzes Gebäude</option><option>Teil des Gebäudes (z. B. eine Hälfte)</option></select></label>
+      <label for="aw_zahl" id="aw_zahl_lbl" style="display:none">Zähleranzahl für Gas oder Strom (je Wohnung ein Zähler)<input id="aw_zahl" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 2"></label>
       <label for="aw_bj">Baujahr des Gebäudes (Jahr)<input id="aw_bj" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 1950"></label>
       <label for="aw_ba">Bauantrag, Datum oder Jahr<input id="aw_ba" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 14.05.1967"></label>
       <label for="aw_neu">Neubau oder Änderung mit Berechnung des ganzen Gebäudes<select id="aw_neu"><option value="nein">nein, Bestandsgebäude</option><option value="ja">ja</option></select></label>
       <label for="aw_nw">Niveau der Wärmeschutzverordnung 1977 nachgewiesen<select id="aw_nw"><option value="nein">nein / nicht angegeben</option><option value="ja">ja, Nachweis liegt vor</option></select></label>
       <label for="aw_leer">Leerstand in den letzten drei Jahren<select id="aw_leer"><option value="nein">nein</option><option value="teil">teilweise oder zeitweise</option><option value="lang">überwiegend leer, mehrere Jahre</option></select></label>
       <label for="aw_vd">Verbrauchsdaten für mindestens 36 Monate vorhanden<select id="aw_vd"><option value="">noch unbekannt</option><option value="ja">ja</option><option value="nein">nein</option></select></label>
-      <label for="aw_typ">Gebäudetyp<select id="aw_typ"><option value="">wählen</option><option>Einfamilienhaus</option><option>Zweifamilienhaus</option><option>Doppelhaus</option><option>Mehrfamilienhaus</option><option>sonstiges Wohngebäude</option></select></label>
-      <label for="aw_teil" id="aw_teil_lbl" style="display:none">Gebäudeteil<select id="aw_teil"><option value="">wählen</option><option>Ganzes Gebäude</option><option>Teil des Gebäudes (z. B. eine Hälfte)</option></select></label>
-      <label for="aw_zahl" id="aw_zahl_lbl" style="display:none">Zähleranzahl für Gas oder Strom (je Wohnung ein Zähler)<input id="aw_zahl" type="text" inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="z. B. 2"></label>
     </div>
     <p class="hint">Das Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Bei Bauantrag vor 1977 wird aus der Sanierungsliste abgeleitet: Gesamtsanierung der Hülle oder alle vier Bauteile (Außenwand, Dach, Kellerdecke, Fenster) ab 1978, nach damals gültiger Vorschrift, mit Beleg. Waren Bauteile schon ursprünglich ausreichend, hier „Nachweis liegt vor“ wählen.</p>
     <section class="kd-sec"><h4>Bisherige Sanierungen</h4>

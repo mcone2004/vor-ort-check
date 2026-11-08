@@ -490,12 +490,12 @@ function ausweisart(e){
     }
   }
   /* Mehrfamilienhaus mit freier Wahl: Eigene Zähler je Wohnung entscheiden über Verbrauch oder Bedarf (Regel des Nutzers, Prüfung am GEG offen). */
-  if(art==='wahl'&&aw.typ==='Mehrfamilienhaus'){
-    var z=aw.zaehler||'';
-    if(z==='ja'){art='verbrauch';o.head='Verbrauchsausweis: jede Wohnung hat einen eigenen Zähler';L.push('Mehrfamilienhaus, jede Wohnung hat einen eigenen Zähler für Gas oder Strom. Damit entscheidet sich der Verbrauchsausweis.')}
-    else if(z==='nein'){art='bedarf';o.head='Bedarfsausweis: kein Zähler je Wohnung';L.push('Mehrfamilienhaus ohne eigenen Zähler je Wohnung. Damit entscheidet sich der Bedarfsausweis.')}
-    else if(z==='teils'){L.push('Mehrfamilienhaus, nur ein Teil der Wohnungen hat einen eigenen Zähler. Die Ausweisart bitte für das Gebäude prüfen.')}
-    else L.push('Offen: Hat jede Wohnung einen eigenen Zähler für Gas oder Strom? Davon hängt bei einem Mehrfamilienhaus ab, ob Verbrauchs- oder Bedarfsausweis.');
+  if(art==='wahl'&&['Mehrfamilienhaus','Zweifamilienhaus','Doppelhaus'].indexOf(aw.typ)>=0){
+    var z=aw.zaehler||'',tn=aw.typ;
+    if(z==='ja'){art='verbrauch';o.head='Verbrauchsausweis: jede Wohnung hat einen eigenen Zähler';L.push(tn+', jede Wohnung hat einen eigenen Zähler für Gas oder Strom. Damit entscheidet sich der Verbrauchsausweis.')}
+    else if(z==='nein'){art='bedarf';o.head='Bedarfsausweis: kein Zähler je Wohnung';L.push(tn+' ohne eigenen Zähler je Wohnung. Damit entscheidet sich der Bedarfsausweis.')}
+    else if(z==='teils'){L.push(tn+', nur ein Teil der Wohnungen hat einen eigenen Zähler. Die Ausweisart bitte für das Gebäude prüfen.')}
+    else L.push('Offen: Hat jede Wohnung einen eigenen Zähler für Gas oder Strom? Davon hängt bei '+tn+' ab, ob Verbrauchs- oder Bedarfsausweis.');
   }
   L.push('Ein Energieausweis ist nur bei Verkauf, Vermietung, Verpachtung, Leasing oder Erbbaurecht vorgeschrieben, wenn kein gültiger vorliegt (§ 80 Abs. 3 Satz 1 GEG).');
   o.art=art;

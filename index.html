@@ -642,6 +642,8 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
       <label for="aw_nw">Niveau der Wärmeschutzverordnung 1977 nachgewiesen<select id="aw_nw"><option value="nein">nein / nicht angegeben</option><option value="ja">ja, Nachweis liegt vor</option></select></label>
       <label for="aw_leer">Leerstand in den letzten drei Jahren<select id="aw_leer"><option value="nein">nein</option><option value="teil">teilweise oder zeitweise</option><option value="lang">überwiegend leer, mehrere Jahre</option></select></label>
       <label for="aw_vd">Verbrauchsdaten für mindestens 36 Monate vorhanden<select id="aw_vd"><option value="">noch unbekannt</option><option value="ja">ja</option><option value="nein">nein</option></select></label>
+      <label for="aw_typ">Gebäudetyp<select id="aw_typ"><option value="">wählen</option><option>Einfamilienhaus</option><option>Zweifamilienhaus</option><option>Mehrfamilienhaus</option><option>sonstiges Wohngebäude</option></select></label>
+      <label for="aw_zaehler" id="aw_zaehler_lbl" style="display:none">Hat jede Wohnung einen eigenen Zähler für Gas oder Strom?<select id="aw_zaehler"><option value="">noch unbekannt</option><option value="ja">ja, jede Wohnung hat einen eigenen Zähler</option><option value="teils">nur ein Teil der Wohnungen</option><option value="nein">nein, zentral für das Gebäude</option></select></label>
     </div>
     <p class="hint">Das Niveau von 1977 gilt für das ganze Gebäude, nicht für einzelne Bauteile. Bei Bauantrag vor 1977 wird aus der Sanierungsliste abgeleitet: Gesamtsanierung der Hülle oder alle vier Bauteile (Außenwand, Dach, Kellerdecke, Fenster) ab 1978, nach damals gültiger Vorschrift, mit Beleg. Waren Bauteile schon ursprünglich ausreichend, hier „Nachweis liegt vor“ wählen.</p>
     <section class="kd-sec"><h4>Bisherige Sanierungen</h4>
@@ -5148,11 +5150,13 @@ function vbPhotoMove(on){
 // Ausweisart: eigener Bereich, Daten liegen im Formular (aw_*) und damit am Kunden
 function awSan(){var a=[];try{a=JSON.parse($('aw_san').value||'[]')}catch(e){}return Array.isArray(a)?a:[]}
 function awSetSan(a){var h=$('aw_san');h.value=JSON.stringify(a);h.dispatchEvent(new Event('input',{bubbles:true}))}
-function awState(){return {g:{we:$('aw_we').value,bj:$('aw_bj').value,antrag:$('aw_ba').value},aw:{neu:$('aw_neu').value,nw:$('aw_nw').value,vd:$('aw_vd').value,leer:$('aw_leer').value},san:awSan()}}
+function awState(){return {g:{we:$('aw_we').value,bj:$('aw_bj').value,antrag:$('aw_ba').value},aw:{neu:$('aw_neu').value,nw:$('aw_nw').value,vd:$('aw_vd').value,leer:$('aw_leer').value,typ:$('aw_typ').value,zaehler:$('aw_zaehler').value},san:awSan()}}
 function awRender(){
   if(!window.ERFCALC||!$('aw_res')) return;
+  var mfh=$('aw_typ').value==='Mehrfamilienhaus';
+  $('aw_zaehler_lbl').style.display=mfh?'':'none';
   var r=ERFCALC.ausweisart(awState());
-  $('aw_res').className='awres '+(r.art==='wahl'?'wahl':(r.art==='offen'?'offen':'bed'));
+  $('aw_res').className='awres '+((r.art==='wahl'||r.art==='verbrauch')?'wahl':(r.art==='offen'?'offen':'bed'));
   $('aw_res').innerHTML='<b>'+esc(r.head||'Ausweisart')+'</b>'+r.lines.map(function(t){return '<p>'+esc(t)+'</p>'}).join('')+'<p class="hint">Orientierung nach § 80 GEG für Wohngebäude, keine Rechtsberatung. Nichtwohngebäude sind hier nicht abgedeckt. Maßgeblich ist der aktuelle Gesetzestext.</p>';
 }
 function awOpts(list,cur){return '<option value="">wählen</option>'+list.map(function(x){return '<option'+(x===cur?' selected':'')+'>'+esc(x)+'</option>'}).join('')}

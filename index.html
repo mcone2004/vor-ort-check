@@ -374,6 +374,18 @@ body[data-mode="ausweis"] #kd .kd-rg,body[data-mode="ausweis"] #kd .geo-line,bod
 .vbnav{display:flex;justify-content:space-between;gap:.6rem;margin-top:.8rem}.vbnav button[hidden]{display:none}
 .vbtab{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.5rem}.vbtab th,.vbtab td{text-align:left;padding:.3rem .4rem;border-bottom:1px solid var(--line)}.vbtab th:not(:first-child),.vbtab td:not(:first-child){text-align:right}
 .awres{border:1px solid var(--line);border-radius:8px;padding:.7rem 1rem;font-size:.9rem}.awres b{font-size:1.05rem}.awres p{margin:.35rem 0 0}.awres.bed{border-color:#C98A12;background:#FFF6E3;color:#5A3D00}.awres.wahl{border-color:#2E7D32;background:#EAF4EA;color:#1F5A23}.awres.offen{background:var(--surface)}
+.awmap{margin:.2rem 0 .7rem;font-size:.9rem}
+.mm-root{display:inline-block;font-weight:700;padding:.3rem .9rem;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.mm-br{margin:.45rem 0 .45rem .9rem;border-left:2px solid var(--line);padding-left:.9rem}
+.mm-b{position:relative;display:flex;gap:.6rem;align-items:baseline;padding:.2rem 0}
+.mm-b::before{content:"";position:absolute;left:-.9rem;top:50%;width:.75rem;border-top:2px solid var(--line)}
+.mm-k{min-width:7rem;opacity:.75}
+.mm-b.done .mm-v{font-weight:600}
+.mm-b.open .mm-v{font-style:italic;opacity:.55}
+.mm-res{display:inline-block;margin-left:.9rem;padding:.3rem .9rem;border-radius:8px;border:1px solid var(--line);font-weight:600}
+.mm-res.bed{border-color:#C98A12;background:#FFF6E3;color:#5A3D00}
+.mm-res.wahl{border-color:#2E7D32;background:#EAF4EA;color:#1F5A23}
+.mm-res.offen{background:var(--surface)}
 .awsan{border:1px dashed var(--line);border-radius:6px;padding:.6rem;margin-bottom:.6rem;display:grid;gap:.5rem}.awsan .awgrid{grid-template-columns:repeat(auto-fit,minmax(11rem,1fr))}
 @media (prefers-reduced-motion:no-preference){.gauge b{transition:left .25s ease}}
 
@@ -633,6 +645,7 @@ body[data-mode="ausweis"] #kd_cmp,body[data-mode="erfassung"] #kd_cmp,body[data-
   </fieldset>
   <fieldset id="awbox"><legend>Ausweisart</legend>
     <p class="hint">Verbrauchs- oder Bedarfsausweis? Die Prüfung gilt für Wohngebäude im Bestand und ändert sich beim Tippen. Die Angaben werden beim Kunden gespeichert.</p>
+    <div id="aw_map" class="awmap" aria-label="Ablauf der Ausweisart"></div>
     <div id="aw_res" class="awres offen" role="status"></div>
     <div class="awgrid">
       <label for="aw_typ">Gebäudetyp<select id="aw_typ"><option value="">wählen</option><option>Einfamilienhaus</option><option>Zweifamilienhaus</option><option>Doppelhaus</option><option>Mehrfamilienhaus</option><option>sonstiges Wohngebäude</option></select></label>
@@ -5152,6 +5165,20 @@ function vbPhotoMove(on){
 function awSan(){var a=[];try{a=JSON.parse($('aw_san').value||'[]')}catch(e){}return Array.isArray(a)?a:[]}
 function awSetSan(a){var h=$('aw_san');h.value=JSON.stringify(a);h.dispatchEvent(new Event('input',{bubbles:true}))}
 function awState(){return {g:{we:$('aw_we').value,bj:$('aw_bj').value,antrag:$('aw_ba').value},aw:{neu:$('aw_neu').value,nw:$('aw_nw').value,vd:$('aw_vd').value,leer:$('aw_leer').value,typ:$('aw_typ').value,teil:$('aw_teil').value,zaehler:$('aw_zaehler').value},san:awSan()}}
+function awMap(r){
+  var box=$('aw_map');if(!box) return;
+  var typ=$('aw_typ').value,teil=$('aw_teil').value,z=$('aw_zaehler').value,we=$('aw_we').value;
+  var mfh=['Mehrfamilienhaus','Zweifamilienhaus','Doppelhaus'].indexOf(typ)>=0,efh=typ==='Einfamilienhaus';
+  var zl={getrennt:'getrennte Zähler je Wohnung',ein:'ein Zähler für das Gebäude'};
+  function b(k,v){var ok=!!v;return '<div class="mm-b '+(ok?'done':'open')+'"><span class="mm-k">'+esc(k)+'</span><span class="mm-v">'+(ok?esc(v):'offen')+'</span></div>'}
+  var h='<div class="mm-root">Ausweisart</div><div class="mm-br">'+b('Gebäudetyp',typ);
+  if(mfh) h+=b('Gebäudeteil',teil)+b('Zähler',zl[z]||'');
+  if(!efh) h+=b('Wohnungen',we);
+  h+='</div>';
+  var cls=(r.art==='wahl'||r.art==='verbrauch')?'wahl':(r.art==='offen'?'offen':'bed');
+  h+='<div class="mm-res '+cls+'">'+esc(r.head||'Ausweisart')+'</div>';
+  box.innerHTML=h;
+}
 function awRender(){
   if(!window.ERFCALC||!$('aw_res')) return;
   var mfh=['Mehrfamilienhaus','Zweifamilienhaus','Doppelhaus'].indexOf($('aw_typ').value)>=0;
@@ -5160,6 +5187,7 @@ function awRender(){
   $('aw_zaehler_lbl').style.display=(mfh&&$('aw_teil').value)?'':'none';
   $('aw_we_lbl').style.display=efh?'none':'';
   var r=ERFCALC.ausweisart(awState());
+  awMap(r);
   $('aw_res').className='awres '+((r.art==='wahl'||r.art==='verbrauch')?'wahl':(r.art==='offen'?'offen':'bed'));
   $('aw_res').innerHTML='<b>'+esc(r.head||'Ausweisart')+'</b>'+r.lines.map(function(t){return '<p>'+esc(t)+'</p>'}).join('')+'<p class="hint">Orientierung nach § 80 GEG für Wohngebäude, keine Rechtsberatung. Nichtwohngebäude sind hier nicht abgedeckt. Maßgeblich ist der aktuelle Gesetzestext.</p>';
 }

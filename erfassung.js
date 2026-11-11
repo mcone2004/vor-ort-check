@@ -67,12 +67,12 @@ function btn(a,label,o){
 /* ---------- Fotos ---------- */
 function photoCount(){var n=0;for(var k in E.photos) n+=(E.photos[k]||[]).length;return n}
 function photoMB(){var b=0;for(var k in E.photos)(E.photos[k]||[]).forEach(function(p){b+=String(p.d||'').length*0.75});return b/1048576}
-function dropPhotos(key){if(E.photos[key]) delete E.photos[key]}
+function dropPhotos(key){if(E.photos[key]){if(window.FOTO) E.photos[key].forEach(function(p){FOTO.del(p.d)});delete E.photos[key]}}
 function photoNum(key){return (E.photos[key]||[]).length}
 function photoBox(key,label){
   var arr=E.photos[key]||[];
   return '<div class="erf-ph"><div class="erf-phl">'+esc(label)+'</div><div class="erf-phg">'+arr.map(function(p,i){
-    return '<figure><img src="'+p.d+'" alt="'+esc(label)+' '+(i+1)+'"><button type="button" class="ghost" data-a="ph-del" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto entfernen">Entfernen</button></figure>';
+    return '<figure><button type="button" class="erf-pht" data-a="ph-open" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto '+(i+1)+' öffnen"><img src="'+p.d+'" alt="'+esc(label)+' '+(i+1)+'"></button><button type="button" class="ghost" data-a="ph-del" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto '+(i+1)+' löschen">Löschen</button></figure>';
   }).join('')+'</div><label class="erf-btn ghost">Foto hinzufügen<input type="file" accept="image/*" data-ph="'+esc(key)+'" hidden></label></div>';
 }
 function shrink(file){
@@ -217,6 +217,8 @@ var CSS='\
 .erf-phg figure{margin:0;display:grid;gap:.25rem;width:7.5rem}\
 .erf-phg img{width:100%;height:5.6rem;object-fit:cover;border-radius:4px;border:1px solid var(--line)}\
 .erf-phg button{padding:.2rem .4rem;font-size:.75rem;min-height:32px}\
+.erf-phg .erf-pht{display:block;width:100%;min-height:0;padding:0;border:0;background:none;border-radius:4px;cursor:zoom-in}\
+.erf-phg .erf-pht img{display:block}\
 .erf-btn{display:inline-flex;align-items:center;justify-self:start;border:1px solid var(--line);border-radius:4px;padding:.55rem 1rem;font-weight:700;color:var(--ink);cursor:pointer;min-height:44px;font-size:.9rem}\
 .erf-btn:hover{background:var(--tint)}\
 .erf-list{margin:0;padding:0;list-style:none;display:grid;gap:.35rem}\
@@ -1023,7 +1025,8 @@ function actions(a,t){
     case 'surf-sel':selSurf=(selSurf===x)?null:x;render();return;
     case 'surf-del':{if(!window.confirm('Fläche löschen?')) return;dropPhotos('s:'+x);E.surf=E.surf.filter(function(s3){return s3.id!==x});selSurf=null;touch();render();return}
     case 'surf-sugg':{var s4=findSurf(x);if(!s4) return;var av=C.suggestArea(E,s4.art,s4.neig);if(av>0){s4.a=String(Math.round(av*100)/100).replace('.',',');touch();render()}return}
-    case 'ph-del':{var arr=E.photos[x];if(arr){arr.splice(+y,1);if(!arr.length) delete E.photos[x]}touch();render();return}
+    case 'ph-open':{var pa=E.photos[x]||[];if(window.FOTO&&pa[+y]){var kn=document.getElementById('kd_name');FOTO.open(pa.map(function(p){return {d:p.d,c:''}}),+y,((kn&&kn.value.trim())||'Foto')+' Erfassung')}return}
+    case 'ph-del':{var arr=E.photos[x];if(!arr||!arr[+y]) return;if(!window.confirm('Foto wirklich löschen?')) return;var gone=arr.splice(+y,1)[0];if(gone&&window.FOTO) FOTO.del(gone.d);if(!arr.length) delete E.photos[x];touch();render();return}
     case 'jump':{locate(y);go(x,true);if(y) setTimeout(function(){scrollToId('erf-w-'+y);scrollToId('erf-k-'+y)},40);return}
     case 'sheet-print':window.print();return;
     case 'sheet-pdf':sheetPdf(t);return;
@@ -1119,7 +1122,7 @@ function addPhotos(inp){
   var key=inp.getAttribute('data-ph'),files=Array.prototype.slice.call(inp.files||[]);
   var room=Math.max(0,PH_MAX-photoCount()),use=files.slice(0,room),skipped=files.length-use.length;
   if(skipped>0) window.alert('Höchstens '+PH_MAX+' Fotos je Kunde in der Gebäudeerfassung. '+skipped+' Foto(s) nicht übernommen.');
-  use.reduce(function(pr,f){return pr.then(function(){return shrink(f).then(function(d){if(!E.photos[key]) E.photos[key]=[];E.photos[key].push({d:d})},function(){})})},Promise.resolve()).then(function(){
+  use.reduce(function(pr,f){return pr.then(function(){return shrink(f).then(function(d){if(!E.photos[key]) E.photos[key]=[];E.photos[key].push({d:d});return window.FOTO?FOTO.put(d,f):null},function(){})})},Promise.resolve()).then(function(){
     inp.value='';touch();render();
   });
 }

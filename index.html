@@ -361,7 +361,7 @@ body[data-mode="ausweis"] .wrap{grid-template-columns:minmax(0,1fr)!important}
 body[data-mode="kunden"] form>*:not(#kd),body[data-mode="kunden"] #res,body[data-mode="kunden"] #bar,body[data-mode="kunden"] #kd_snap,body[data-mode="kunden"] #kd_erf{display:none!important}
 body[data-mode="kunden"] .wrap{grid-template-columns:minmax(0,1fr)!important}
 body[data-mode="kunden"] #kd .geo-line,body[data-mode="kunden"] #kd .ph-box{display:none}
-body:not([data-mode="kunden"]):not([data-all]) #kd_ov,body:not([data-mode="kunden"]):not([data-all]) #kd_ar,body:not([data-mode="kunden"]):not([data-all]) #kd_tr,body:not([data-mode="kunden"]):not([data-all]) #kd_retnote,body:not([data-mode="kunden"]):not([data-all]) #kd_del,body:not([data-mode="kunden"]):not([data-all]) #kd_delbox{display:none!important}
+body:not([data-mode="kunden"]):not([data-all]) #kd_ov,body:not([data-mode="kunden"]):not([data-all]) #kd_tabs,body:not([data-mode="kunden"]):not([data-all]) #kd_pwdd,body:not([data-mode="kunden"]):not([data-all]) #kd_ar,body:not([data-mode="kunden"]):not([data-all]) #kd_tr,body:not([data-mode="kunden"]):not([data-all]) #kd_retnote,body:not([data-mode="kunden"]):not([data-all]) #kd_del,body:not([data-mode="kunden"]):not([data-all]) #kd_delbox{display:none!important}
 body[data-mode="ausweis"] #kd .kd-rg,body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,body[data-mode="ausweis"] #kd label[for="kd_note"]{display:none}
 .awgrid label{align-content:end}
 .awgrid{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
@@ -451,8 +451,8 @@ body[data-mode="kunden"]{--page:var(--bg-kd);--acc:var(--c-kd)}
 body[data-mode="kunden"] .kd-tb{display:flex}
 #kd_back{display:none}
 body[data-mode="kunden"] #kd.kd-edit #kd_back{display:inline-block}body[data-mode="kunden"] #kd:not(.kd-edit) #kd_add{display:inline-block}body[data-mode="kunden"] #kd.kd-edit #kd_add{display:none}
-body[data-mode="kunden"] #kd:not(.kd-edit)>*:not(legend):not(.kd-tb):not(#kd_ov):not(#kd_ar):not(#kd_tr):not(#kd_retnote):not(#kd_set){display:none!important}
-body[data-mode="kunden"] #kd.kd-edit #kd_ov,body[data-mode="kunden"] #kd.kd-edit #kd_ar,body[data-mode="kunden"] #kd.kd-edit #kd_tr,body[data-mode="kunden"] #kd.kd-edit #kd_retnote,body[data-mode="kunden"] #kd.kd-edit #kd_set{display:none!important}
+body[data-mode="kunden"] #kd:not(.kd-edit)>*:not(legend):not(.kd-tb):not(#kd_ov):not(#kd_ar):not(#kd_tr):not(#kd_retnote):not(#kd_tabs):not(#kd_pwdd):not(#kd_set){display:none!important}
+body[data-mode="kunden"] #kd.kd-edit #kd_ov,body[data-mode="kunden"] #kd.kd-edit #kd_ar,body[data-mode="kunden"] #kd.kd-edit #kd_tr,body[data-mode="kunden"] #kd.kd-edit #kd_retnote,body[data-mode="kunden"] #kd.kd-edit #kd_set,body[data-mode="kunden"] #kd.kd-edit #kd_tabs,body[data-mode="kunden"] #kd.kd-edit #kd_pwdd{display:none!important}
 body[data-mode="kunden"] #kd_ov>summary{display:none}
 body[data-mode="kunden"] #kd_listl,body[data-mode="kunden"] #kd_new{display:none!important}
 .kd-pick{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%;text-align:left;font-weight:400;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;min-height:48px;justify-self:stretch}
@@ -705,6 +705,82 @@ body{background:var(--bg)}
 /* Breite: Formulare nicht über die ganze Breite ziehen */
 @media (min-width:1000px){body[data-mode="kunden"] .wrap>form,body[data-mode="erfassung"] .wrap>form{max-width:62rem}}
 @media (max-width:900px){.hdr-act{position:static;justify-content:flex-start;max-width:none;margin:0 0 .9rem}}
+
+/* ===== Farbsystem Energieberatung Lange: Dunkel #20252A, Grün #7CB028, Flächen #F8F9F6 / #F3F8EA ===== */
+:root{--bg:#FFFFFF;--surface:#FFFFFF;--soft:#F8F9F6;--ink:#20252A;--text:#33373D;--muted:#555555;--line:rgba(32,37,42,.14);--field:#F3F8EA;--tint:#F3F8EA;--deep:#20252A;--dark:#20252A;--hero:#20252A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--soft:#1B1F23;--hero:#20252A}}
+:root[data-theme="dark"]{--soft:#1B1F23;--hero:#20252A}
+input:hover,select:hover,textarea:hover,.kd-pick:hover{background:#EAF3D6}
+input::placeholder,textarea::placeholder{color:#7A8087}
+.calc-key{background:var(--tint)}
+body .ctabs,body .vbtabs{background:var(--bg)}
+.cmp-t thead th,.vbtab thead th,.erf-tb thead th{background:var(--tint)}
+
+/* Kopf: dunkles Band, grüner Kreis angeschnitten */
+.top{position:relative;overflow:hidden;background:var(--hero);color:#fff;border-bottom:0;border-radius:0 0 28px 28px;padding-block:calc(1.4rem + env(safe-area-inset-top,0px)) 1.5rem}
+.top::after{content:"";position:absolute;right:-70px;bottom:-110px;width:230px;height:230px;border-radius:50%;background:#7CB028;pointer-events:none}
+.top>div{position:relative;z-index:1}
+.top h1{color:#fff}
+.top p,.top .offstate{color:#C9CED3}
+.offstate a,.offstate button,.top a{color:#fff;text-decoration-color:#7CB028}
+.hdr-act button{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.35)}
+.hdr-act button:hover{background:rgba(255,255,255,.2)}
+.hdr-act .hdr-sync{background:#7CB028;border-color:#7CB028;color:#20252A}
+.hdr-act .hdr-sync:hover{background:#86BC2E}
+.hdr-kd{color:#C9CED3}
+@media (max-width:700px){.top::after{width:150px;height:150px;right:-50px;bottom:-80px}}
+
+/* Start: Kachelwand, 3 / 2 / 1 nebeneinander */
+body[data-mode="home"] .top{background:transparent;border-radius:0;overflow:visible;padding-block:calc(1rem + env(safe-area-inset-top,0px)) .4rem}
+body[data-mode="home"] .top::after{display:none}
+body[data-mode="home"] .top>div{position:relative;overflow:hidden;max-width:1120px;background:var(--hero);border-radius:28px;padding:clamp(28px,5vw,64px)}
+body[data-mode="home"] .top>div::after{content:"";position:absolute;right:-110px;bottom:-110px;width:300px;height:300px;border-radius:50%;background:#7CB028;pointer-events:none}
+body[data-mode="home"] .top>div>*{position:relative;z-index:1}
+body[data-mode="home"] .top h1{font-size:clamp(1.9rem,5vw,3.4rem);line-height:1.06}
+@media (max-width:1000px){body[data-mode="home"] .top>div::after{width:200px;height:200px;right:-90px;bottom:-100px}}
+@media (max-width:700px){body[data-mode="home"] .top>div::after{display:none}}
+@media (max-width:639px){.home .hbtn{min-height:0}}
+.home{display:grid;grid-template-columns:1fr;gap:1.1rem;max-width:1120px;margin:0 auto;padding-block:1.4rem 3rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:640px){.home{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1000px){.home{grid-template-columns:repeat(3,minmax(0,1fr));margin-left:auto}}
+.home .hbtn,.hbtn{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:.55rem;width:100%;min-height:15rem;padding:2.1rem 1.7rem 1.6rem;background:var(--soft);color:var(--ink);border:1px solid transparent;border-radius:24px;text-align:left;transition:background .15s,border-color .15s}
+.home .hbtn::before{content:"";position:absolute;left:1.7rem;top:0;width:44px;height:4px;background:#7CB028;border-radius:0 0 3px 3px;transition:width .2s}
+.home .hbtn:hover{background:var(--tint);border-color:rgba(124,176,40,.55)}
+.home .hbtn:hover::before{width:72px}
+.home .hbtn strong{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;line-height:1.2;color:var(--ink);text-decoration:none!important}
+.home .hbtn span{font-size:.95rem;line-height:1.5;color:var(--muted);max-width:none}
+.home .hbtn::after{content:"Öffnen";display:block;order:3;margin-top:auto;width:auto;height:auto;border:0;transform:none;opacity:1;font-weight:800;font-size:.95rem;color:var(--ink);text-decoration:underline;text-decoration-color:#7CB028;text-decoration-thickness:2px;text-underline-offset:4px;margin-right:0;padding-top:.8rem}
+.home .hbtn:hover::after{transform:none;opacity:1}
+.home #go_kd{grid-column:1/-1;min-height:0;background:var(--hero);color:#fff;flex-direction:column}
+.home #go_kd:hover{background:#2A3036;border-color:transparent}
+.home #go_kd strong,.home #go_kd::after{color:#fff}
+.home #go_kd span{color:#C9CED3}
+.home-note{grid-column:1/-1;padding-top:.4rem}
+
+/* Kundenverwaltung: große Reiter über die ganze Breite */
+.kd-tabs{display:grid;grid-template-columns:1fr;gap:.9rem;margin:.4rem 0 1.2rem}
+@media (min-width:760px){.kd-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.kd-tabs button{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:.3rem 1rem;width:100%;text-align:left;padding:1.2rem 1.4rem 1.1rem;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:20px;position:relative}
+.kd-tabs button strong{font-size:1.2rem;font-weight:800;letter-spacing:-.02em}
+.kd-tabs button .n{font-size:1.9rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.kd-tabs button em{grid-column:1/-1;font-style:normal;font-size:.85rem;font-weight:500;color:var(--muted)}
+.kd-tabs button em.due{color:var(--ink);font-weight:700}
+.kd-tabs button:hover{background:var(--tint);border-color:rgba(124,176,40,.55)}
+.kd-tabs button[aria-current="true"]{background:var(--hero);color:#fff;border-color:var(--hero)}
+.kd-tabs button[aria-current="true"] em{color:#C9CED3}
+.kd-tabs button[aria-current="true"] .n{color:#7CB028}
+.kd-tabs button[aria-current="true"]::after{content:"";position:absolute;left:1.4rem;bottom:0;width:44px;height:4px;background:#7CB028;border-radius:3px 3px 0 0}
+body[data-mode="kunden"]:not([data-kdtab="ar"]) #kd_ar,body[data-mode="kunden"]:not([data-kdtab="ar"]) #kd_retnote{display:none!important}
+body[data-mode="kunden"]:not([data-kdtab="tr"]) #kd_tr{display:none!important}
+body[data-mode="kunden"][data-kdtab="ar"] #kd_ov,body[data-mode="kunden"][data-kdtab="tr"] #kd_ov{display:none!important}
+body[data-mode="kunden"] #kd_ar>summary,body[data-mode="kunden"] #kd_tr>summary{display:none}
+body[data-mode="kunden"] .kd-ovd{border-top:0;padding-top:0}
+@media (min-width:1000px){body[data-mode="kunden"] .wrap>form{max-width:1120px}}
+body[data-mode="kunden"] .ov-list{grid-template-columns:1fr;gap:1rem;align-items:start}
+@media (min-width:700px){body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1000px){body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+body[data-mode="kunden"] .kg{background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:1.1rem}
+body[data-mode="kunden"] .ov-list>.ov-row.kc{background:var(--soft);border-radius:20px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>
@@ -783,6 +859,11 @@ body{background:var(--bg)}
     </div>
     <p class="hint" id="kd_erfs" role="status"></p>
     <div class="kd-status" role="status"><span id="kd_auto" data-kind=""></span><p class="syncstate" id="kd_state" hidden data-kind="off"></p><span id="kd_pend"></span><span id="kd_msg"></span></div>
+    <nav id="kd_tabs" class="kd-tabs" aria-label="Kundenbereiche">
+      <button type="button" data-t="ov" aria-current="true"><strong>Kunden</strong><span class="n" id="kt_ov"></span><em>Aktive Kunden suchen und öffnen</em></button>
+      <button type="button" data-t="ar"><strong>Archiv</strong><span class="n" id="kt_ar"></span><em id="kt_ar_s">Fertige Kunden zum Nachschauen</em></button>
+      <button type="button" data-t="tr"><strong>Papierkorb</strong><span class="n" id="kt_tr"></span><em>Gelöscht, bis du endgültig löschst</em></button>
+    </nav>
     <details id="kd_ov" class="kd-set kd-ovd"><summary id="kd_ovsum">Kundenübersicht</summary>
       <label for="kd_ovq">Suchen<input id="kd_ovq" type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Name oder Adresse"></label>
       <div id="kd_ovlist" class="ov-list"></div>
@@ -792,14 +873,7 @@ body{background:var(--bg)}
         <div class="btns"><button type="button" id="kd_ovgo" class="warn">Endgültig löschen</button><button type="button" id="kd_ovno" class="ghost">Abbrechen</button></div>
       </div>
       <span class="hint" id="kd_ovmsg" role="status"></span>
-      <section class="kd-sec" id="kd_pwd"><h4>Löschschutz</h4>
-      <span class="hint" id="kd_pwstate"></span>
-      <label for="kd_pw0" id="kd_pw0l" hidden>Bisheriges Löschpasswort<input id="kd_pw0" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-      <label for="kd_pw1">Neues Löschpasswort (mindestens 4 Zeichen)<input id="kd_pw1" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-      <div class="btns"><button type="button" id="kd_pwset" class="ghost">Löschpasswort speichern</button></div>
-      <span class="hint" id="kd_pwmsg" role="status"></span>
-      <span class="hint">Ein Passwort für alle Kunden. Es wird mit dem Abgleich auf alle Geräte übertragen und gilt dann überall. Ohne Löschpasswort kann nichts endgültig aus dem Papierkorb gelöscht werden. Es schützt vor versehentlichem Löschen, nicht vor jemandem mit Zugriff auf die WordPress-Seite. Ändern geht nur mit dem bisherigen Passwort.</span>
-    </section>
+
     </details>
     <p class="hint ret-note" id="kd_retnote" hidden></p>
     <details id="kd_ar" class="kd-set kd-ovd"><summary id="kd_arsum">Archiv</summary>
@@ -817,6 +891,16 @@ body{background:var(--bg)}
         <div class="btns"><button type="button" id="kd_trgo" class="warn">Endgültig löschen</button><button type="button" id="kd_trno" class="ghost">Abbrechen</button></div>
       </div>
       <span class="hint" id="kd_trmsg" role="status"></span>
+    </details>
+    <details id="kd_pwdd" class="kd-set"><summary>Löschschutz</summary>
+      <section class="kd-sec" id="kd_pwd">
+      <span class="hint" id="kd_pwstate"></span>
+      <label for="kd_pw0" id="kd_pw0l" hidden>Bisheriges Löschpasswort<input id="kd_pw0" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <label for="kd_pw1">Neues Löschpasswort (mindestens 4 Zeichen)<input id="kd_pw1" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+      <div class="btns"><button type="button" id="kd_pwset" class="ghost">Löschpasswort speichern</button></div>
+      <span class="hint" id="kd_pwmsg" role="status"></span>
+      <span class="hint">Ein Passwort für alle Kunden. Es wird mit dem Abgleich auf alle Geräte übertragen und gilt dann überall. Ohne Löschpasswort kann nichts endgültig aus dem Papierkorb gelöscht werden. Es schützt vor versehentlichem Löschen, nicht vor jemandem mit Zugriff auf die WordPress-Seite. Ändern geht nur mit dem bisherigen Passwort.</span>
+    </section>
     </details>
     <details id="kd_set" class="kd-set"><summary>Abgleich und Sicherung</summary>
       <span class="hint">Gespeichert werden alle Eingaben und die Zusammenfassung des Ergebnisses, auf diesem Gerät und nach Einrichtung zusätzlich privat auf deiner WordPress-Seite.</span>
@@ -4880,7 +4964,7 @@ function initKunden(backendP){
   }
   function noPw(){
     var t='Löschen ist gesperrt. Lege zuerst unten unter „Löschschutz" ein Löschpasswort fest.';msg(t);var o=$('kd_ovmsg');if(o) o.textContent=t;
-    var ov=$('kd_ov'),d=$('kd_pwd');if(ov) ov.open=true;if(d){try{d.scrollIntoView({block:'center'})}catch(e){}}
+    var ov=$('kd_pwdd'),d=$('kd_pwd');if(ov) ov.open=true;if(d){try{d.scrollIntoView({block:'center'})}catch(e){}}
   }
   // Löschen mit Passwort: gemeinsam für den geöffneten Kunden und die Übersicht
   function doDelete(id,pw,btn,say){
@@ -5023,6 +5107,28 @@ function initKunden(backendP){
       if(id===trDel){list.appendChild(box);box.hidden=false;$('kd_trname').textContent='Endgültig löschen: '+nm+(d.adr?', '+d.adr:'')+'. Das kann nicht rückgängig gemacht werden.'}
     });
     if(trDel&&!allDocs[trDel]){trDel=null;box.hidden=true;$('kd_trpw').value=''}
+  }
+  function kdTab(t){
+    if(t!=='ar'&&t!=='tr') t='ov';
+    document.body.setAttribute('data-kdtab',t);
+    ['kd_ov','kd_ar','kd_tr'].forEach(function(id){var d=$(id);if(d) d.open=true});
+    var b=document.querySelectorAll('#kd_tabs button');
+    for(var i=0;i<b.length;i++) b[i].setAttribute('aria-current',b[i].getAttribute('data-t')===t?'true':'false');
+  }
+  function kdTabCounts(){
+    var m=[['ov','kd_ovsum','kt_ov'],['ar','kd_arsum','kt_ar'],['tr','kd_trsum','kt_tr']];
+    m.forEach(function(x){var s=$(x[1]),n=$(x[2]);if(!s||!n) return;var r=/\((\d+)\)/.exec(s.textContent);n.textContent=r?r[1]:'0'});
+    var a=$('kd_arsum'),e=$('kt_ar_s');
+    if(a&&e){var d=/(\d+) mit Löschempfehlung/.exec(a.textContent);e.textContent=d?d[1]+(d[1]==='1'?' Akte':' Akten')+' mit Löschempfehlung':'Fertige Kunden zum Nachschauen';e.className=d?'due':''}
+  }
+  function initKdTabs(){
+    var nav=$('kd_tabs');if(!nav) return;
+    nav.addEventListener('click',function(e){var b=e.target.closest?e.target.closest('button[data-t]'):null;if(b) kdTab(b.getAttribute('data-t'))});
+    if(window.MutationObserver){
+      var mo=new MutationObserver(kdTabCounts);
+      ['kd_ovsum','kd_arsum','kd_trsum'].forEach(function(id){var s=$(id);if(s) mo.observe(s,{childList:true,characterData:true,subtree:true})});
+    }
+    kdTabCounts();kdTab(document.body.getAttribute('data-kdtab')||'ov');
   }
   function initArch(){
     var al=$('kd_arlist'),tl=$('kd_trlist');if(!al||!tl) return;
@@ -5178,7 +5284,7 @@ function initKunden(backendP){
     $('kd_snap').addEventListener('click',function(){var d=curId&&docs[curId];if(d&&d.snap&&repApi) repApi.open(Object.assign({},d.snap,{photos:d.photos||[]}))});
     $('kd_delgo').addEventListener('click',delGo);$('kd_delno').addEventListener('click',resetDel);
     $('kd_delpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();delGo()}});
-    $('kd_pwset').addEventListener('click',setPw);dpState();initOv();initArch();
+    $('kd_pwset').addEventListener('click',setPw);dpState();initOv();initArch();initKdTabs();
     var addFlag=false;
     $('kd_new').addEventListener('click',function(){
       var closing=!!curId,add=addFlag;addFlag=false;
@@ -5615,7 +5721,7 @@ function setMode(m,noScroll){
   mfhPhotoMove(m==='mfh');
   vbPhotoMove(m==='verbrauch');if(m==='verbrauch') vbRender();
   if(m==='check'||m==='folgen'||m==='mfh'){buildTabs();if(cTab!=='all'&&!TABS.some(function(t){return t[0]===cTab})) cTab='kunde';setTab(cTab,true);if(m!=='mfh'){try{render()}catch(e){}}}
-  if(m==='kunden'){var ov0=$('kd_ov');if(ov0) ov0.open=true;setKview(false)}
+  if(m==='kunden'){['kd_ov','kd_ar','kd_tr'].forEach(function(id){var d0=$(id);if(d0) d0.open=true});setKview(false)}
   $('hdr_t').textContent=MODES[m][0];$('hdr_p').textContent=MODES[m][1];
   try{history.replaceState(null,'',m==='home'?location.pathname+location.search:'#'+m)}catch(e){}
   if(!noScroll){try{window.scrollTo(0,0)}catch(e){}}

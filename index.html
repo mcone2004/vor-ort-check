@@ -3977,12 +3977,15 @@ function makeSync(be,setState){
   // Eingang vom Cockpit: Das Cockpit legt per Knopf einen Entwurf "Cockpit-Eingang <id>" in WordPress ab (Inhalt Base64-JSON).
   // Die App legt daraus einen Kunden mit fester ID cp-<id> an (auf allen Geräten dieselbe, damit nichts doppelt entsteht)
   // und legt den Entwurf danach in den WordPress-Papierkorb. Fehler hier stören den normalen Abgleich nicht.
+  var inboxNote='';
   function listInbox(c){
+    inboxNote='';
     return req(c,OLD+'?status=draft&per_page=100&search=Cockpit-Eingang&context=edit&_fields=id,content').then(function(r){
       var out=[];
       r.json.forEach(function(p){try{var rec=JSON.parse(b64d((p.content&&p.content.raw)||''));if(rec&&rec.kind==='cockpit-eingang'&&rec.cid) out.push({wp:p.id,rec:rec})}catch(e){}});
+      inboxNote=out.length?', '+out.length+' Eingang vom Cockpit gefunden':(r.json.length?', Eingang: '+r.json.length+' Entwurf gefunden, aber unlesbar':'');
       return out;
-    },function(){return []});
+    },function(e){inboxNote=', Eingang nicht lesbar ('+String((e&&e.message)||'Fehler').slice(0,90)+')';return []});
   }
   function inboxDoc(rec,now){
     var ap={str:String(rec.str||'').trim(),nr:String(rec.nr||'').trim(),plz:String(rec.plz||'').trim(),ort:String(rec.ort||'').trim()};
@@ -4043,7 +4046,7 @@ function makeSync(be,setState){
       // Umzug abgeschlossen: alte Beiträge werden nicht mehr gelesen. Die alten Beiträge selbst löschst du in WordPress von Hand.
       if(cpt&&legacyListed){try{localStorage.setItem(LKEY,'1')}catch(e){}}
       busy=false;lastOk=new Date();
-      setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')+(moved?', '+moved+' in den neuen Speicher übernommen':'')+(fresh?', '+fresh+' neu aus dem Cockpit':'')+(cpt?'':', Plugin fehlt: alter Speicher')});
+      setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')+(moved?', '+moved+' in den neuen Speicher übernommen':'')+(fresh?', '+fresh+' neu aus dem Cockpit':'')+(cpt?'':', Plugin fehlt: alter Speicher')+inboxNote});
     },function(e){
       busy=false;if(e.code==='auth') authBlocked=true;
       setState({kind:e.code==='net'?'offline':'err',text:e.code==='net'?'Offline, '+be.pending()+' Änderung(en) offen':(e.code==='auth'?'Anmeldung abgelehnt, automatischer Abgleich pausiert':e.message)});

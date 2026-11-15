@@ -3913,11 +3913,12 @@ function localBackend(){
   return api;
 }
 
-// Abgleich mit WordPress über die REST-Schnittstelle. Jeder Kunde ist ein privater Beitrag (Slug ocheck-<id>), Inhalt als Base64-JSON,
+// Abgleich mit WordPress über die REST-Schnittstelle. Jeder Kunde ist ein Eintrag im Inhaltstyp ocheck (früher: privater Beitrag), Slug ocheck-<id>, Inhalt als Base64-JSON,
 // damit der WordPress-HTML-Filter nichts verändert. Anmeldung mit Anwendungspasswort, Konfiguration nur auf diesem Gerät.
 function makeSync(be,setState){
-  var KEY='ocheck.sync',busy=false,timer=null,lastOk=null,authBlocked=false;
+  var KEY='ocheck.sync',LKEY='ocheck.sync.legacy',busy=false,timer=null,lastOk=null,authBlocked=false;
   function cfg(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}}
+  function legacyDone(){try{return localStorage.getItem(LKEY)==='1'}catch(e){return false}}
   function saveCfg(c){authBlocked=false;try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}}
   function b64e(str){var by=new TextEncoder().encode(str),s='';for(var i=0;i<by.length;i++) s+=String.fromCharCode(by[i]);return btoa(s)}
   function b64d(b){var s=atob(b.replace(/\s+/g,'')),by=new Uint8Array(s.length);for(var i=0;i<s.length;i++) by[i]=s.charCodeAt(i);return new TextDecoder().decode(by)}
@@ -3954,11 +3955,14 @@ function makeSync(be,setState){
       });
     });
   }
-  function listRemote(c,uid){
+  // Neuer Speicher: eigener Inhaltstyp "ocheck" (Plugin "Vor-Ort-Check Speicher"), taucht nicht unter Beiträge auf.
+  // Alter Speicher: private Beiträge. Wird bis zum Umzug mitgelesen, danach nur noch der neue.
+  var EP='/ocheck',OLD='/posts';
+  function listRemote(c,uid,base){
     var out=[];
     function page(n){
       // Kein author-Parameter: Sicherheits-Plugins sperren ?author=<ID> (Schutz vor Benutzer-Ausspähung). Stattdessen im Ergebnis filtern.
-      return req(c,'/posts?status=private&per_page=100&page='+n+'&context=edit&_fields=id,slug,content,author').then(function(r){
+      return req(c,base+'?status=private&per_page=100&page='+n+'&context=edit&_fields=id,slug,content,author').then(function(r){
         r.json.forEach(function(p){
           if(!p.slug||p.slug.indexOf('ocheck-')!==0) return;
           if(p.author!==undefined&&p.author!==uid) return;
@@ -3976,11 +3980,21 @@ function makeSync(be,setState){
     if(typeof navigator!=='undefined'&&navigator.onLine===false){setState({kind:'offline',text:'Offline'});return Promise.resolve()}
     if(busy) return Promise.resolve();
     busy=true;setState({kind:'busy',text:'Abgleich läuft'});
-    var done=0,pulled=0;
+    var done=0,pulled=0,moved=0,uid=0,cpt=false,legacyListed=false,oldIds={};
     return req(c,'/users/me?context=edit&_fields=id').then(function(me){
-      return listRemote(c,me.json.id);
-    }).then(function(remote){
-      var byId={};remote.forEach(function(x){byId[x.rec.id]=x});
+      uid=me.json.id;
+      // Neuer Speicher vorhanden? Sonst (Plugin fehlt, Route nicht gefunden) alter Speicher wie bisher.
+      return listRemote(c,uid,EP).then(function(n){cpt=true;return n},function(e){if(e&&e.code==='route') return [];throw e});
+    }).then(function(nw){
+      if(cpt&&legacyDone()) return {tgt:nw,all:nw};
+      return listRemote(c,uid,OLD).then(function(o){
+        legacyListed=true;
+        var m={};o.concat(nw).forEach(function(x){var k=x.rec.id;if(!m[k]||new Date(x.rec.updated)>new Date(m[k].rec.updated)) m[k]=x});
+        o.forEach(function(x){oldIds[x.rec.id]=1});
+        return {tgt:cpt?nw:o,all:Object.keys(m).map(function(k){return m[k]})};
+      },function(e){if(cpt) return {tgt:nw,all:nw};throw e});
+    }).then(function(R){
+      var remote=R.all,byId={};R.tgt.forEach(function(x){byId[x.rec.id]=x});
       var jobs=[],local=be.all();
       remote.forEach(function(x){
         var l=local[x.rec.id];
@@ -3993,14 +4007,17 @@ function makeSync(be,setState){
         var body={title:'Vor-Ort-Check '+id,status:'private',content:b64e(JSON.stringify(strip(l)))};
         var upd=l.updated;
         jobs.push(function(){
-          var rq=x?req(c,'/posts/'+x.wp,{method:'POST',body:body}):req(c,'/posts',{method:'POST',body:Object.assign({slug:'ocheck-'+id},body)});
-          return rq.then(function(){done++;return be.markSynced(id,upd)});
+          var base=cpt?EP:OLD;
+          var rq=x?req(c,base+'/'+x.wp,{method:'POST',body:body}):req(c,base,{method:'POST',body:Object.assign({slug:'ocheck-'+id},body)});
+          return rq.then(function(){done++;if(cpt&&!x&&oldIds[id]) moved++;return be.markSynced(id,upd)});
         });
       });
       return jobs.reduce(function(p,f){return p.then(f)},Promise.resolve());
     }).then(function(){
+      // Umzug abgeschlossen: alte Beiträge werden nicht mehr gelesen. Die alten Beiträge selbst löschst du in WordPress von Hand.
+      if(cpt&&legacyListed){try{localStorage.setItem(LKEY,'1')}catch(e){}}
       busy=false;lastOk=new Date();
-      setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')});
+      setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')+(moved?', '+moved+' in den neuen Speicher übernommen':'')+(cpt?'':', Plugin fehlt: alter Speicher')});
     },function(e){
       busy=false;if(e.code==='auth') authBlocked=true;
       setState({kind:e.code==='net'?'offline':'err',text:e.code==='net'?'Offline, '+be.pending()+' Änderung(en) offen':(e.code==='auth'?'Anmeldung abgelehnt, automatischer Abgleich pausiert':e.message)});
@@ -4029,7 +4046,12 @@ function makeSync(be,setState){
     return seq.reduce(function(p,f){return p.then(f)},Promise.resolve()).then(function(){return out.join(' | ')});
   }
   function test(c){
-    return req(c,'/users/me?context=edit&_fields=id,name').then(function(r){return 'Verbindung steht, angemeldet als '+(r.json.name||'Benutzer')+'.'},function(e){
+    return req(c,'/users/me?context=edit&_fields=id,name').then(function(r){
+      var base='Verbindung steht, angemeldet als '+(r.json.name||'Benutzer')+'.';
+      return req(c,EP+'?status=private&per_page=1&context=edit&_fields=id').then(function(){return base+' Speicher: eigener Typ Vor-Ort-Check aktiv.'},function(e2){
+        return base+(e2&&e2.code==='route'?' Speicher: Plugin "Vor-Ort-Check Speicher" fehlt, die Daten liegen noch als private Beiträge.':'');
+      });
+    },function(e){
       if(e&&e.code==='cors') return diag(c).then(function(d){e.message+=' Diagnose: '+d;throw e},function(){throw e});
       throw e;
     });
@@ -5705,7 +5727,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-11-15 09:06',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-11-15 09:10',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

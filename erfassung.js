@@ -231,6 +231,22 @@ var CSS='\
 .erf-sheet img{max-width:8rem;max-height:6rem;border:1px solid #C9CED3;border-radius:3px;margin:.2rem .3rem 0 0}\
 .erf-shape{border:1px solid var(--line);border-radius:6px;padding:.6rem;display:grid;gap:.5rem;margin:.4rem 0}\
 .erf-shp{width:100%;max-width:20rem;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:4px}\
+.erf-top{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line);padding-block:calc(.8rem + env(safe-area-inset-top,0px)) .8rem}\
+.erf-top .erf-t{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}\
+.erf-top .erf-t small{color:var(--muted);font-size:.8rem;margin-top:.25rem}\
+.erf-top button{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:.5rem 1.1rem}\
+.erf-top button:hover{background:var(--field)}\
+.erf-nav{gap:0;padding-block:0;background:var(--bg)}\
+.erf-nav button{background:transparent;border:0;border-bottom:3px solid transparent;border-radius:0;color:var(--muted);padding:.4rem 1rem;font-weight:700;margin-bottom:-1px}\
+.erf-nav button:hover{background:transparent;color:var(--ink)}\
+.erf-nav button[aria-current=true],.erf-nav button[aria-current=true]:hover{background:transparent;color:var(--ink);border-color:transparent;border-bottom-color:var(--green)}\
+.erf-sec{border:0;background:transparent;padding:0 0 1.2rem;gap:.9rem}\
+.erf-sec>h3,.erf-h{font-family:var(--f-body);font-size:1.35rem;font-weight:800;letter-spacing:-.03em;text-transform:none;border-bottom:0;padding-bottom:.1rem}\
+.erf-in{gap:1.6rem}\
+.erf-main{padding-top:1.6rem}\
+.erf-wall,.erf-kat,.erf-layer,.erf-svgbox,.erf-shape,.erf-ow{border-radius:14px}\
+.erf-btn{border-radius:12px;font-weight:700}\
+.erf-missbox{border-radius:12px}\
 @media (pointer:coarse),(any-pointer:coarse){.erf-main input,.erf-main select,.erf-main textarea{min-height:48px}}\
 @media print{\
  html,body{height:auto!important;overflow:visible!important;background:#fff!important}\

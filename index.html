@@ -597,6 +597,114 @@ a{text-decoration-color:var(--green);text-decoration-thickness:2px;text-underlin
 .cmp-t thead th small{color:#C9CED3}
 .mm-res.bed{border-color:var(--ink);background:var(--bg);color:var(--ink)}
 .mm-res.wahl{border-color:var(--green);background:var(--tint);color:var(--ink)}
+
+/* ===== Stil 2027: hell, ruhig, viel Luft. Eine Akzentfarbe (Grün), Schrift trägt die Hierarchie, Flächen statt Rahmen. ===== */
+:root{--bg:#F7F8F4;--surface:#FFFFFF;--ink:#15181B;--text:#2B3035;--muted:#5C626A;--line:#E2E5DC;--field:#EDEFE7;--tint:#EEF5DD;--green:#7CB028;--deep:#4A780B;--dark:#15181B;--r:12px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121518;--surface:#1B1F23;--ink:#F2F4EF;--text:#D3D8DC;--muted:#A0A7AE;--line:#2C3237;--field:#242A2F;--tint:#232C19;--deep:#9BD044;--dark:#F2F4EF}}
+:root[data-theme="dark"]{--bg:#121518;--surface:#1B1F23;--ink:#F2F4EF;--text:#D3D8DC;--muted:#A0A7AE;--line:#2C3237;--field:#242A2F;--tint:#232C19;--deep:#9BD044;--dark:#F2F4EF}
+body{font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{letter-spacing:-.025em}
+a{color:var(--ink);text-decoration-color:var(--green);text-decoration-thickness:2px;text-underline-offset:3px}
+
+/* Kopf: heller Titelbereich statt dunklem Block */
+.top{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line);padding-block:calc(1.3rem + env(safe-area-inset-top,0px)) 1.1rem}
+.top h1{color:var(--ink);font-size:clamp(1.75rem,4.4vw,2.6rem);font-weight:800;letter-spacing:-.04em;line-height:1.05}
+.top p{color:var(--muted);margin-top:.5rem;max-width:44rem;font-size:1rem}
+.top .offstate{display:inline-flex;align-items:center;margin:.9rem 1.3rem 0 0;font-size:.8rem;font-weight:600;color:var(--muted)}
+.offstate+.offstate{margin-top:.9rem}
+.offstate::before{width:.5rem;height:.5rem;margin-right:.45rem}
+.offstate a,.offstate button{color:var(--ink)}
+.hdr-act{gap:.5rem}
+.hdr-act button{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:.55rem 1.1rem;font-weight:700;font-size:.9rem}
+.hdr-act button:hover{background:var(--field)}
+.hdr-act .hdr-sync{background:var(--green);border-color:var(--green);color:#15181B}
+.hdr-act .hdr-sync:hover{background:var(--green);filter:brightness(1.06)}
+.hdr-kd{color:var(--muted)}
+
+/* Start: eine ruhige Liste statt Kachelwand */
+.home{display:block;max-width:56rem;margin:0;padding-block:.8rem 3rem;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:700px){.home{grid-template-columns:none}}
+@media (min-width:1000px){.home{grid-template-columns:none;margin-left:max(0px,calc((100vw - 1180px)/2))}}
+.home .hbtn,.hbtn{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:1.2rem;row-gap:.2rem;align-items:center;width:100%;min-height:0;padding:1.25rem .2rem 1.25rem 0;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;color:var(--ink);text-align:left}
+.home .hbtn:hover,.hbtn:hover{background:transparent;border-color:var(--line);border-left-color:transparent}
+.home .hbtn strong,.hbtn strong{grid-column:1;font-size:1.3rem;font-weight:800;letter-spacing:-.02em}
+.home .hbtn span,.hbtn span{grid-column:1;font-size:.95rem;color:var(--muted);max-width:40rem}
+.home .hbtn::after{content:"";grid-column:2;grid-row:1/span 2;width:.7rem;height:.7rem;border-top:2px solid var(--ink);border-right:2px solid var(--ink);transform:rotate(45deg);margin-right:.5rem;opacity:.35;transition:transform .15s,opacity .15s}
+.home .hbtn:hover::after{opacity:1;transform:translateX(4px) rotate(45deg)}
+.home .hbtn:hover strong{text-decoration:underline;text-decoration-color:var(--green);text-decoration-thickness:3px;text-underline-offset:5px}
+.home-note{padding-top:1.2rem}
+
+/* Schritte: Reiter mit Linie statt Pillen */
+.ctabs,.vbtabs{gap:0;border-bottom:1px solid var(--line);padding:0;background:var(--bg)}
+.ctabs button,.vbtabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;color:var(--muted);min-height:3rem;padding:.4rem 1rem .4rem .8rem;font-weight:700;margin-bottom:-1px}
+.ctabs button .cn,.vbtabs button .cn{width:auto;height:auto;border:0;background:transparent;color:var(--muted);font-size:.85rem;font-weight:700;border-radius:0}
+.ctabs button:hover,.vbtabs button:hover{background:transparent;color:var(--ink)}
+.ctabs button[aria-current="true"],.vbtabs button[aria-current="true"]{background:transparent;color:var(--ink);border-color:transparent;border-bottom-color:var(--green)}
+.ctabs button[aria-current="true"] .cn,.vbtabs button[aria-current="true"] .cn{background:transparent;color:var(--deep);border:0}
+.ctabs button[aria-current="true"]:hover,.vbtabs button[aria-current="true"]:hover{background:transparent;color:var(--ink)}
+.ctabs>button:first-child{margin-left:0}.ctabs>button:last-child{margin-right:0}
+body[data-mode="mfh"] .ctabs{justify-content:flex-start}
+
+/* Formulare: Abschnitte ohne Rahmen, Felder als ruhige Flächen */
+.wrap{gap:1.6rem}
+form{gap:2.6rem}
+fieldset{background:transparent;border:0;border-radius:0;padding:0;gap:1rem}
+legend{float:left;width:100%;padding:0 0 .9rem;font-family:var(--f-body);font-size:1.45rem;font-weight:800;letter-spacing:-.03em;text-transform:none;color:var(--ink)}
+legend+*{clear:both}
+.bt{background:var(--surface);border:1px solid var(--line);border-left:1px solid var(--line);border-radius:16px;padding:1.2rem 1.2rem 1.3rem;gap:.9rem}
+.bt-h{border-bottom:0;padding-bottom:0;margin:0;font-family:var(--f-body);font-size:1.1rem;font-weight:800;letter-spacing:-.02em;text-transform:none}
+.bt .bt-h svg{stroke:var(--deep)}
+label{font-size:.82rem;font-weight:600;color:var(--muted);gap:.4rem}
+input,select,textarea,.kd-pick{background:var(--field);border:1px solid transparent;border-radius:var(--r);padding:.65rem .85rem;color:var(--ink);transition:background .12s,border-color .12s,box-shadow .12s}
+.bt select,.bt input{background:var(--field)}
+input::placeholder,textarea::placeholder{color:#8B9298}
+input:hover,select:hover,textarea:hover,.kd-pick:hover{background:#E7EADF}
+input:focus,select:focus,textarea:focus,.kd-pick:focus-visible{background:var(--surface);border-color:var(--green);outline:0!important;box-shadow:0 0 0 3px rgba(124,176,40,.28)}
+:focus-visible{outline:3px solid var(--green)!important;outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:0!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) input:hover,:root:not([data-theme="light"]) select:hover,:root:not([data-theme="light"]) textarea:hover{background:#2B3238}}
+.kd-cap{font-family:var(--f-body);font-size:.82rem;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);margin-top:.6rem}
+.hint{font-size:.82rem;color:var(--muted)}
+
+/* Rechenlegende: Pflicht- und Rechenfelder dezent markieren */
+.calc-key{border:0;border-left:4px solid var(--green);border-radius:2px;background:var(--field)}
+.calc-key.pend{border-left:4px solid #C98A00;background:rgba(201,138,0,.12)}
+
+/* Knöpfe: grün für die eine Hauptaktion, sonst ruhig */
+button{font-family:inherit;font-weight:700;border-radius:var(--r);border:1px solid transparent;background:var(--ink);color:var(--surface);padding:.75rem 1.3rem;letter-spacing:-.005em}
+button:hover{background:#2B3035}
+button.ghost,.kd-tb button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+@media (hover:hover){button.ghost:hover{background:var(--field)}}
+#kd_save,.kd-actions #kd_save,#kd_add,#kd_sy_run{background:var(--green);color:#15181B}
+#kd_save:hover,#kd_add:hover,#kd_sy_run:hover{background:#86BC2E}
+.kd-actions .kd-del{background:transparent;color:#B3261E;border:0;padding:.5rem .2rem}
+.kd-actions .kd-del:hover{background:transparent}
+.hdr-act button,.ctabs button,.vbtabs button,.kc-main,.kc-ic,.hbtn,.pad-b{font-weight:inherit}
+
+/* Listen: Kundenübersicht ruhig */
+.kd-set{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:.4rem 0}
+summary{font-weight:800;font-size:1.05rem;color:var(--ink)}
+.ov-row.kc,.kg{border:1px solid var(--line);border-left:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.kg{padding:1rem;gap:.7rem;background:transparent;border-color:var(--line)}
+.kg-h strong{font-size:1.15rem;letter-spacing:-.02em}
+.ov-row.kc.kc-cur{box-shadow:0 0 0 2px var(--green)}
+.kc-ic{border-radius:0}.kc-main:hover,.kc-ic:hover{background:var(--field)}
+
+/* Untere Leiste: Hairline statt gestrichelt */
+.mbar{border-top:1px solid var(--line)!important;background:var(--surface)!important;box-shadow:none!important}
+
+/* Tabellen: heller Kopf */
+.cmp-t thead th,.vbtab thead th,.erf-tb thead th{background:var(--field);color:var(--ink);border-bottom:2px solid var(--green)}
+.cmp-t thead th small{color:var(--muted)}
+
+.hdr-act{flex-direction:row;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
+body .ctabs,body .vbtabs{background:var(--bg)}
+.kd-sec h4{font-family:var(--f-body);font-size:1.05rem;font-weight:800;letter-spacing:-.01em;text-transform:none}
+:root{--field:#EAEDE3}
+body{background:var(--bg)}
+/* Breite: Formulare nicht über die ganze Breite ziehen */
+@media (min-width:1000px){body[data-mode="kunden"] .wrap>form,body[data-mode="erfassung"] .wrap>form{max-width:62rem}}
+@media (max-width:900px){.hdr-act{position:static;justify-content:flex-start;max-width:none;margin:0 0 .9rem}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head><body>

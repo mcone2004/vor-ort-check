@@ -4007,12 +4007,40 @@ function makeSync(be,setState){
   var inboxNote='';
   function listInbox(c){
     inboxNote='';
-    return req(c,OLD+'?status=draft&per_page=100&search=Cockpit-Eingang&context=edit&_fields=id,content').then(function(r){
+    return req(c,OLD+'?status=draft&per_page=100&search=Cockpit-Eingang&context=edit&_fields=id,author,content').then(function(r){
       var out=[];
-      r.json.forEach(function(p){try{var rec=JSON.parse(b64d((p.content&&p.content.raw)||''));if(rec&&(rec.kind==='cockpit-eingang'||rec.kind==='cockpit-status')&&rec.cid) out.push({wp:p.id,rec:rec})}catch(e){}});
+      r.json.forEach(function(p){if(p.author){try{localStorage.setItem('ocheck.cuid',String(p.author))}catch(e){}}try{var rec=JSON.parse(b64d((p.content&&p.content.raw)||''));if(rec&&(rec.kind==='cockpit-eingang'||rec.kind==='cockpit-status')&&rec.cid) out.push({wp:p.id,rec:rec})}catch(e){}});
       inboxNote=out.length?', '+out.length+' Eingang vom Cockpit gefunden':(r.json.length?', Eingang: '+r.json.length+' Entwurf gefunden, aber unlesbar':'');
       return out;
     },function(e){inboxNote=', Eingang nicht lesbar ('+String((e&&e.message)||'Fehler').slice(0,90)+')';return []});
+  }
+  // Rückmeldung ans Cockpit: ein einziger WordPress-Entwurf "Vor-Ort-Check Rückmeldung" (Base64-JSON) mit dem Stand je Cockpit-Kunde.
+  // Er gehört dem Benutzer des Cockpit-Zugangs (Autor), damit das Cockpit ihn lesen darf. Fehler hier stören den Abgleich nicht.
+  function cuid(){var v=0;try{v=+localStorage.getItem('ocheck.cuid')||0}catch(e){}return v||3}
+  function rueckSummary(){
+    var all=be.all(),m={};
+    Object.keys(all).forEach(function(k){
+      var r=all[k];if(r.deleted||r.trashed||String(k).indexOf('_cfg')===0) return;
+      var kid=r.kid||k;if(String(kid).indexOf('cp-')!==0) return;
+      var cid=String(kid).slice(3),e=m[cid]||(m[cid]={at:'',n:0,snap:0,ph:0,erf:0,arch:0});
+      e.n++;if((r.updated||'')>e.at) e.at=r.updated;if(r.snap) e.snap=1;e.ph+=(r.photos&&r.photos.length)||0;
+      if(r.erf&&typeof r.erf==='object'&&Object.keys(r.erf).length) e.erf=1;if(r.archived) e.arch=1;
+    });
+    return m;
+  }
+  function rueckJob(c){
+    var m=rueckSummary(),js=JSON.stringify(m),last='';
+    try{last=localStorage.getItem('ocheck.rueck')||''}catch(e){}
+    if(!Object.keys(m).length||js===last) return Promise.resolve();
+    return req(c,OLD+'?status=draft&slug=vorortcheck-rueckmeldung&context=edit&_fields=id,author,content').then(function(r){
+      var ex=r.json[0],map={};
+      if(ex){try{map=JSON.parse(b64d((ex.content&&ex.content.raw)||'')).map||{}}catch(e){}}
+      Object.keys(m).forEach(function(k){map[k]=m[k]});
+      var body={content:b64e(JSON.stringify({kind:'voc-rueckmeldung',map:map}))};
+      var base={title:'Vor-Ort-Check Rückmeldung',slug:'vorortcheck-rueckmeldung',status:'draft'};
+      var q=ex?req(c,OLD+'/'+ex.id,{method:'POST',body:body}):req(c,OLD,{method:'POST',body:Object.assign({author:cuid()},base,body)}).catch(function(){return req(c,OLD,{method:'POST',body:Object.assign({},base,body)})});
+      return q.then(function(){try{localStorage.setItem('ocheck.rueck',js)}catch(e){}});
+    }).catch(function(){});
   }
   function inboxDoc(rec,now){
     var ap={str:String(rec.str||'').trim(),nr:String(rec.nr||'').trim(),plz:String(rec.plz||'').trim(),ort:String(rec.ort||'').trim()};
@@ -4079,6 +4107,7 @@ function makeSync(be,setState){
           })},Promise.resolve());
         });
       });
+      jobs.push(function(){return rueckJob(c)});
       return jobs.reduce(function(p,f){return p.then(f)},Promise.resolve());
     }).then(function(){
       // Umzug abgeschlossen: alte Beiträge werden nicht mehr gelesen. Die alten Beiträge selbst löschst du in WordPress von Hand.

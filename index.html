@@ -361,7 +361,7 @@ body[data-mode="ausweis"] .wrap{grid-template-columns:minmax(0,1fr)!important}
 body[data-mode="kunden"] form>*:not(#kd),body[data-mode="kunden"] #res,body[data-mode="kunden"] #bar,body[data-mode="kunden"] #kd_snap,body[data-mode="kunden"] #kd_erf{display:none!important}
 body[data-mode="kunden"] .wrap{grid-template-columns:minmax(0,1fr)!important}
 body[data-mode="kunden"] #kd .geo-line,body[data-mode="kunden"] #kd .ph-box{display:none}
-body:not([data-mode="kunden"]):not([data-all]) #kd_ov,body:not([data-mode="kunden"]):not([data-all]) #kd_del,body:not([data-mode="kunden"]):not([data-all]) #kd_delbox{display:none!important}
+body:not([data-mode="kunden"]):not([data-all]) #kd_ov,body:not([data-mode="kunden"]):not([data-all]) #kd_ar,body:not([data-mode="kunden"]):not([data-all]) #kd_tr,body:not([data-mode="kunden"]):not([data-all]) #kd_retnote,body:not([data-mode="kunden"]):not([data-all]) #kd_del,body:not([data-mode="kunden"]):not([data-all]) #kd_delbox{display:none!important}
 body[data-mode="ausweis"] #kd .kd-rg,body[data-mode="ausweis"] #kd .geo-line,body[data-mode="ausweis"] #kd .ph-box,body[data-mode="ausweis"] #kd label[for="kd_note"]{display:none}
 .awgrid label{align-content:end}
 .awgrid{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
@@ -438,6 +438,12 @@ body[data-mode="kunden"]{--page:var(--bg-kd);--acc:var(--c-kd)}
 .kc-ic+.kc-ic{border-left:1px solid var(--line)}
 .kc-ic:hover,.kc-main:hover{background:var(--bg-kd)}
 .kc-ic.kc-del{color:#B3261E}
+.kc-static{cursor:default}.kc-static:hover{background:none}
+.kc-badge{display:inline-block;justify-self:start;font-size:.78rem;font-weight:700;padding:.1rem .55rem;border-radius:4px;background:var(--ink);color:#fff}
+.kc-badge.due{background:#B3261E}
+.kg-bar{display:flex;flex-wrap:wrap;gap:.5rem .8rem;align-items:center}
+.ret-note{padding:.6rem .8rem;border-left:4px solid #B3261E;background:var(--bg)}
+.ret-note button{margin-left:.5rem;min-height:2.6rem;padding:.3rem .9rem;font-size:.9rem}
 :root[data-theme="dark"] .kc-ic.kc-del{color:#F2998F}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kc-ic.kc-del{color:#F2998F}}
 .ov-list .delbox,#kd_ovbox{grid-column:1/-1}
@@ -445,8 +451,8 @@ body[data-mode="kunden"]{--page:var(--bg-kd);--acc:var(--c-kd)}
 body[data-mode="kunden"] .kd-tb{display:flex}
 #kd_back{display:none}
 body[data-mode="kunden"] #kd.kd-edit #kd_back{display:inline-block}body[data-mode="kunden"] #kd:not(.kd-edit) #kd_add{display:inline-block}body[data-mode="kunden"] #kd.kd-edit #kd_add{display:none}
-body[data-mode="kunden"] #kd:not(.kd-edit)>*:not(legend):not(.kd-tb):not(#kd_ov):not(#kd_set){display:none!important}
-body[data-mode="kunden"] #kd.kd-edit #kd_ov,body[data-mode="kunden"] #kd.kd-edit #kd_set{display:none!important}
+body[data-mode="kunden"] #kd:not(.kd-edit)>*:not(legend):not(.kd-tb):not(#kd_ov):not(#kd_ar):not(#kd_tr):not(#kd_retnote):not(#kd_set){display:none!important}
+body[data-mode="kunden"] #kd.kd-edit #kd_ov,body[data-mode="kunden"] #kd.kd-edit #kd_ar,body[data-mode="kunden"] #kd.kd-edit #kd_tr,body[data-mode="kunden"] #kd.kd-edit #kd_retnote,body[data-mode="kunden"] #kd.kd-edit #kd_set{display:none!important}
 body[data-mode="kunden"] #kd_ov>summary{display:none}
 body[data-mode="kunden"] #kd_listl,body[data-mode="kunden"] #kd_new{display:none!important}
 .kd-pick{display:flex;align-items:center;justify-content:space-between;gap:.6rem;width:100%;text-align:left;font-weight:400;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:.5rem .6rem;min-height:48px;justify-self:stretch}
@@ -662,7 +668,7 @@ a{text-decoration-color:var(--green);text-decoration-thickness:2px;text-underlin
     <input id="ph_in" class="ph-hid" type="file" accept="image/*" multiple><input id="ph_cam" class="ph-hid" type="file" accept="image/*" capture="environment">
     <div id="ph_list" class="ph-list"></div><div class="ph-all"><button type="button" class="ghost" id="ph_all" hidden>Alle Fotos in Galerie sichern</button></div><span class="hint" id="ph_hint">Bis zu 16 Fotos je Kunde. Antippen öffnet das Foto.</span></div>
     <label for="kd_note">Notiz<textarea id="kd_note" rows="2" placeholder="Termin, Wunsch, Förderstatus (auch mit dem Stift schreibbar)"></textarea></label>
-    <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_erf" class="ghost">Gebäudeerfassung</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_addobj" class="ghost" hidden>Weiteres Objekt für diesen Kunden</button><button type="button" id="kd_copy" class="ghost" hidden>Objekt als Alternative kopieren</button><button type="button" id="kd_cmp" class="ghost" hidden>Objekte vergleichen</button><button type="button" id="kd_del" class="kd-del" hidden>Kunde löschen</button></div>
+    <div class="kd-actions"><button type="button" id="kd_save">Speichern</button><button type="button" id="kd_erf" class="ghost">Gebäudeerfassung</button><button type="button" id="kd_snap" class="ghost" hidden>Gespeicherte Auswertung</button><button type="button" id="kd_addobj" class="ghost" hidden>Weiteres Objekt für diesen Kunden</button><button type="button" id="kd_copy" class="ghost" hidden>Objekt als Alternative kopieren</button><button type="button" id="kd_cmp" class="ghost" hidden>Objekte vergleichen</button><button type="button" id="kd_del" class="kd-del" hidden>In den Papierkorb</button></div>
     <div class="delbox" id="kd_delbox" hidden>
       <label for="kd_delpw">Löschpasswort<input id="kd_delpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_delgo" class="warn">Endgültig löschen</button><button type="button" id="kd_delno" class="ghost">Abbrechen</button></div>
@@ -684,8 +690,25 @@ a{text-decoration-color:var(--green);text-decoration-thickness:2px;text-underlin
       <label for="kd_pw1">Neues Löschpasswort (mindestens 4 Zeichen)<input id="kd_pw1" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_pwset" class="ghost">Löschpasswort speichern</button></div>
       <span class="hint" id="kd_pwmsg" role="status"></span>
-      <span class="hint">Ein Passwort für alle Kunden. Es wird mit dem Abgleich auf alle Geräte übertragen und gilt dann überall. Ohne Löschpasswort kann kein Kunde gelöscht werden. Es schützt vor versehentlichem Löschen, nicht vor jemandem mit Zugriff auf die WordPress-Seite. Ändern geht nur mit dem bisherigen Passwort.</span>
+      <span class="hint">Ein Passwort für alle Kunden. Es wird mit dem Abgleich auf alle Geräte übertragen und gilt dann überall. Ohne Löschpasswort kann nichts endgültig aus dem Papierkorb gelöscht werden. Es schützt vor versehentlichem Löschen, nicht vor jemandem mit Zugriff auf die WordPress-Seite. Ändern geht nur mit dem bisherigen Passwort.</span>
     </section>
+    </details>
+    <p class="hint ret-note" id="kd_retnote" hidden></p>
+    <details id="kd_ar" class="kd-set kd-ovd"><summary id="kd_arsum">Archiv</summary>
+      <p class="hint">Fertige Kunden zum späteren Nachschauen. Aufbewahrung: 10 Jahre ab Ende des Jahres, in dem du archivierst. Danach erscheint eine Löschempfehlung, gelöscht wird nie automatisch. Das ist eine Empfehlung, keine Rechtsberatung. Bei Förderfällen gelten die Fristen aus Bescheid und Richtlinie, für Belege die Fristen deines Steuerberaters.</p>
+      <label for="kd_arq">Suchen<input id="kd_arq" type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Name oder Adresse"></label>
+      <div id="kd_arlist" class="ov-list"></div>
+      <span class="hint" id="kd_armsg" role="status"></span>
+    </details>
+    <details id="kd_tr" class="kd-set kd-ovd"><summary id="kd_trsum">Papierkorb</summary>
+      <p class="hint">Gelöschte Objekte bleiben hier, bis du sie endgültig löschst. Der Papierkorb wird nie automatisch geleert. Akten, die du aufbewahren musst, besser archivieren statt löschen.</p>
+      <div id="kd_trlist" class="ov-list"></div>
+      <div class="delbox" id="kd_trbox" hidden>
+        <strong id="kd_trname"></strong>
+        <label for="kd_trpw">Löschpasswort<input id="kd_trpw" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+        <div class="btns"><button type="button" id="kd_trgo" class="warn">Endgültig löschen</button><button type="button" id="kd_trno" class="ghost">Abbrechen</button></div>
+      </div>
+      <span class="hint" id="kd_trmsg" role="status"></span>
     </details>
     <details id="kd_set" class="kd-set"><summary>Abgleich und Sicherung</summary>
       <span class="hint">Gespeichert werden alle Eingaben und die Zusammenfassung des Ergebnisses, auf diesem Gerät und nach Einrichtung zusätzlich privat auf deiner WordPress-Seite.</span>
@@ -4139,6 +4162,22 @@ function initKunden(backendP){
   // Kunde und Objekte: Jeder Datensatz ist ein Objekt (Gebäude). Datensätze mit gleicher kid gehören zu einem Kunden. Ohne kid ist der Datensatz sein eigener Kunde.
   function kidOf(id){var d=docs[id];return (d&&d.kid)||id}
   function objsOf(kid){return Object.keys(docs).filter(function(k){return kidOf(k)===kid}).sort(function(a,b){return String(docs[a].created||docs[a].updated||'').localeCompare(String(docs[b].created||docs[b].updated||''))})}
+  // Archiv und Papierkorb: Zustand steht als Feld am Datensatz (archived bzw. trashed, ISO-Datum) und wird normal abgeglichen.
+  // docs enthält nur aktive Einträge, allDocs alles. Endgültig gelöscht (Löschmarke) wird nur aus dem Papierkorb, mit Passwort.
+  var allDocs={},RET_YEARS=10;
+  function akid(id){var d=allDocs[id];return (d&&d.kid)||id}
+  function stOf(d){return d&&d.trashed?'t':(d&&d.archived?'a':'')}
+  function retYear(iso){return new Date(iso).getFullYear()+RET_YEARS}
+  function retDue(iso){return !!iso&&Date.now()>new Date(retYear(iso),11,31,23,59,59).getTime()}
+  function setSt(ids,patch){
+    var now=new Date().toISOString();
+    return ids.reduce(function(p,id){return p.then(function(){
+      var d=allDocs[id];if(!d) return;
+      var n=Object.assign({},d,patch,{updated:now});
+      Object.keys(patch).forEach(function(k){if(patch[k]===null) delete n[k]});
+      return be.save(id,n);
+    })},Promise.resolve());
+  }
   // Gebäudeerfassung (Bedarfsausweis): Daten hängen als Feld erf am Kunden
   function erfGet(){return window.ERF?ERF.getData():null}
   function erfInfo(){var el=$('kd_erfs');if(!el||!window.ERF) return;var n=ERF.openCount();el.textContent=(n==null)?'':(n>0?'Gebäudeerfassung: '+n+' Angaben fehlen noch.':'Gebäudeerfassung: alle Pflichtangaben vorhanden.')}
@@ -4697,7 +4736,7 @@ function initKunden(backendP){
   }
   // Löschen mit Passwort: gemeinsam für den geöffneten Kunden und die Übersicht
   function doDelete(id,pw,btn,say){
-    var n=(docs[id]&&docs[id].name)||'Eintrag';btn.disabled=true;
+    var n=((allDocs[id]||docs[id]||{}).name)||'Eintrag';btn.disabled=true;
     return dpCheck(pw).then(function(ok){
       if(!ok){say('Passwort falsch. Nichts gelöscht.');setTimeout(function(){btn.disabled=false},1500);return false}
       btn.disabled=false;
@@ -4707,10 +4746,14 @@ function initKunden(backendP){
       },function(){say('Löschen fehlgeschlagen.');return false});
     });
   }
+  function toTrash(id,say){
+    var d=docs[id]||{},n=(d.name||'Eintrag')+(d.adr?', '+d.adr:'');
+    if(id===curId){dirty=false;clearDraft();setAuto('','')}
+    return setSt([id],{trashed:new Date().toISOString()}).then(function(){say('In den Papierkorb gelegt: '+n+'. Zurückholen unter Papierkorb.')},function(){say('Löschen fehlgeschlagen.')});
+  }
   function del(){
     if(!curId) return;
-    if(!dpGet()){noPw();return}
-    $('kd_delbox').hidden=false;$('kd_delpw').value='';$('kd_delpw').focus();
+    toTrash(curId,msg);
   }
   function delGo(){
     if(!curId) return;
@@ -4758,16 +4801,105 @@ function initKunden(backendP){
         var b=document.createElement('div');b.className='kc-act';
         b.appendChild(icBtn('edit',id,'Bearbeiten: '+nm+', '+ad,'','<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'));
         b.appendChild(icBtn('copy',id,'Als Alternative kopieren: '+nm+', '+ad,'','<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>'));
-        b.appendChild(icBtn('del',id,'Löschen: '+nm+', '+ad,'kc-del','<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>'));
+        b.appendChild(icBtn('del',id,'In den Papierkorb: '+nm+', '+ad,'kc-del','<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>'));
         r.appendChild(m);r.appendChild(b);gd.appendChild(r);
         if(id===ovDel){gd.appendChild(box);box.hidden=false;box.querySelector('#kd_ovname').textContent='Löschen: '+nm+', '+ad+(d.olabel?' ('+d.olabel+')':'')}
       });
       if(g.all.length>=2){var cm=document.createElement('button');cm.type='button';cm.className='ghost kg-add kg-cmp';cm.setAttribute('data-act','cmp');cm.setAttribute('data-kid',g.k);cm.textContent='Objekte vergleichen';gd.appendChild(cm)}
+      var ab=document.createElement('button');ab.type='button';ab.className='ghost kg-add kg-arch';ab.setAttribute('data-act','archive');ab.setAttribute('data-kid',g.k);ab.textContent='Kunde archivieren';gd.appendChild(ab);
       var add=document.createElement('button');add.type='button';add.className='ghost kg-add';add.setAttribute('data-act','addobj');add.setAttribute('data-id',g.all[0]);add.setAttribute('data-kid',g.k);add.textContent='Objekt hinzufügen';
       gd.appendChild(add);
       list.appendChild(gd);
     });
     if(ovDel&&!docs[ovDel]){ovDel=null;box.hidden=true;$('kd_ovpw').value=''}
+  }
+  function arcSay(t){var e=$('kd_armsg');if(e) e.textContent=t;msg(t)}
+  function trSay(t){var e=$('kd_trmsg');if(e) e.textContent=t;msg(t)}
+  var svgEye='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>',svgUndo='<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',svgBin='<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>';
+  function staticRow(id,sub,acts){
+    var d=allDocs[id],r=document.createElement('div');r.className='ov-row kc';
+    var m=document.createElement('div');m.className='kc-main kc-static';
+    var st=document.createElement('strong');st.textContent=d.adr||'Keine Anschrift';m.appendChild(st);
+    if(d.olabel){var sl=document.createElement('span');sl.className='kc-adr kc-ol';sl.textContent=d.olabel;m.appendChild(sl)}
+    (sub||[]).forEach(function(t){var sd=document.createElement('span');sd.className='kc-dt';sd.textContent=t;m.appendChild(sd)});
+    var b=document.createElement('div');b.className='kc-act';acts.forEach(function(a){b.appendChild(a)});
+    r.appendChild(m);r.appendChild(b);return r;
+  }
+  function renderArch(){
+    var list=$('kd_arlist');if(!list) return;
+    var q=($('kd_arq').value||'').trim().toLowerCase(),groups={},due=0,total=0;
+    Object.keys(allDocs).forEach(function(id){var d=allDocs[id];if(stOf(d)!=='a') return;var k=akid(id);(groups[k]=groups[k]||[]).push(id)});
+    var keys=Object.keys(groups);
+    keys.forEach(function(k){total++;var last=groups[k].map(function(i){return allDocs[i].archived}).sort().pop();if(retDue(last)) due++});
+    $('kd_arsum').textContent='Archiv ('+total+')'+(due?', '+due+' mit Löschempfehlung':'');
+    var rn=$('kd_retnote');
+    if(rn){rn.hidden=!due;rn.textContent=due?(due===1?'1 archivierter Kunde hat die Aufbewahrungsfrist überschritten (Löschempfehlung).':due+' archivierte Kunden haben die Aufbewahrungsfrist überschritten (Löschempfehlung).'):'';
+      if(due){var bt=document.createElement('button');bt.type='button';bt.className='ghost';bt.textContent='Im Archiv ansehen';bt.addEventListener('click',function(){var dt=$('kd_ar');dt.open=true;try{dt.scrollIntoView({block:'start'})}catch(e){}});rn.appendChild(bt)}}
+    list.innerHTML='';
+    var shown=keys.filter(function(k){if(!q) return true;return groups[k].some(function(i){var d=allDocs[i];return ((d.name||'')+' '+(d.adr||'')+' '+(d.olabel||'')).toLowerCase().indexOf(q)>=0})});
+    shown.sort(function(a,b){return String(allDocs[groups[a][0]].name||'').localeCompare(String(allDocs[groups[b][0]].name||''),'de')});
+    if(!shown.length){var e=document.createElement('span');e.className='hint';e.textContent=total?'Kein Treffer.':'Noch nichts archiviert. Fertige Kunden kannst du in der Kundenübersicht archivieren.';list.appendChild(e);return}
+    shown.forEach(function(k){
+      var ids=groups[k],nm=allDocs[ids[0]].name||'Ohne Name';
+      var last=ids.map(function(i){return allDocs[i].archived}).sort().pop(),isDue=retDue(last);
+      var gd=document.createElement('section');gd.className='kg';
+      var h=document.createElement('div');h.className='kg-h';h.innerHTML='<strong></strong><span></span>';h.firstChild.textContent=nm;h.lastChild.textContent='archiviert '+fmtDate(last);gd.appendChild(h);
+      var bd=document.createElement('span');bd.className='kc-badge'+(isDue?' due':'');
+      bd.textContent=isDue?'Löschempfehlung: Aufbewahrung bis 31.12.'+retYear(last)+' abgelaufen':'Aufbewahren bis 31.12.'+retYear(last);gd.appendChild(bd);
+      ids.sort(function(a,b){return String(allDocs[a].created||'').localeCompare(String(allDocs[b].created||''))}).forEach(function(id){
+        var d=allDocs[id],acts=[];
+        if(d.snap) acts.push(icBtn('aview',id,'Auswertung ansehen: '+nm,'',svgEye));
+        acts.push(icBtn('atrash',id,(isDue?'Löschen (Frist abgelaufen)':'In den Papierkorb')+': '+nm,'kc-del',svgBin));
+        gd.appendChild(staticRow(id,[d.updated?'zuletzt bearbeitet '+fmtDate(d.updated):''].filter(Boolean),acts));
+      });
+      var bar=document.createElement('div');bar.className='kg-bar';
+      var rb=document.createElement('button');rb.type='button';rb.className='ghost kg-add';rb.setAttribute('data-act','arestore');rb.setAttribute('data-kid',k);rb.textContent='Kunde zurückholen';bar.appendChild(rb);gd.appendChild(bar);
+      list.appendChild(gd);
+    });
+  }
+  var trDel=null;
+  function renderTrash(){
+    var list=$('kd_trlist'),box=$('kd_trbox');if(!list||!box) return;
+    var host=$('kd_tr');host.appendChild(box);list.innerHTML='';
+    var ids=Object.keys(allDocs).filter(function(id){return stOf(allDocs[id])==='t'});
+    $('kd_trsum').textContent='Papierkorb ('+ids.length+')';
+    if(!ids.length){var e=document.createElement('span');e.className='hint';e.textContent='Der Papierkorb ist leer.';list.appendChild(e);trDel=null;box.hidden=true;return}
+    ids.sort(function(a,b){return String(allDocs[b].trashed).localeCompare(String(allDocs[a].trashed))});
+    ids.forEach(function(id){
+      var d=allDocs[id],nm=d.name||'Ohne Name';
+      var sub=['im Papierkorb seit '+fmtDate(d.trashed)];
+      if(d.archived) sub.push('war archiviert, Aufbewahrung bis 31.12.'+retYear(d.archived));
+      var row=staticRow(id,sub,[icBtn('trestore',id,'Zurückholen: '+nm,'',svgUndo),icBtn('tdel',id,'Endgültig löschen: '+nm,'kc-del',svgBin)]);
+      var strong=row.querySelector('strong');strong.textContent=nm+' – '+(d.adr||'Keine Anschrift');
+      list.appendChild(row);
+      if(id===trDel){list.appendChild(box);box.hidden=false;$('kd_trname').textContent='Endgültig löschen: '+nm+(d.adr?', '+d.adr:'')+'. Das kann nicht rückgängig gemacht werden.'}
+    });
+    if(trDel&&!allDocs[trDel]){trDel=null;box.hidden=true;$('kd_trpw').value=''}
+  }
+  function initArch(){
+    var al=$('kd_arlist'),tl=$('kd_trlist');if(!al||!tl) return;
+    $('kd_arq').addEventListener('input',renderArch);
+    al.addEventListener('click',function(e){
+      var b=e.target.closest?e.target.closest('button[data-act]'):null;if(!b) return;
+      var act=b.getAttribute('data-act'),id=b.getAttribute('data-id');
+      if(act==='aview'){var d=allDocs[id];if(d&&d.snap&&repApi) repApi.open(Object.assign({},d.snap,{photos:d.photos||[]}));return}
+      if(act==='arestore'){var k=b.getAttribute('data-kid'),ids=Object.keys(allDocs).filter(function(i){return stOf(allDocs[i])==='a'&&akid(i)===k});setSt(ids,{archived:null}).then(function(){arcSay('Zurückgeholt: '+((allDocs[ids[0]]||{}).name||'Kunde')+'. Er steht wieder in der Kundenübersicht.')},function(){arcSay('Zurückholen fehlgeschlagen.')});return}
+      if(act==='atrash'){
+        var dd=allDocs[id];if(!dd) return;
+        if(!retDue(dd.archived)&&!window.confirm('Die Aufbewahrungsfrist läuft noch bis 31.12.'+retYear(dd.archived)+'. Trotzdem in den Papierkorb legen?')) return;
+        setSt([id],{trashed:new Date().toISOString()}).then(function(){arcSay('In den Papierkorb gelegt. Zurückholen unter Papierkorb.')},function(){arcSay('Löschen fehlgeschlagen.')});
+      }
+    });
+    tl.addEventListener('click',function(e){
+      var b=e.target.closest?e.target.closest('button[data-act]'):null;if(!b) return;
+      var act=b.getAttribute('data-act'),id=b.getAttribute('data-id');
+      if(act==='trestore'){setSt([id],{trashed:null}).then(function(){trSay('Zurückgeholt'+((allDocs[id]&&allDocs[id].archived)?' ins Archiv.':' in die Kundenübersicht.'))},function(){trSay('Zurückholen fehlgeschlagen.')});return}
+      if(act==='tdel'){if(!dpGet()){noPw();return}trDel=id;$('kd_trpw').value='';trSay('');renderTrash();$('kd_trpw').focus()}
+    });
+    function go(){if(!trDel) return;doDelete(trDel,$('kd_trpw').value,$('kd_trgo'),trSay).then(function(ok){$('kd_trpw').value='';if(ok){trDel=null;$('kd_trbox').hidden=true;renderTrash()}})}
+    $('kd_trgo').addEventListener('click',go);
+    $('kd_trpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();go()}});
+    $('kd_trno').addEventListener('click',function(){trDel=null;$('kd_trpw').value='';$('kd_trbox').hidden=true;trSay('');renderTrash()});
   }
   function initOv(){
     var list=$('kd_ovlist');if(!list) return;
@@ -4776,6 +4908,7 @@ function initKunden(backendP){
       var b=e.target.closest?e.target.closest('button[data-act]'):null;if(!b) return;
       var id=b.getAttribute('data-id'),act=b.getAttribute('data-act');
       if(act==='cmp'){guard(function(){cmpOpen(b.getAttribute('data-kid'))});return}
+      if(act==='archive'){var ak=b.getAttribute('data-kid');guard(function(){var ids=objsOf(ak),nm0=ids.length?(docs[ids[0]].name||'Kunde'):'Kunde';setSt(ids,{archived:new Date().toISOString()}).then(function(){ovSay('Archiviert: '+nm0+'. Zu finden im Archiv, Aufbewahrung bis 31.12.'+retYear(new Date().toISOString())+'.')},function(){ovSay('Archivieren fehlgeschlagen.')})});return}
       if(act==='addobj'){
         addObjekt(b.getAttribute('data-kid'),id,function(){ovSay('');if(window.setKview) window.setKview(true)});
         return;
@@ -4788,8 +4921,7 @@ function initKunden(backendP){
         if(id===curId){ovSay('');if(window.setKview) window.setKview(true);return}
         guard(function(){load(id);$('kd_list').value=id;ovSay('');if(window.setKview) window.setKview(true);try{$('kd').scrollIntoView({block:'start'})}catch(x){}});
       }else{
-        if(!dpGet()){noPw();return}
-        ovDel=id;$('kd_ovpw').value='';ovSay('');renderOv();$('kd_ovpw').focus();
+        toTrash(id,ovSay);
       }
     });
     function go(){if(!ovDel) return;doDelete(ovDel,$('kd_ovpw').value,$('kd_ovgo'),ovSay).then(function(ok){$('kd_ovpw').value='';if(ok){ovDel=null;$('kd_ovbox').hidden=true;renderOv()}})}
@@ -4898,7 +5030,7 @@ function initKunden(backendP){
     $('kd_snap').addEventListener('click',function(){var d=curId&&docs[curId];if(d&&d.snap&&repApi) repApi.open(Object.assign({},d.snap,{photos:d.photos||[]}))});
     $('kd_delgo').addEventListener('click',delGo);$('kd_delno').addEventListener('click',resetDel);
     $('kd_delpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();delGo()}});
-    $('kd_pwset').addEventListener('click',setPw);dpState();initOv();
+    $('kd_pwset').addEventListener('click',setPw);dpState();initOv();initArch();
     var addFlag=false;
     $('kd_new').addEventListener('click',function(){
       var closing=!!curId,add=addFlag;addFlag=false;
@@ -4920,9 +5052,9 @@ function initKunden(backendP){
     window.addEventListener('pagehide',flush);
     window.addEventListener('beforeunload',function(e){if(dirty&&!canAuto()){writeDraft();e.preventDefault();e.returnValue=''}else if(dirty){flush()}});
     function onDocs(m){
-      cfgRec=m[CFG]||null;docs={};Object.keys(m).forEach(function(k){if(k.indexOf('_cfg')!==0) docs[k]=m[k]});
+      cfgRec=m[CFG]||null;docs={};allDocs={};Object.keys(m).forEach(function(k){if(k.indexOf('_cfg')!==0){allDocs[k]=m[k];if(!stOf(m[k])) docs[k]=m[k]}});
       Object.keys(docs).forEach(function(k){var d=docs[k];if(!d.kid&&d.copyOf&&docs[d.copyOf]){var m=/^(.*) – (Alternative \d+.*)$/.exec(d.name||'');if(m){d.name=m[1];d.olabel=d.olabel||m[2]}d.kid=kidOf(d.copyOf)}});
-      fillList();dpState();if(!restored){restored=true;restoreDraft()}}
+      fillList();renderArch();renderTrash();dpState();if(!restored){restored=true;restoreDraft()}}
     if(be.mode==='pwa'){
       msg('');
       sync=makeSync(be,setState);

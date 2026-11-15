@@ -780,6 +780,22 @@ body[data-mode="kunden"] .ov-list{grid-template-columns:1fr;gap:1rem;align-items
 @media (min-width:700px){body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:1000px){body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body[data-mode="kunden"] .kg{background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:1.1rem}
+/* ===== Volle Seitenbreite: passt sich dem Bildschirm an ===== */
+:root{--gut:clamp(16px,2.6vw,44px)}
+.wrap,.top>div,body[data-mode="home"] .top>div,.home,.cmp-in{max-width:none!important;width:100%}
+.wrap,.home{padding-inline:max(var(--gut),env(safe-area-inset-left,0px)) max(var(--gut),env(safe-area-inset-right,0px))}
+.top{padding-inline:max(var(--gut),env(safe-area-inset-left,0px)) max(var(--gut),env(safe-area-inset-right,0px))}
+body[data-mode="home"] .top>div{width:100%}
+@media (min-width:1000px){body[data-mode="kunden"] .wrap>form,body[data-mode="erfassung"] .wrap>form,.wrap>form{max-width:none!important}}
+@media (min-width:1280px){.wrap{grid-template-columns:minmax(0,28rem) minmax(0,1fr)}}
+@media (min-width:900px){
+form fieldset{grid-template-columns:repeat(auto-fill,minmax(min(100%,22rem),1fr));column-gap:1.2rem}
+form fieldset>*{grid-column:1/-1;min-width:0}
+form fieldset>label{grid-column:auto}
+form fieldset>.row{display:contents}
+}
+@media (min-width:1500px){.home{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (min-width:1800px){body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(4,minmax(0,1fr))}}
 body[data-mode="kunden"] .ov-list>.ov-row.kc{background:var(--soft);border-radius:20px}
 
 /* ===== Ohne Rahmen und Seitenstreifen: Flächen statt Umrandung, Markierung über einen Punkt ===== */

@@ -690,6 +690,7 @@ a{text-decoration-color:var(--green);text-decoration-thickness:2px;text-underlin
       <label for="kd_sy_user">Benutzername<input id="kd_sy_user" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <label for="kd_sy_pw">Anwendungspasswort<input id="kd_sy_pw" type="password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
       <div class="btns"><button type="button" id="kd_sy_test" class="ghost">Verbindung testen</button><button type="button" id="kd_sy_run">Jetzt abgleichen</button></div>
+      <div class="btns"><button type="button" id="kd_sy_clean" class="ghost">Alte Beiträge aufräumen</button></div>
       <div class="btns"><button type="button" id="kd_exp" class="ghost">Sicherung exportieren</button><button type="button" id="kd_imp" class="ghost">Sicherung importieren</button></div>
       <input type="file" id="kd_file" accept="application/json,.json" hidden>
       <span class="hint" id="kd_sy_msg" role="status"></span>
@@ -4056,7 +4057,27 @@ function makeSync(be,setState){
       throw e;
     });
   }
-  return {cfg:cfg,saveCfg:saveCfg,diag:diag,run:run,soon:soon,test:test,pendingText:function(){var n=be.pending();return n?n+' Änderung(en) noch nicht abgeglichen':''}};
+  // Aufräumen: alte Beiträge (früherer Speicher) in den WordPress-Papierkorb. Nur wenn der Kunde im neuen Speicher mindestens so aktuell
+  // vorliegt oder als gelöscht markiert ist. Alles andere bleibt unberührt. Prüft zuerst (dry=true), löscht erst nach Rückfrage.
+  function cleanup(dry){
+    var c=cfg();
+    if(!c||!c.url||!c.user||!c.pw) return Promise.reject(fail('cfg','Abgleich nicht eingerichtet.'));
+    var uid=0,nw=[],old=[];
+    return req(c,'/users/me?context=edit&_fields=id').then(function(me){uid=me.json.id;return listRemote(c,uid,EP)}).then(function(n){
+      nw=n;return listRemote(c,uid,OLD);
+    }).then(function(o){
+      old=o;var byId={};nw.forEach(function(x){byId[x.rec.id]=x});
+      var ok=[],keep=0;
+      old.forEach(function(x){
+        var n=byId[x.rec.id];
+        if(x.rec.deleted||(n&&new Date(n.rec.updated)>=new Date(x.rec.updated))) ok.push(x);else keep++;
+      });
+      if(dry) return {ok:ok.length,keep:keep,total:old.length};
+      var done=0;
+      return ok.reduce(function(pr,x){return pr.then(function(){return req(c,OLD+'/'+x.wp,{method:'DELETE'}).then(function(){done++})})},Promise.resolve()).then(function(){return {ok:done,keep:keep,total:old.length}});
+    });
+  }
+  return {cleanup:cleanup,cfg:cfg,saveCfg:saveCfg,diag:diag,run:run,soon:soon,test:test,pendingText:function(){var n=be.pending();return n?n+' Änderung(en) noch nicht abgeglichen':''}};
 }
 
 function exportFile(be){
@@ -4762,6 +4783,17 @@ function initKunden(backendP){
       smsg('Prüfe …');sync.test(c2).then(smsg,function(e){smsg(e.message)});
     });
     $('kd_sy_run').addEventListener('click',function(){sync.saveCfg(read());smsg('');sync.run(true).then(function(){smsg('Abgleich abgeschlossen.')},function(e){if(e&&e.code==='cors'){smsg(e.message+' Prüfe …');sync.diag(read()).then(function(d){smsg(e.message+' Diagnose: '+d)},function(){smsg(e.message)})}else smsg(e.message)})});
+    $('kd_sy_clean').addEventListener('click',function(){
+      sync.saveCfg(read());smsg('Prüfe …');
+      sync.cleanup(true).then(function(r){
+        if(!r.total){smsg('Keine alten Beiträge gefunden. Es ist nichts aufzuräumen.');return}
+        if(!r.ok){smsg(r.total+' alte Beiträge gefunden, aber keiner ist sicher im neuen Speicher. Erst "Jetzt abgleichen" tippen.');return}
+        var q=r.ok+' alte Beiträge in den WordPress-Papierkorb legen? Alle Kunden daraus liegen im neuen Speicher oder sind gelöscht.'+(r.keep?' '+r.keep+' bleiben unberührt.':'')+' Aus dem Papierkorb kannst du sie zurückholen.';
+        if(!window.confirm(q)){smsg('Abgebrochen. Nichts verändert.');return}
+        smsg('Räume auf …');
+        return sync.cleanup(false).then(function(x){smsg(x.ok+' alte Beiträge in den Papierkorb gelegt'+(x.keep?', '+x.keep+' unberührt gelassen':'')+'.')});
+      }).catch(function(e){smsg(e.message||'Aufräumen fehlgeschlagen.')});
+    });
     $('kd_exp').addEventListener('click',function(){var n=exportFile(be);smsg(n+' Kunde(n) exportiert.')});
     $('kd_imp').addEventListener('click',function(){$('kd_file').click()});
     $('kd_file').addEventListener('change',function(){
@@ -5727,7 +5759,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-11-15 09:10',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-11-15 09:40',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

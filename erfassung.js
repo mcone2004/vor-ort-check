@@ -244,6 +244,10 @@ var CSS='\
 .erf-sec>h3,.erf-h{font-family:var(--f-body);font-size:1.35rem;font-weight:800;letter-spacing:-.03em;text-transform:none;border-bottom:0;padding-bottom:.1rem}\
 .erf-in{gap:1.6rem}\
 .erf-in{max-width:none}\
+.erf-wall,.erf-layer,.erf-kat,.erf-svgbox,.erf-shape,.erf-ow{background:var(--soft);border:0}\
+.erf-wall input,.erf-wall select,.erf-wall textarea,.erf-layer input,.erf-layer select,.erf-layer textarea,.erf-kat input,.erf-kat select,.erf-kat textarea{background:var(--inset)}\
+#erf-root{background:var(--bg)}\
+.erf-top,.erf-nav{background:var(--surface)}\
 .erf-note{border-left:0;border-radius:14px;background:var(--tint)}\
 .erf-wall.sel,.erf-kat.sel{border-width:1.5px;border-color:var(--green);background:var(--tint)}\
 .erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{border-color:transparent!important;box-shadow:none;background:#FDF3F1}\

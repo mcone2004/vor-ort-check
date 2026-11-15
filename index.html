@@ -780,6 +780,26 @@ body[data-mode="kunden"] .ov-list{grid-template-columns:1fr;gap:1rem;align-items
 @media (min-width:700px){body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:1000px){body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 body[data-mode="kunden"] .kg{background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:1.1rem}
+/* ===== Kontrast: Seitenhintergrund dunkler, Karten und Felder hell ===== */
+:root{--bg:#E6EAE0;--surface:#FFFFFF;--soft:#FFFFFF;--field:#FFFFFF;--inset:#EEF1E8;--tint:#F3F8EA}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--inset:#242A2F}}
+:root[data-theme="dark"]{--inset:#242A2F}
+body,body .ctabs,body .vbtabs{background:var(--bg)}
+input:hover,select:hover,textarea:hover,.kd-pick:hover{background:#F3F8EA}
+.bt{background:var(--soft)}
+.bt select,.bt input,.bt textarea{background:var(--inset)}
+.bt input:focus,.bt select:focus,.bt textarea:focus{background:var(--surface)}
+.kg .ov-row.kc{background:var(--inset)}
+.cmp-t thead th,.vbtab thead th,.erf-tb thead th{background:var(--tint)}
+.mbar{background:var(--surface)!important}
+.kd-tabs button,.home .hbtn{background:var(--soft)}
+.home .hbtn:hover,.kd-tabs button:hover{background:var(--tint)}
+.home #go_kd,.kd-tabs button[aria-current="true"]{background:var(--hero)}
+.home #go_kd:hover{background:#2A3036}
+#kd_state,.ret-note,#dshintD,#hkx .hk-big,#fsx .hk-big,#fsx .fs-res,.erf-note{background:var(--soft)}
+.kd-set,.kd-ovd{border-top-color:rgba(32,37,42,.12)}
+/* Gebäudeschnitt: mittig, so breit wie nötig, ohne Rahmen */
+.schnitt{width:fit-content;max-width:100%;margin:.4rem auto;border:0;border-radius:20px;background:var(--soft);padding:1rem 1.6rem;justify-content:center}
 /* ===== Volle Seitenbreite: passt sich dem Bildschirm an ===== */
 :root{--gut:clamp(16px,2.6vw,44px)}
 .wrap,.top>div,body[data-mode="home"] .top>div,.home,.cmp-in{max-width:none!important;width:100%}

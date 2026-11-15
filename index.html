@@ -798,6 +798,11 @@ input:hover,select:hover,textarea:hover,.kd-pick:hover{background:#F3F8EA}
 .home #go_kd:hover{background:#2A3036}
 #kd_state,.ret-note,#dshintD,#hkx .hk-big,#fsx .hk-big,#fsx .fs-res,.erf-note{background:var(--soft)}
 .kd-set,.kd-ovd{border-top-color:rgba(32,37,42,.12)}
+/* Reiterleisten mittig (bei Überlauf weiter scrollbar) */
+.ctabs,.vbtabs{justify-content:flex-start}
+.ctabs>button:first-child,.vbtabs>button:first-child{margin-left:auto!important}
+.ctabs>button:last-child,.vbtabs>button:last-child{margin-right:auto!important}
+body[data-mode="mfh"] .ctabs{justify-content:flex-start}
 /* Gebäudeschnitt: mittig, so breit wie nötig, ohne Rahmen */
 .schnitt{width:fit-content;max-width:100%;margin:.4rem auto;border:0;border-radius:20px;background:var(--soft);padding:1rem 1.6rem;justify-content:center}
 /* ===== Volle Seitenbreite: passt sich dem Bildschirm an ===== */

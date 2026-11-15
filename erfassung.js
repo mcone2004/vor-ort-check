@@ -247,6 +247,7 @@ var CSS='\
 .erf-wall,.erf-layer,.erf-kat,.erf-svgbox,.erf-shape,.erf-ow{background:var(--soft);border:0}\
 .erf-wall input,.erf-wall select,.erf-wall textarea,.erf-layer input,.erf-layer select,.erf-layer textarea,.erf-kat input,.erf-kat select,.erf-kat textarea{background:var(--inset)}\
 #erf-root{background:var(--bg)}\
+.erf-nav{justify-content:flex-start}.erf-nav>*:first-child{margin-left:auto}.erf-nav>*:last-child{margin-right:auto}\
 .erf-top,.erf-nav{background:var(--surface)}\
 .erf-note{border-left:0;border-radius:14px;background:var(--tint)}\
 .erf-wall.sel,.erf-kat.sel{border-width:1.5px;border-color:var(--green);background:var(--tint)}\

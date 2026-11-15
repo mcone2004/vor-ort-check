@@ -4009,7 +4009,7 @@ function makeSync(be,setState){
     inboxNote='';
     return req(c,OLD+'?status=draft&per_page=100&search=Cockpit-Eingang&context=edit&_fields=id,content').then(function(r){
       var out=[];
-      r.json.forEach(function(p){try{var rec=JSON.parse(b64d((p.content&&p.content.raw)||''));if(rec&&rec.kind==='cockpit-eingang'&&rec.cid) out.push({wp:p.id,rec:rec})}catch(e){}});
+      r.json.forEach(function(p){try{var rec=JSON.parse(b64d((p.content&&p.content.raw)||''));if(rec&&(rec.kind==='cockpit-eingang'||rec.kind==='cockpit-status')&&rec.cid) out.push({wp:p.id,rec:rec})}catch(e){}});
       inboxNote=out.length?', '+out.length+' Eingang vom Cockpit gefunden':(r.json.length?', Eingang: '+r.json.length+' Entwurf gefunden, aber unlesbar':'');
       return out;
     },function(e){inboxNote=', Eingang nicht lesbar ('+String((e&&e.message)||'Fehler').slice(0,90)+')';return []});
@@ -4027,7 +4027,7 @@ function makeSync(be,setState){
     if(typeof navigator!=='undefined'&&navigator.onLine===false){setState({kind:'offline',text:'Offline'});return Promise.resolve()}
     if(busy) return Promise.resolve();
     busy=true;setState({kind:'busy',text:'Abgleich läuft'});
-    var done=0,pulled=0,moved=0,uid=0,cpt=false,legacyListed=false,oldIds={},fresh=0;
+    var done=0,pulled=0,moved=0,uid=0,cpt=false,legacyListed=false,oldIds={},fresh=0,stat=0,statWant=true;
     return req(c,'/users/me?context=edit&_fields=id').then(function(me){
       uid=me.json.id;
       // Neuer Speicher vorhanden? Sonst (Plugin fehlt, Route nicht gefunden) alter Speicher wie bisher.
@@ -4061,9 +4061,20 @@ function makeSync(be,setState){
       });
       jobs.push(function(){
         return listInbox(c).then(function(items){
+          // Erst neue Kunden, dann Statusmeldungen (archivieren/aktivieren), diese nach Zeitpunkt
+          items.sort(function(a,b){var ea=a.rec.kind==='cockpit-eingang'?0:1,eb=b.rec.kind==='cockpit-eingang'?0:1;return ea-eb||(a.rec.at||0)-(b.rec.at||0)});
           return items.reduce(function(pr,x){return pr.then(function(){
-            var id='cp-'+x.rec.cid,now=new Date().toISOString(),known=be.all()[id]&&!be.all()[id].deleted;
-            var step=known?Promise.resolve():be.save(id,inboxDoc(x.rec,now)).then(function(){fresh++});
+            var id='cp-'+x.rec.cid,now=new Date().toISOString(),step;
+            if(x.rec.kind==='cockpit-status'){
+              var want=!!x.rec.archiv,all=be.all();
+              step=Object.keys(all).filter(function(k){var r=all[k];return !r.deleted&&(r.kid||k)===id&&want!==!!r.archived}).reduce(function(p2,k){return p2.then(function(){
+                var n=Object.assign({},all[k]);if(want) n.archived=now;else delete n.archived;n.updated=now;
+                return be.save(k,n).then(function(){stat++;statWant=want});
+              })},Promise.resolve());
+            }else{
+              var known=be.all()[id]&&!be.all()[id].deleted;
+              step=known?Promise.resolve():be.save(id,inboxDoc(x.rec,now)).then(function(){fresh++});
+            }
             return step.then(function(){return req(c,OLD+'/'+x.wp,{method:'DELETE'}).catch(function(){})});
           })},Promise.resolve());
         });
@@ -4073,7 +4084,7 @@ function makeSync(be,setState){
       // Umzug abgeschlossen: alte Beiträge werden nicht mehr gelesen. Die alten Beiträge selbst löschst du in WordPress von Hand.
       if(cpt&&legacyListed){try{localStorage.setItem(LKEY,'1')}catch(e){}}
       busy=false;lastOk=new Date();
-      setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')+(moved?', '+moved+' in den neuen Speicher übernommen':'')+(fresh?', '+fresh+' neu aus dem Cockpit':'')+(cpt?'':', Plugin fehlt: alter Speicher')+inboxNote});
+      setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')+(moved?', '+moved+' in den neuen Speicher übernommen':'')+(fresh?', '+fresh+' neu aus dem Cockpit':'')+(cpt?'':', Plugin fehlt: alter Speicher')+(stat?', '+stat+' Objekt(e) laut Cockpit '+(statWant?'archiviert':'wieder aktiv'):'')+inboxNote});
     },function(e){
       busy=false;if(e.code==='auth') authBlocked=true;
       setState({kind:e.code==='net'?'offline':'err',text:e.code==='net'?'Offline, '+be.pending()+' Änderung(en) offen':(e.code==='auth'?'Anmeldung abgelehnt, automatischer Abgleich pausiert':e.message)});

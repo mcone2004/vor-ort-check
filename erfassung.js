@@ -243,6 +243,11 @@ var CSS='\
 .erf-sec{border:0;background:transparent;padding:0 0 1.2rem;gap:.9rem}\
 .erf-sec>h3,.erf-h{font-family:var(--f-body);font-size:1.35rem;font-weight:800;letter-spacing:-.03em;text-transform:none;border-bottom:0;padding-bottom:.1rem}\
 .erf-in{gap:1.6rem}\
+.erf-note{border-left:0;border-radius:14px;background:var(--tint)}\
+.erf-wall.sel,.erf-kat.sel{border-width:1.5px;border-color:var(--green);background:var(--tint)}\
+.erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{border-color:transparent!important;box-shadow:none;background:#FDF3F1}\
+.erf-wh.miss{box-shadow:none;background:#FDF3F1}\
+.erf-missbox{border:0;background:var(--soft)}.erf-missbox.bad{border:0;background:#FBEDEB}\
 .erf-main{padding-top:1.6rem}\
 .erf-wall,.erf-kat,.erf-layer,.erf-svgbox,.erf-shape,.erf-ow{border-radius:14px}\
 .erf-btn{border-radius:12px;font-weight:700}\

@@ -4039,7 +4039,7 @@ function makeSync(be,setState){
       jobs.push(function(){
         return listInbox(c).then(function(items){
           return items.reduce(function(pr,x){return pr.then(function(){
-            var id='cp-'+x.rec.cid,now=new Date().toISOString(),known=be.all()[id];
+            var id='cp-'+x.rec.cid,now=new Date().toISOString(),known=be.all()[id]&&!be.all()[id].deleted;
             var step=known?Promise.resolve():be.save(id,inboxDoc(x.rec,now)).then(function(){fresh++});
             return step.then(function(){return req(c,OLD+'/'+x.wp,{method:'DELETE'}).catch(function(){})});
           })},Promise.resolve());

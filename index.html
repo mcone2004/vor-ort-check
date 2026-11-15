@@ -44,6 +44,10 @@ p{margin:0}
 .hdr-kd{font-family:var(--f-data);font-size:.8rem;font-weight:600;color:#C9CED3;text-align:right;overflow-wrap:anywhere}
 .hdr-act button{background:transparent;color:var(--onDark);border:1.5px solid #C9CED3;border-radius:999px;padding:.45rem 1.1rem;font-weight:700;font-size:.85rem;cursor:pointer}
 .hdr-act button:hover{background:rgba(255,255,255,.12)}
+.hdr-act .hdr-sync{background:var(--green);border-color:var(--green);color:var(--ink)}
+.hdr-act .hdr-sync:hover{background:var(--green);filter:brightness(1.08)}
+.hdr-act .hdr-sync[hidden]{display:none}
+.hdr-act .hdr-sync:disabled{opacity:.7;cursor:default}
 @media (max-width:900px){.hdr-act{position:static;flex-direction:row;align-items:center;justify-content:space-between;max-width:none;margin-bottom:.7rem}}
 @media (pointer:coarse),(any-pointer:coarse){.hdr-act button{min-height:44px;padding-inline:1.2rem}}
 
@@ -591,7 +595,7 @@ a{text-decoration-color:var(--green);text-decoration-thickness:2px;text-underlin
 </style>
 </head><body>
 <header class="top"><div>
-  <div class="hdr-act" id="hdract" hidden><span id="hdrkd" class="hdr-kd"></span><button type="button" id="hdr_home">Start</button><button type="button" id="kd_new">Neuer Kunde</button></div>
+  <div class="hdr-act" id="hdract" hidden><span id="hdrkd" class="hdr-kd"></span><button type="button" id="hdr_sync" class="hdr-sync" hidden>Abgleichen</button><button type="button" id="hdr_home">Start</button><button type="button" id="kd_new">Neuer Kunde</button></div>
   <h1 id="hdr_t">Vor-Ort-Check Sanierung</h1>
   <p id="hdr_p">Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.</p>
   <p class="offstate" id="netstate" data-kind="off">Offline</p>
@@ -4797,6 +4801,13 @@ function initKunden(backendP){
     var el=$('kd_state');if(!el) return;
     el.textContent=st.text;el.dataset.kind=st.kind;
     var p=sync&&sync.pendingText();$('kd_pend').textContent=(p&&st.kind!=='busy')?p:'';
+    // Knopf oben: nur sichtbar, wenn etwas abzugleichen ist (offene Änderungen) oder der letzte Abgleich scheiterte
+    var hb=$('hdr_sync');
+    if(hb&&sync){
+      var cf=sync.cfg(),n=be?be.pending():0,on=!!(cf&&cf.user&&cf.pw)&&(n>0||st.kind==='err'||st.kind==='busy');
+      hb.hidden=!on;hb.disabled=st.kind==='busy';
+      hb.textContent=st.kind==='busy'?'Gleiche ab …':(st.kind==='err'&&!n?'Abgleich wiederholen':'Abgleichen'+(n?' ('+n+')':''));
+    }
   }
   function initSync(){
     $('kd_sy').hidden=false;$('kd_state').hidden=false;
@@ -4810,6 +4821,7 @@ function initKunden(backendP){
       if(!c2.url||!c2.user||!c2.pw){smsg('Bitte Adresse, Benutzer und Anwendungspasswort eintragen.');return}
       smsg('Prüfe …');sync.test(c2).then(smsg,function(e){smsg(e.message)});
     });
+    $('hdr_sync').addEventListener('click',function(){sync.run(true).catch(function(){})});
     $('kd_sy_run').addEventListener('click',function(){sync.saveCfg(read());smsg('');sync.run(true).then(function(){smsg('Abgleich abgeschlossen.')},function(e){if(e&&e.code==='cors'){smsg(e.message+' Prüfe …');sync.diag(read()).then(function(d){smsg(e.message+' Diagnose: '+d)},function(){smsg(e.message)})}else smsg(e.message)})});
     $('kd_sy_clean').addEventListener('click',function(){
       sync.saveCfg(read());smsg('Prüfe …');

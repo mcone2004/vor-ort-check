@@ -854,8 +854,11 @@ input:focus,select:focus,textarea:focus,.kd-pick:focus-visible{background:var(--
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fb:rgba(243,245,240,.32)}}
 :root[data-theme="dark"]{--fb:rgba(243,245,240,.32)}
 input,select,textarea{border-color:var(--fb);background-color:var(--inset,#EEF1E8)}
-.bt select,.bt input,.bt textarea,fieldset select,fieldset input,fieldset textarea{background-color:var(--inset,#EEF1E8)}
-@media (hover:hover) and (pointer:fine) and (min-width:1100px){.wrap,.top>div,body[data-mode="home"] .top>div,.home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
+.bt select,.bt input,.bt textarea,fieldset select,fieldset input,fieldset textarea,.kd-pick{background-color:var(--inset,#EEF1E8)}
+/* Gruppen als weiße Karten, damit sich die Felder abheben (Gebäudehülle hat eigene Karten) */
+form>fieldset[data-tab]:not([data-tab="huelle"]){background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.1rem 1.3rem 1.3rem}
+form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>input,form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>select,form>fieldset[data-tab]:not([data-tab="huelle"]) .pendf{background:var(--inset,#EEF1E8);border:1px solid rgba(120,128,120,.55);border-left:4px solid #C98A00}
+@media (min-width:1400px){.wrap,.top>div,body[data-mode="home"] .top>div,.home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
 </style>
 </head><body>
 <header class="top"><div>

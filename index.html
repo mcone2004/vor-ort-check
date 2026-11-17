@@ -879,6 +879,7 @@ body .ctabs,body .vbtabs{gap:4px;padding:.5rem .5rem 0;border-bottom:1px solid v
 body .ctabs button,body .vbtabs button{background:var(--btn);color:var(--muted);border:1px solid var(--btn-b);border-bottom:0;border-radius:12px 12px 0 0;margin-bottom:0;min-height:2.7rem;padding:.4rem 1rem .4rem .8rem}
 body .ctabs button:hover,body .vbtabs button:hover{background:var(--btn-h);color:var(--ink)}
 body .ctabs button[aria-current="true"],body .vbtabs button[aria-current="true"],body .ctabs button[aria-current="true"]:hover,body .vbtabs button[aria-current="true"]:hover{background:var(--surface);color:var(--ink);border:1px solid var(--btn-b);border-bottom:0;margin-bottom:-1px;padding-bottom:calc(.4rem + 1px)}
+body .ctabs button:focus,body .ctabs button:focus-visible,body .vbtabs button:focus,body .vbtabs button:focus-visible{outline:0!important}
 body .ctabs button .cn,body .vbtabs button .cn{color:inherit}
 body .ctabs button[aria-current="true"] .cn,body .vbtabs button[aria-current="true"] .cn{color:var(--deep)}
 @media print{body{background:#fff!important;background-image:none!important}}
@@ -5785,7 +5786,11 @@ function setTab(id,noScroll){
   if(nx){nx.hidden=all||ix<0||ix>=L.length-1;var nt=ix>=0&&ix<L.length-1?tabList()[ix+1][1]:'';nx.textContent=nt?'Weiter: '+nt:'Weiter'}
   var cur=document.querySelector('#ctabs [aria-current="true"]');
   if(cur&&cur.scrollIntoView){try{cur.scrollIntoView({block:'nearest',inline:'center'})}catch(e){}}
-  if(!noScroll){try{var m=document.querySelector('main.wrap');window.scrollTo(0,Math.max(0,m.getBoundingClientRect().top+window.pageYOffset-4))}catch(e){}}
+  if(!noScroll){try{
+    // Kein Springen: Ist die Leiste frei sichtbar, bleibt die Seite stehen. Klebt sie oben, rutscht der neue Inhalt direkt unter sie.
+    var nv=$('ctabs'),t0=document.querySelector('form>.ctab-on,#mfhbox>.ctab-on');
+    if(nv&&t0&&nv.getBoundingClientRect().top<=2){var d=t0.getBoundingClientRect().top-(nv.getBoundingClientRect().bottom+12);if(d<0) window.scrollBy(0,d)}
+  }catch(e){}}
 }
 function initTabs(){
   var nav=$('ctabs');if(!nav) return;

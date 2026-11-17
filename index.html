@@ -221,6 +221,7 @@ textarea{font:inherit;font-size:14px;width:100%;min-height:8rem;color:var(--ink)
 .rep-cls{display:inline-block;min-width:1.9em;text-align:center;font-weight:700;color:#fff;border-radius:3px;padding:0 .3em;margin-right:.3em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .rep-cls.c1{background:#5E8F16}.rep-cls.c2{background:#A58E10}.rep-cls.c3{background:#C66A12}.rep-cls.c4{background:#B03A2E}
 .rep-foot{margin-top:.5rem;padding-top:.35rem;border-top:1px solid #C1C1C1;font-size:.76em;color:#555}
+.rep-page .rep-approx{margin:.45rem 0;padding:.4rem .6rem;border-radius:8px;background:#F1F3EE;color:#20252A;font-size:.88em}
 .rep-bar{height:.4rem;background:#E7ECDD;margin:.15rem 0 .1rem;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rep-bar i{display:block;height:100%;background:#7CB028}
 .rep-two{display:flex;justify-content:space-between;gap:1rem;font-size:.92em}
 .rep-int{border:1px dashed #999;padding:.1rem .6rem;margin-top:.6rem;font-size:.82em;color:#555}
@@ -848,6 +849,12 @@ label.pend>input,label.pend>select,label.calc.pend>input,label.calc.pend>select,
 input:focus,select:focus,textarea:focus,.kd-pick:focus-visible{background:var(--surface);border-color:transparent;box-shadow:inset 0 -3px 0 #7CB028}
 .calc-leg{gap:.3rem .5rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* Felder klarer abgegrenzt, Inhalt am PC höchstens 75 % der Bildschirmbreite (iPad unverändert) */
+:root{--fb:rgba(85,85,85,.5)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fb:rgba(243,245,240,.32)}}
+:root[data-theme="dark"]{--fb:rgba(243,245,240,.32)}
+input,select,textarea{border-color:var(--fb)}
+@media (hover:hover) and (pointer:fine) and (min-width:1100px){.wrap,.top>div{max-width:75vw}}
 </style>
 </head><body>
 <header class="top"><div>
@@ -5460,6 +5467,7 @@ function buildReport(internal,snap,withSrc){
   h+='<h2>Ergebnis für die Wärmepumpe im Bestand</h2>';
   h+='<div class="rep-verdict" style="--rc:'+RCOL[rt.k]+'"><div><strong>'+esc(rt.t)+'</strong><span>'+esc(rt.s)+'</span></div><div class="rep-kpi"><div><small>Heizlastabschätzung, ca.</small><b>'+fmt(s1.kw,1)+' kW</b></div><div><small>Vorlauf nötig, ca.</small><b>'+Math.round(s1.vl)+' °C</b></div><div><small>'+jazLbl(R)+'</small><b>'+fmt(s1.jaz,1)+'</b></div></div></div>';
   if(X.dq) h+='<p class="rep-dq"><b>Datenqualität: '+X.dq.name+'.</b> '+esc(X.dq.txt)+(X.dq.nAnn?' '+X.dq.nAnn+' Angaben beruhen auf Annahmen'+(internal?', siehe interne Seite.':'.'):'')+(X.dq.warn&&X.dq.warn.length?' '+X.dq.warn.length+(X.dq.warn.length===1?' Auffälligkeit wird geprüft.':' Auffälligkeiten werden geprüft.'):'')+'</p>';
+  h+='<p class="rep-approx"><b>Hinweis:</b> Alle Werte sind Näherungswerte und nicht verbindlich. Sie beruhen auf den Bestandsdaten, die beim Termin aufgenommen wurden, etwa der vorhandenen Heizung, dem Verbrauch und den Bauteilen. Die genannte Leistung ist keine Festlegung auf ein bestimmtes Gerät. Die endgültige Auslegung folgt im Angebot und in der Heizlastberechnung.</p>';
   h+='<p>'+esc(X.t)+'</p>';
   // Varianten
   var cols=[{n:'Bestand',s:null}];
@@ -5511,7 +5519,7 @@ function buildReport(internal,snap,withSrc){
   var sl2=solarLines(R);if(sl2.length) h+='<h2>Solar und Strom</h2>'+sl2.map(function(x){return '<p>'+esc(x)+'</p>'}).join('');
   // Hinweise
   h+='<h2>Hinweise</h2><ul>'+X.f.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
-  h+='<p class="rep-foot">Überschlägige Schätzung aus Baujahr, Bauteilen, Heizung und Verbrauch. Wie belastbar sie ist, zeigt die Datenqualität. Die Heizlastabschätzung ist keine Heizlastberechnung nach DIN EN 12831. '+(fh?'Die Förderung ist eine Schätzung, verbindlich sind nur Zusage und Bescheid. ':'Förderung ist nicht eingerechnet. ')+(Fx&&Fx.tot?'Wartung und Preissteigerung gehen nur in die Gesamtkosten ein. ':'Wartung und Preisentwicklung sind nicht eingerechnet. ')+'Grundpreise sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
+  h+='<p class="rep-foot">Näherungswerte, nicht verbindlich: überschlägige Schätzung aus den Bestandsdaten (Baujahr, Bauteile, Heizung, Verbrauch). Wie belastbar sie ist, zeigt die Datenqualität. Die Heizlastabschätzung ist keine Heizlastberechnung nach DIN EN 12831. '+(fh?'Die Förderung ist eine Schätzung, verbindlich sind nur Zusage und Bescheid. ':'Förderung ist nicht eingerechnet. ')+(Fx&&Fx.tot?'Wartung und Preissteigerung gehen nur in die Gesamtkosten ein. ':'Wartung und Preisentwicklung sind nicht eingerechnet. ')+'Grundpreise sind nicht eingerechnet. Energieklassen sind Näherungen und ersetzen keinen Energieausweis.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
   if(withSrc!==false) h+='<div class="rep-page"><h1>So kommen die Zahlen zustande</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+'</p>'+srcHtml({dq:X.dq,o:o,R:R,S:S,I:I,F:X.F,kunde:!internal})+'<p class="rep-foot">Alle Werte sind Näherungen aus den Angaben beim Termin.</p><p class="rep-firm">'+esc(FIRMA)+'</p></div>';
   if(internal){
     h+='<div class="rep-page"><h1>Intern: Eingaben und Annahmen</h1><p style="color:#555;margin:0">'+esc(nm||'Kunde')+(ad?', '+esc(ad):'')+' · '+(snap?'gespeicherte Auswertung vom '+dateTime:dateRep)+'</p>';

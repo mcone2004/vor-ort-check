@@ -111,7 +111,7 @@ function usage(id){
 function katOpts(kinds,cur){
   var l=E.kat.filter(function(k){return kinds.indexOf(k.kind)>=0});
   l.sort(function(a,b){return String(a.name).localeCompare(String(b.name),'de')});
-  var o=l.map(function(k){var u=C.uOf(k);return {v:k.id,t:(k.name||'ohne Namen')+(u.ok?'  ·  U '+f2(u.u):'')}});
+  var o=l.map(function(k){var u=C.uOf(k);return {v:k.id,t:(k.name||'ohne Namen')+(u.ok?'  ·  U '+f2(u.u)+(u.src==='pausch'?' (pauschal)':''):'')}});
   if(cur){var k2=C.findKat(E,cur);if(k2&&kinds.indexOf(k2.kind)<0) o.unshift({v:cur,t:(k2.name||'ohne Namen')+' (Art passt nicht)'})}
   return o;
 }
@@ -259,7 +259,15 @@ var CSS='\
 .erf-btn{border-radius:12px;font-weight:700}\
 .erf-missbox{border-radius:12px}\
 @media (pointer:coarse),(any-pointer:coarse){.erf-main input,.erf-main select,.erf-main textarea{min-height:48px}}\
+#erf-root{--erf-fb:rgba(85,85,85,.5);--erf-bd:#C1C1C1;--erf-card:#F8F9F6}\
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #erf-root{--erf-fb:rgba(243,245,240,.32);--erf-bd:#3A4147;--erf-card:#1B1F23}}\
+:root[data-theme="dark"] #erf-root{--erf-fb:rgba(243,245,240,.32);--erf-bd:#3A4147;--erf-card:#1B1F23}\
+.erf-sec{background:var(--surface);border:1px solid var(--erf-bd);border-radius:14px;padding:1rem 1.1rem 1.1rem}\
+.erf-wall,.erf-layer,.erf-kat,.erf-svgbox,.erf-shape,.erf-ow{background:var(--erf-card);border:1px solid var(--erf-bd)}\
+.erf-main input:not([type=checkbox]):not([type=file]):not(:focus),.erf-main select:not(:focus),.erf-main textarea:not(:focus){border-color:var(--erf-fb)}\
+@media (hover:hover) and (pointer:fine) and (min-width:1100px){.erf-in{max-width:75vw;margin-left:auto;margin-right:auto}}\
 @media print{\
+ .erf-sec{border:0!important;padding:0!important;background:transparent!important}\
  html,body{height:auto!important;overflow:visible!important;background:#fff!important}\
  body>*:not(#erf-root){display:none!important}\
  body>#erf-root{position:static!important;display:block!important;background:#fff!important}\
@@ -283,11 +291,19 @@ function outW(id){
 function outU(id){
   var k=C.findKat(E,id);if(!k) return '';
   var u=C.uOf(k);
-  return u.ok?'U '+f2(u.u):'U fehlt';
+  return u.ok?'U '+f2(u.u)+(u.src==='pausch'?' (pauschal)':''):'U fehlt';
 }
 function outUDetail(id){
   var k=C.findKat(E,id);if(!k) return '';
-  var u=C.uOf(k);if(!u.calc) return '';
+  var u=C.uOf(k);
+  if(u.pa){
+    var a=u.pa;
+    if(!a.ok) return '<span class="erf-bad">'+esc(a.why)+'</span>';
+    var t='Tabelle 2, Baualtersklasse '+C.PA_KL[a.ci].n+': U₀ '+f2(a.u0)+' W/(m²K)';
+    if(a.d>0) t+=' · nachträglich '+C.f1(a.d*100)+' cm Dämmung, λ '+f3(a.lam);
+    return t+'<br><span class="erf-u">U = '+f3(a.u)+' W/(m²K), Pauschalwert</span>';
+  }
+  if(!u.calc) return '';
   var c=u.calc;
   if(!c.ok) return 'Noch keine Schicht mit Dicke und λ eingetragen.';
   var h='Σ R Schichten '+f3(c.sumR)+' · Rsi '+f2(c.rsi)+' · Rse '+f2(c.rse)+' · R gesamt '+f3(c.rt)+' m²K/W<br><span class="erf-u">U = '+f3(c.u)+' W/(m²K)</span>';
@@ -632,10 +648,17 @@ function katCard(k){
       h+='<div class="erf-row">'+btn('layer-add','Schicht hinzufügen',{x:k.id,cls:''})+btn('layer-vent','Hinterlüftung ab hier',{x:k.id})+'</div>';
       h+='<details><summary class="erf-hint">Übergangswiderstände ändern (Standard je Bauteilart: Rsi '+f2(kd.rsi)+', Rse '+f2(kd.rse)+')</summary><div class="erf-g" style="margin-top:.5rem">'+F(p+'rsi','Rsi in m²K/W',{ph:f2(kd.rsi)})+F(p+'rse','Rse in m²K/W',{ph:f2(kd.rse)})+'</div></details>';
       h+='<div data-out="ud:'+k.id+'">'+outUDetail(k.id)+'</div>';
+    }else if(k.src==='pausch'&&C.paRows(k.kind).length){
+      h+='<div class="erf-g">'+S(p+'pa','Bauart nach amtlicher Tabelle',C.paRows(k.kind).map(function(r){return {v:r.id,t:r.n}}),{r:1,blank:'Bauart wählen',cls:'wide'})+
+        F(p+'pby','Baujahr dieses Bauteils',{ph:has(E.g.bj)?String(E.g.bj):'z. B. 1968'})+'</div>';
+      h+='<div class="erf-g">'+F(p+'pd','Nachträgliche Dämmung in cm (leer = keine)')+F(p+'pl','λ der Dämmung in W/(mK)',{ph:'0,04'})+'</div>';
+      h+='<div class="erf-hint">Ist λ nicht bekannt, gelten 0,04 für Mineralfaser und Kunststoffschäume und 0,05 für Dämmstoffe aus nachwachsenden Rohstoffen oder Einblasdämmstoffe.</div>';
+      h+='<div data-out="ud:'+k.id+'">'+outUDetail(k.id)+'</div>';
+      h+='<div class="erf-note">Pauschalwert nach Baualter, also eine Schätzung und kein Nachweis. Sobald der Aufbau bekannt ist, die Quelle auf „aus Schichtaufbau berechnet“ umstellen. Quelle: Bekanntmachung vom 08.10.2020 (BAnz AT 04.12.2020 B1), Tabelle 2.</div>';
     }else{
       h+='<div class="erf-g">'+F(p+'u','U-Wert in W/(m²K)')+'</div>';
       if(k.src==='schaetz') h+='<div class="erf-note">Geschätzte Werte vor der Abgabe belegen oder durch einen Aufbau ersetzen. Das Bauteil wird im Datenblatt als geschätzt markiert.</div>';
-      if(k.src==='pausch') h+='<div class="erf-hint">Pauschalwert aus der amtlichen Tabelle für das Baualter eintragen. Die App liefert diese Tabellenwerte nicht selbst.</div>';
+      if(k.src==='pausch') h+='<div class="erf-hint">Für diese Bauteilart enthält die amtliche Tabelle keine Pauschalwerte. Wert selbst eintragen oder den Aufbau erfassen.</div>';
     }
     h+=wallPick(k);
     h+=TA(p+'note','Notiz (Quelle, Besonderheiten)',2)+photoBox('kat:'+k.id,'Foto vom Aufbau oder Bauteil');
@@ -785,7 +808,7 @@ function sheetHTML(){
   var ord=Object.keys(C.KINDS);
   E.kat.slice().sort(function(a,b){return ord.indexOf(a.kind)-ord.indexOf(b.kind)}).forEach(function(k){
     var u=C.uOf(k),win=(k.kind==='fenster'||k.kind==='tuer');
-    h+='<div style="margin:.4rem 0"><b>'+esc(k.name||'ohne Namen')+'</b> · '+esc(C.KINDS[k.kind].n)+' · '+(u.ok?'<b>U '+(win?f2(u.u):f3(u.u))+' W/(m²K)</b>':'U fehlt')+' · '+esc(C.SRC[k.src||'calc']||'')+(usage(k.id)?'':' · nicht verwendet')+(WALLKINDREV[k.kind]&&wallRefs(k.id).length?' · '+esc(wallRefs(k.id).join(', ')):'')+'</div>';
+    h+='<div style="margin:.4rem 0"><b>'+esc(k.name||'ohne Namen')+'</b> · '+esc(C.KINDS[k.kind].n)+' · '+(u.ok?'<b>U '+(win?f2(u.u):f3(u.u))+' W/(m²K)</b>':'U fehlt')+' · '+esc(C.SRC[k.src||'calc']||'')+(u.pa&&u.pa.ok?esc(' (Tabelle 2, '+C.PA_KL[u.pa.ci].n+(u.pa.d>0?', mit nachträglicher Dämmung':'')+')'):'')+(usage(k.id)?'':' · nicht verwendet')+(WALLKINDREV[k.kind]&&wallRefs(k.id).length?' · '+esc(wallRefs(k.id).join(', ')):'')+'</div>';
     if(win) h+='<div>'+esc([k.verg,k.rahmen,has(k.g)?'g '+k.g:'',has(k.fr)?'Rahmenanteil '+k.fr+' %':'',has(k.bj)?'Einbau '+k.bj:''].filter(Boolean).join(' · '))+'</div>';
     else if(u.calc&&u.calc.ok){
       h+='<div class="erf-wrapx"><table class="erf-tb"><thead><tr><th>Schicht, innen nach außen</th><th class="r">Dicke cm</th><th class="r">λ</th><th>Anteil</th></tr></thead><tbody>';
@@ -1126,6 +1149,8 @@ function bind(){
     var v=(t.type==='checkbox')?(t.checked?'1':''):t.value;
     if(!pset(p,v)) return;
     syncH(p);
+    var ks=/^kat\/([^\/]+)\/src$/.exec(p);
+    if(ks&&v==='pausch'){var kp=C.findKat(E,ks[1]);if(kp&&!has(kp.pby)&&C.year(E.g.bj)) kp.pby=String(C.year(E.g.bj))}
     if(t.getAttribute('data-mat')) matChanged(p,v);
     touch();
     if(t.getAttribute('data-r')||t.getAttribute('data-mat')) render();

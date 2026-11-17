@@ -123,11 +123,60 @@ function calcU(k){
   if(Rlow>0&&Rup/Rlow>1.5) out.warn.push('Verhältnis oberer zu unterem Grenzwert über 1,5: Verfahren für diesen Aufbau nicht zulässig, Detailberechnung nötig.');
   return out;
 }
-/* U-Wert eines Katalogeintrags: aus Aufbau, sonst eingetragener Wert (Plan, Pauschale, Schätzung) */
+/* ---------- Pauschalwerte nicht nachträglich gedämmter opaker Bauteile nach Baualter ----------
+   Quelle: Bekanntmachung der Regeln zur Datenaufnahme und Datenverwendung im Wohngebäudebestand vom 08.10.2020
+   (BAnz AT 04.12.2020 B1), Tabelle 2, W/(m²K). null = keine Angabe in der Tabelle. Spalten siehe PA_KL.
+   Türen und Rollladenkästen sind bewusst nicht enthalten, Fenster stehen in Tabelle 3 der Bekanntmachung. */
+var PA_KL=[{b:1918,n:'bis 1918'},{b:1948,n:'1919 bis 1948'},{b:1957,n:'1949 bis 1957'},{b:1968,n:'1958 bis 1968'},{b:1978,n:'1969 bis 1978'},{b:1983,n:'1979 bis 1983'},{b:1994,n:'1984 bis 1994'},{b:2001,n:'1995 bis 2001'},{b:9999,n:'ab 2002'}];
+var PA=[
+  {id:'dach_m',k:'dach',n:'Dach, massive Konstruktion',v:[2.1,2.1,2.1,1.3,1.3,0.60,0.40,0.30,0.20]},
+  {id:'dach_h',k:'dach',n:'Dach, Holzkonstruktion',v:[2.6,1.4,1.4,1.4,0.80,0.70,0.50,0.30,0.20]},
+  {id:'og_m',k:'decke_o',n:'Oberste Geschossdecke, massive Decke',v:[2.1,2.1,2.1,2.1,0.60,0.60,0.30,0.30,0.20]},
+  {id:'og_h',k:'decke_o',n:'Oberste Geschossdecke, Holzbalkendecke',v:[1.0,1.0,0.80,0.70,0.60,0.40,0.30,0.30,0.20]},
+  {id:'aw_zo',k:'wand',n:'Massiv, zweischalig, ohne Dämmschicht',v:[1.3,1.3,1.3,1.4,1.0,0.80,0.60,0.50,0.40]},
+  {id:'aw_zm',k:'wand',n:'Massiv, zweischalig, mit Dämmschicht',v:[null,null,1.0,0.90,0.90,0.70,0.50,0.50,0.40]},
+  {id:'aw_v20',k:'wand',n:'Vollziegel, Naturstein, Kalksandstein u. Ä., bis 20 cm',v:[2.8,2.8,2.8,null,null,null,null,null,null]},
+  {id:'aw_v30',k:'wand',n:'Vollziegel, Naturstein, Kalksandstein u. Ä., 20 bis 30 cm',v:[1.8,1.8,1.8,null,null,null,null,null,null]},
+  {id:'aw_v30p',k:'wand',n:'Vollziegel, Naturstein, Kalksandstein u. Ä., über 30 cm',v:[1.5,1.5,1.5,null,null,null,null,null,null]},
+  {id:'aw_hlz',k:'wand',n:'Hochlochziegel, Bimsbeton-Hohlstein u. Ä.',v:[1.4,1.4,1.4,1.4,1.0,0.80,0.60,0.50,0.40]},
+  {id:'aw_s20',k:'wand',n:'Sonstige massive Wandaufbauten bis 20 cm',v:[3.0,3.0,3.0,1.4,1.0,0.80,0.70,0.70,0.40]},
+  {id:'aw_s20p',k:'wand',n:'Sonstige Wandaufbauten über 20 cm',v:[2.2,2.2,2.2,1.4,1.0,0.80,0.60,0.50,0.40]},
+  {id:'aw_holz',k:'wand',n:'Holz (Massivholz, Holzrahmen, Holztafel)',v:[0.50,0.50,0.50,0.50,0.50,0.50,0.40,0.40,0.30]},
+  {id:'aw_fl',k:'wand',n:'Fachwerkwand, Lehm-Ausfachung bis 25 cm',v:[1.5,1.5,1.5,null,null,null,null,null,null]},
+  {id:'aw_fv',k:'wand',n:'Fachwerkwand, Vollziegel- oder Naturstein-Ausfachung bis 25 cm',v:[2.0,2.0,2.0,null,null,null,null,null,null]},
+  {id:'aw_sh',k:'wand',n:'Sonstige Holzkonstruktion',v:[2.0,2.0,1.5,1.4,0.60,0.50,0.40,0.40,0.30]},
+  {id:'kd_stb',k:'decke_u',n:'Kellerdecke, Stahlbeton massiv',v:[1.6,1.6,2.3,1.0,1.0,0.80,0.60,0.60,0.50]},
+  {id:'kd_h',k:'decke_u',n:'Kellerdecke, Holzbalkendecke',v:[1.0,1.0,1.0,0.80,0.60,0.60,0.40,0.40,0.40]},
+  {id:'kd_z',k:'decke_u',n:'Kellerdecke, Ziegel- oder Hohlsteinkonstruktion',v:[1.2,1.2,1.5,1.0,1.0,0.80,0.60,0.60,0.50]},
+  {id:'bo_stb',k:'boden',n:'Boden gegen Erdreich, Stahlbeton massiv',v:[1.6,1.6,2.3,1.2,1.2,0.80,0.60,0.60,0.50]},
+  {id:'bo_z',k:'boden',n:'Boden gegen Erdreich, Ziegel- oder Holzkonstruktion',v:[1.2,1.2,1.5,1.0,1.0,0.80,0.60,0.60,null]},
+  {id:'bo_h',k:'boden',n:'Boden gegen Erdreich oder Hohlraum, Holzkonstruktion',v:[1.8,1.8,1.0,0.80,0.60,0.60,0.40,0.40,null]}
+];
+function paKlasse(by){by=+by;if(!(by>0)) return -1;for(var i=0;i<PA_KL.length;i++) if(by<=PA_KL[i].b) return i;return PA_KL.length-1}
+function paRows(kind){return PA.filter(function(r){return r.k===kind})}
+function paRow(id){for(var i=0;i<PA.length;i++) if(PA[i].id===id) return PA[i];return null}
+/* Pauschalwert eines Bauteils. Nachträgliche Dämmung: Widerstand d/λ wird zum Widerstand 1/U0 addiert (Reihenschaltung).
+   Ohne bekanntes λ gelten 0,04 W/(mK) für Mineralfaser und Kunststoffschäume, 0,05 für nachwachsende Rohstoffe und Einblasdämmstoffe. */
+function paCalc(k){
+  var r=paRow(k.pa);if(!r) return null;
+  var out={row:r,by:year(k.pby),ci:-1,u0:null,d:0,lam:0.04,u:null,ok:false,why:''};
+  out.ci=paKlasse(out.by);
+  if(out.ci<0){out.why='Baujahr dieses Bauteils eintragen';return out}
+  var u0=r.v[out.ci];
+  if(u0==null){out.why='Die Tabelle enthält für diese Bauart und Baualtersklasse ('+PA_KL[out.ci].n+') keinen Wert. Andere Bauart wählen oder den Aufbau erfassen.';return out}
+  out.u0=u0;
+  out.d=Math.max(0,N(k.pd))/100;
+  if(N(k.pl)>0) out.lam=N(k.pl);
+  out.u=out.d>0?1/(1/u0+out.d/out.lam):u0;
+  out.ok=true;
+  return out;
+}
+/* U-Wert eines Katalogeintrags: aus Aufbau, sonst Pauschalwert nach Baualter oder eingetragener Wert (Plan, Schätzung) */
 function uOf(k){
   if(!k) return {u:null,ok:false,src:'',calc:null};
   if(k.kind==='fenster'||k.kind==='tuer'){var u=N(k.u);return {u:u>0?u:null,ok:u>0,src:k.src||'',calc:null}}
   if((k.src||'calc')==='calc'){var c=calcU(k);return {u:c.ok?c.u:null,ok:c.ok,src:'calc',calc:c}}
+  if(k.src==='pausch'&&k.pa){var pa=paCalc(k);if(pa) return {u:pa.ok?pa.u:null,ok:pa.ok,src:'pausch',calc:null,pa:pa}}
   var v=N(k.u);return {u:v>0?v:null,ok:v>0,src:k.src,calc:null};
 }
 var SRC={calc:'aus Schichtaufbau berechnet',plan:'aus Plan oder Nachweis',pausch:'Pauschalwert (amtliche Tabelle)',schaetz:'geschätzt'};
@@ -621,7 +670,7 @@ function warnings(e){
 }
 function openCount(e){return missing(e).length}
 
-var api={ausweisart:ausweisart,sanHuelle:sanHuelle,newSan:newSan,SAN_BT:SAN_BT,SAN_STD:SAN_STD,SAN_GES:SAN_GES,SAN_HUELLE:SAN_HUELLE,SAN_BELEG:SAN_BELEG,SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
+var api={ausweisart:ausweisart,sanHuelle:sanHuelle,newSan:newSan,SAN_BT:SAN_BT,SAN_STD:SAN_STD,SAN_GES:SAN_GES,SAN_HUELLE:SAN_HUELLE,SAN_BELEG:SAN_BELEG,SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PA:PA,PA_KL:PA_KL,paKlasse:paKlasse,paRows:paRows,paCalc:paCalc,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
   newErf:newErf,normalize:normalize,newFloor:newFloor,newWall:newWall,newOpening:newOpening,newSurface:newSurface,newKat:newKat,findKat:findKat,
   trace:trace,wallBearing:wallBearing,sector:sector,dirName:dirName,closeFix:closeFix,oArea:oArea,wallGeom:wallGeom,summary:summary,suggestArea:suggestArea,
   missing:missing,warnings:warnings,openCount:openCount,bauantragVor1977:bauantragVor1977,year:year};

@@ -220,7 +220,8 @@ var CSS='\
 .erf-phg .erf-pht{display:block;width:100%;min-height:0;padding:0;border:0;background:none;border-radius:4px;cursor:zoom-in}\
 .erf-phg .erf-pht img{display:block}\
 .erf-btn{display:inline-flex;align-items:center;justify-self:start;border:1px solid var(--line);border-radius:4px;padding:.55rem 1rem;font-weight:700;color:var(--ink);cursor:pointer;min-height:44px;font-size:.9rem}\
-.erf-btn:hover{background:var(--tint)}\
+.erf-btn{background:var(--btn,#E0E9CE);border-color:var(--btn-b,#AEBB96)}\
+.erf-btn:hover{background:var(--btn-h,#D3DFBB)}\
 .erf-list{margin:0;padding:0;list-style:none;display:grid;gap:.35rem}\
 .erf-list li{display:flex;gap:.6rem;align-items:flex-start;font-size:.88rem}\
 .erf-list button{padding:.25rem .7rem;min-height:36px;font-size:.8rem;flex:none}\
@@ -234,7 +235,7 @@ var CSS='\
 .erf-top{background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line);padding-block:calc(.8rem + env(safe-area-inset-top,0px)) .8rem}\
 .erf-top .erf-t{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}\
 .erf-top .erf-t small{color:var(--muted);font-size:.8rem;margin-top:.25rem}\
-.erf-top button{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:.5rem 1.1rem}\
+.erf-top button{background:var(--btn,#E0E9CE);color:var(--ink);border:1px solid var(--btn-b,#AEBB96);border-radius:12px;padding:.5rem 1.1rem}\
 .erf-top button:hover{background:var(--field)}\
 .erf-nav{gap:0;padding-block:0;background:var(--bg)}\
 .erf-nav button{background:transparent;border:0;border-bottom:3px solid transparent;border-radius:0;color:var(--muted);padding:.4rem 1rem;font-weight:700;margin-bottom:-1px}\
@@ -246,7 +247,7 @@ var CSS='\
 .erf-in{max-width:none}\
 .erf-wall,.erf-layer,.erf-kat,.erf-svgbox,.erf-shape,.erf-ow{background:var(--soft);border:0}\
 .erf-wall input,.erf-wall select,.erf-wall textarea,.erf-layer input,.erf-layer select,.erf-layer textarea,.erf-kat input,.erf-kat select,.erf-kat textarea{background:var(--inset)}\
-#erf-root{background:var(--bg)}\
+#erf-root{background-color:var(--bg);background-image:var(--page-grad,none)}\
 .erf-nav{justify-content:flex-start}.erf-nav>*:first-child{margin-left:auto}.erf-nav>*:last-child{margin-right:auto}\
 .erf-top,.erf-nav{background:var(--surface)}\
 .erf-note{border-left:0;border-radius:14px;background:var(--tint)}\

@@ -857,7 +857,16 @@ input,select,textarea{border-color:var(--fb);background-color:var(--inset,#EEF1E
 .bt select,.bt input,.bt textarea,fieldset select,fieldset input,fieldset textarea,.kd-pick{background-color:var(--inset,#EEF1E8)}
 /* Gruppen als weiße Karten, damit sich die Felder abheben (Gebäudehülle hat eigene Karten) */
 form>fieldset[data-tab]:not([data-tab="huelle"]){background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.1rem 1.3rem 1.3rem}
-form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>input,form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>select,form>fieldset[data-tab]:not([data-tab="huelle"]) .pendf{background:var(--inset,#EEF1E8);border:1px solid rgba(120,128,120,.55);border-left:4px solid #C98A00}
+form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>input,form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>select,form>fieldset[data-tab]:not([data-tab="huelle"]) .pendf{background:var(--inset,#EEF1E8);border:1px solid rgba(120,128,120,.55)}
+/* Hintergrund: frischer, dezenter Verlauf mit etwas Grün */
+html{background:#EAF0DF}
+body{background-color:#EAF0DF;background-image:radial-gradient(900px 520px at 92% -8%,rgba(124,176,40,.20),transparent 70%),linear-gradient(165deg,#F8FAF4 0%,#EDF3E2 55%,#E1EBD0 100%);background-attachment:fixed;min-height:100vh}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) html,:root:not([data-theme="light"]) body{background-color:#14181B}:root:not([data-theme="light"]) body{background-image:radial-gradient(900px 520px at 92% -8%,rgba(124,176,40,.16),transparent 70%),linear-gradient(165deg,#15191C 0%,#161C18 55%,#1A2217 100%)}}
+:root[data-theme="dark"] html,:root[data-theme="dark"] body{background-color:#14181B}:root[data-theme="dark"] body{background-image:radial-gradient(900px 520px at 92% -8%,rgba(124,176,40,.16),transparent 70%),linear-gradient(165deg,#15191C 0%,#161C18 55%,#1A2217 100%)}
+#ctabs{background:rgba(240,245,231,.82)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #ctabs{background:rgba(21,25,28,.82)!important}}
+:root[data-theme="dark"] #ctabs{background:rgba(21,25,28,.82)!important}
+@media print{body{background:#fff!important;background-image:none!important}}
 @media (min-width:1400px){.wrap,.top>div,body[data-mode="home"] .top>div,.home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
 </style>
 </head><body>

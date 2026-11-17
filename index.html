@@ -879,6 +879,9 @@ body .ctabs,body .vbtabs{gap:4px;padding:.5rem .5rem 0;border-bottom:1px solid v
 body .ctabs button,body .vbtabs button{background:var(--btn);color:var(--muted);border:1px solid var(--btn-b);border-bottom:0;border-radius:12px 12px 0 0;margin-bottom:0;min-height:2.7rem;padding:.4rem 1rem .4rem .8rem}
 body .ctabs button:hover,body .vbtabs button:hover{background:var(--btn-h);color:var(--ink)}
 body .ctabs button[aria-current="true"],body .vbtabs button[aria-current="true"],body .ctabs button[aria-current="true"]:hover,body .vbtabs button[aria-current="true"]:hover{background:var(--surface);color:var(--ink);border:1px solid var(--btn-b);border-bottom:0;margin-bottom:-1px;padding-bottom:calc(.4rem + 1px)}
+label.calc>input,label.calc>select,label.calc>textarea,.calcf{border:1px solid rgba(120,128,120,.55)}
+form>fieldset[data-tab] label.pend>input,form>fieldset[data-tab] label.pend>select,form>fieldset[data-tab] label.pend>textarea,form>fieldset[data-tab] .pendf,form>fieldset[data-tab] label.calc.pend>input,form>fieldset[data-tab] label.calc.pend>select{background:var(--inset,#EEF1E8);border:1px solid rgba(120,128,120,.55)}
+form>fieldset[data-tab] .bt select,form>fieldset[data-tab] .bt input:not([type=checkbox]):not([type=radio]),form>fieldset[data-tab] .bt textarea{border:1px solid rgba(120,128,120,.55)}
 body .ctabs button:focus,body .ctabs button:focus-visible,body .vbtabs button:focus,body .vbtabs button:focus-visible{outline:0!important}
 body .ctabs button .cn,body .vbtabs button .cn{color:inherit}
 body .ctabs button[aria-current="true"] .cn,body .vbtabs button[aria-current="true"] .cn{color:var(--deep)}

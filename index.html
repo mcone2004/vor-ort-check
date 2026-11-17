@@ -3352,7 +3352,7 @@ function render(){
   var top='<div class="verdict r'+rt.k+'"><div class="vtop"><div><p class="eyebrow">Wärmepumpe ohne Sanierung</p><h2>'+rt.t+'</h2><p class="vsub">'+rt.s+'</p></div>'+
     '<ul class="kpi"><li><span>Heizlastabschätzung, ca.</span><b>'+fmt(s1.kw,1)+' kW</b></li><li><span>Vorlauf nötig, ca.</span><b>'+Math.round(s1.vl)+' °C</b>'+gauge(s1.vl)+'</li><li><span>'+jazLbl(R)+'</span><b>'+fmt(s1.jaz,1)+'</b></li></ul></div>'+
     '<div class="vcls"><p class="eyebrow">Energieklasse, ca.</p>'+scale+'</div>'+
-    '<p class="vfoot">'+basisTxt+' Skala: heute = Bestand, WP = Wärmepumpe ohne Sanierung, V3 = Wärmepumpe mit kompletter Hülle.</p></div>';
+    '<p class="vfoot">'+basisTxt+' Skala: heute = Bestand, WP = Wärmepumpe ohne Sanierung, V3 = Wärmepumpe mit kompletter Hülle.</p><p class="vfoot">Näherungswerte, nicht verbindlich: Sie beruhen auf den erfassten Bestandsdaten (Bauteile, Heizung, Verbrauch). Die genannte Leistung ist keine Festlegung auf ein bestimmtes Gerät.</p></div>';
 
   // 2 Empfehlung
   var t;
@@ -3536,7 +3536,7 @@ function render(){
   var istTop='<div class="verdict r1"><div class="vtop"><div><p class="eyebrow">Istzustand</p><h2>Heizlast und Heizwärme heute</h2><p class="vsub">Rechnerischer Stand des Gebäudes aus den erfassten Bauteilen, Lüftung, Heizung und Verbrauch. Noch keine Sanierungsmaßnahme eingerechnet.</p></div>'+
     '<ul class="kpi"><li><span>Heizlastabschätzung, ca.</span><b>'+fmt(I.kw,1)+' kW</b></li><li><span>Heizwärme, ca.</span><b>'+fmt(I.qh)+' kWh/m²a</b></li><li><span>Heizkosten heute, ca.</span><b>'+eur(ofn&&ofReal>0?ofCost:I.end*o.pAlt+I.wwCost)+'/a</b></li></ul></div>'+
     '<div class="vcls"><p class="eyebrow">Energieklasse heute, ca.</p>'+scaleI+'</div>'+
-    '<p class="vfoot">'+basisTxt+'</p></div>';
+    '<p class="vfoot">'+basisTxt+'</p><p class="vfoot">Näherungswerte, nicht verbindlich: Sie beruhen auf den erfassten Bestandsdaten (Bauteile, Heizung, Verbrauch). Die genannte Leistung ist keine Festlegung auf ein bestimmtes Gerät.</p></div>';
   var istSec='<section><h2>Heizung heute</h2><div class="grid">'+istCardH+'</div></section>';
   var outHtml=full?(top+dqHtml(dqv)+unc+rec+wqPanelHtml(o,R)+foep+hkp+solp+sc+srcp+lp+hb+bf):(istTop+dqHtml(dqv)+unc+istSec+lp+ip+bf);
   hkxRender(o,R,I);fsRender(o,R);

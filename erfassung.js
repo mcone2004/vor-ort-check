@@ -265,7 +265,7 @@ var CSS='\
 .erf-sec{background:var(--surface);border:1px solid var(--erf-bd);border-radius:14px;padding:1rem 1.1rem 1.1rem}\
 .erf-wall,.erf-layer,.erf-kat,.erf-svgbox,.erf-shape,.erf-ow{background:var(--erf-card);border:1px solid var(--erf-bd)}\
 .erf-main input:not([type=checkbox]):not([type=file]):not(:focus),.erf-main select:not(:focus),.erf-main textarea:not(:focus){border-color:var(--erf-fb)}\
-@media (min-width:1400px){.erf-in{max-width:75vw;margin-left:auto;margin-right:auto}}\
+@media (min-width:900px){html.desk .erf-in{max-width:75vw;margin-left:auto;margin-right:auto}}\
 @media print{\
  .erf-sec{border:0!important;padding:0!important;background:transparent!important}\
  html,body{height:auto!important;overflow:visible!important;background:#fff!important}\

@@ -13,7 +13,7 @@
 @font-face{font-family:'Inter';font-weight:500;font-style:normal;font-display:swap;src:url(fonts/inter-500.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:600;font-style:normal;font-display:swap;src:url(fonts/inter-600.woff2) format('woff2')}
 *,*::before,*::after{box-sizing:border-box}body{margin:0}</style>
-<script>window.__PWA=true</script>
+<script>window.__PWA=true;try{var _u=navigator.userAgent||"";if(!(/iPad|iPhone|Android/.test(_u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)))document.documentElement.classList.add("desk")}catch(e){}</script>
 <title>Vor-Ort-Check Sanierung</title>
 <style>
 /* Layout: links Eingabe, rechts Auswertung; auf dem Handy untereinander. Farben aus dem Seitenstil von energieberatung-lange.de */
@@ -860,14 +860,14 @@ form>fieldset[data-tab]:not([data-tab="huelle"]){background:var(--surface);borde
 form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>input,form>fieldset[data-tab]:not([data-tab="huelle"]) label.pend>select,form>fieldset[data-tab]:not([data-tab="huelle"]) .pendf{background:var(--inset,#EEF1E8);border:1px solid rgba(120,128,120,.55)}
 /* Hintergrund: frischer, dezenter Verlauf mit etwas Grün */
 html{background:#EAF0DF}
-body{background-color:#EAF0DF;background-image:radial-gradient(900px 520px at 92% -8%,rgba(124,176,40,.20),transparent 70%),linear-gradient(165deg,#F8FAF4 0%,#EDF3E2 55%,#E1EBD0 100%);background-attachment:fixed;min-height:100vh}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) html,:root:not([data-theme="light"]) body{background-color:#14181B}:root:not([data-theme="light"]) body{background-image:radial-gradient(900px 520px at 92% -8%,rgba(124,176,40,.16),transparent 70%),linear-gradient(165deg,#15191C 0%,#161C18 55%,#1A2217 100%)}}
-:root[data-theme="dark"] html,:root[data-theme="dark"] body{background-color:#14181B}:root[data-theme="dark"] body{background-image:radial-gradient(900px 520px at 92% -8%,rgba(124,176,40,.16),transparent 70%),linear-gradient(165deg,#15191C 0%,#161C18 55%,#1A2217 100%)}
-#ctabs{background:rgba(240,245,231,.82)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+body{background-color:#E3EFCB;background-image:radial-gradient(1000px 600px at 95% -5%,rgba(124,176,40,.34),transparent 70%),radial-gradient(800px 500px at -5% 105%,rgba(124,176,40,.18),transparent 70%),linear-gradient(160deg,#F6FAEC 0%,#E6F0D0 50%,#D3E5AF 100%);background-attachment:fixed;min-height:100vh}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) html,:root:not([data-theme="light"]) body{background-color:#14181B}:root:not([data-theme="light"]) body{background-image:radial-gradient(1000px 600px at 95% -5%,rgba(124,176,40,.26),transparent 70%),linear-gradient(160deg,#14181B 0%,#18211A 55%,#1F2D1A 100%)}}
+:root[data-theme="dark"] html,:root[data-theme="dark"] body{background-color:#14181B}:root[data-theme="dark"] body{background-image:radial-gradient(1000px 600px at 95% -5%,rgba(124,176,40,.26),transparent 70%),linear-gradient(160deg,#14181B 0%,#18211A 55%,#1F2D1A 100%)}
+#ctabs{background:rgba(238,244,226,.80)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #ctabs{background:rgba(21,25,28,.82)!important}}
 :root[data-theme="dark"] #ctabs{background:rgba(21,25,28,.82)!important}
 @media print{body{background:#fff!important;background-image:none!important}}
-@media (min-width:1400px){.wrap,.top>div,body[data-mode="home"] .top>div,.home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
+@media (min-width:900px){html.desk .wrap,html.desk .top>div,html.desk body[data-mode="home"] .top>div,html.desk .home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
 </style>
 </head><body>
 <header class="top"><div>

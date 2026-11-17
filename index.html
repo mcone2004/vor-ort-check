@@ -853,8 +853,9 @@ input:focus,select:focus,textarea:focus,.kd-pick:focus-visible{background:var(--
 :root{--fb:rgba(85,85,85,.5)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fb:rgba(243,245,240,.32)}}
 :root[data-theme="dark"]{--fb:rgba(243,245,240,.32)}
-input,select,textarea{border-color:var(--fb)}
-@media (hover:hover) and (pointer:fine) and (min-width:1100px){.wrap,.top>div{max-width:75vw}}
+input,select,textarea{border-color:var(--fb);background-color:var(--inset,#EEF1E8)}
+.bt select,.bt input,.bt textarea,fieldset select,fieldset input,fieldset textarea{background-color:var(--inset,#EEF1E8)}
+@media (hover:hover) and (pointer:fine) and (min-width:1100px){.wrap,.top>div,body[data-mode="home"] .top>div,.home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
 </style>
 </head><body>
 <header class="top"><div>

@@ -153,7 +153,7 @@ var CSS='\
 .erf-nav button:hover{background:var(--tint)}\
 .erf-nav button[aria-current=true]{background:var(--dark);color:#fff;border-color:var(--green)}.erf-nav button[aria-current=true]:hover{background:var(--dark)}\
 .erf-missbox{border:1px solid var(--line);border-radius:6px;padding:.55rem .8rem;font-size:.85rem;margin-bottom:.8rem}.erf-missbox.bad{border-color:#B03A2E;background:#FBEDEB;color:#6E2118}.erf-missbox.ok{border-color:#2E7D32;background:#EAF4EA;color:#1F5A23}.erf-missbox ul{margin:.3rem 0 0;padding-left:1.1rem}.erf-missbox li{margin:.1rem 0}\
-.erf-f.miss>span{color:#B03A2E;font-weight:600}.erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{border-color:#B03A2E!important;box-shadow:0 0 0 2px rgba(176,58,46,.25);background:#FDF3F1}\
+.erf-f.miss>span{color:#8A5A00;font-weight:600}.erf-f.miss>span::after{content:"";display:inline-block;width:.5rem;height:.5rem;border-radius:50%;background:#C98A00;margin-left:.45rem;vertical-align:middle}.erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{box-shadow:none;background:var(--inset,#EEF1E8)}\
 .erf-wh.miss{box-shadow:inset 5px 0 0 #B03A2E;background:#FDF3F1;color:#6E2118}\
 .erf-num{display:inline-grid;place-items:center;width:1.55rem;height:1.55rem;margin-right:.45rem;border-radius:50%;border:2px solid currentColor;font-size:.8rem;line-height:1;opacity:.75}.erf-num.bad{background:#B03A2E;border-color:#B03A2E;color:#fff;opacity:1}.erf-num.ok{background:#2E7D32;border-color:#2E7D32;color:#fff;opacity:1}\
 .erf-bd{display:inline-block;min-width:1.35rem;margin-left:.35rem;padding:0 .35rem;border-radius:999px;background:#B03A2E;color:#fff;font-size:.74rem;line-height:1.35rem;text-align:center}\
@@ -252,9 +252,9 @@ var CSS='\
 .erf-top,.erf-nav{background:var(--surface)}\
 .erf-note{border-left:0;border-radius:14px;background:var(--tint)}\
 .erf-wall.sel,.erf-kat.sel{border-width:1.5px;border-color:var(--green);background:var(--tint)}\
-.erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{border-color:transparent!important;box-shadow:none;background:#FDF3F1}\
-.erf-wh.miss{box-shadow:none;background:#FDF3F1}\
-.erf-missbox{border:0;background:var(--soft)}.erf-missbox.bad{border:0;background:#FBEDEB}\
+.erf-f.miss input,.erf-f.miss select,.erf-f.miss textarea{box-shadow:none;background:var(--inset,#EEF1E8)}\
+.erf-wh.miss{box-shadow:none;background:var(--inset,#EEF1E8);color:var(--text)}\
+.erf-missbox{border:0;background:var(--soft)}.erf-missbox.bad{border:0;background:var(--inset,#EEF1E8);color:var(--text)}\
 .erf-main{padding-top:1.6rem}\
 .erf-wall,.erf-kat,.erf-layer,.erf-svgbox,.erf-shape,.erf-ow{border-radius:14px}\
 .erf-btn{border-radius:12px;font-weight:700}\

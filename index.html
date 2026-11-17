@@ -874,6 +874,13 @@ label.ph-btn:hover{background:var(--btn-h)}
 :root[data-theme="dark"]{--btn:#2B3825;--btn-h:#34452D;--btn-b:#4A5E3D;--page-grad:radial-gradient(1000px 600px at 95% -5%,rgba(124,176,40,.26),transparent 70%),linear-gradient(160deg,#14181B 0%,#18211A 55%,#1F2D1A 100%)}
 button.ghost:not(.rep-tools *),.kd-tb button.ghost:not(.rep-tools *){background:var(--btn);color:var(--ink);border:1px solid var(--btn-b)}
 button.ghost:not(.rep-tools *):hover,.kd-tb button.ghost:not(.rep-tools *):hover{background:var(--btn-h)}
+/* Tableiste als echte Tabs: aktiver Reiter weiß, inaktive Reiter in sanftem Grün */
+body .ctabs,body .vbtabs{gap:4px;padding:.5rem .5rem 0;border-bottom:1px solid var(--btn-b);border-radius:12px 12px 0 0}
+body .ctabs button,body .vbtabs button{background:var(--btn);color:var(--muted);border:1px solid var(--btn-b);border-bottom:0;border-radius:12px 12px 0 0;margin-bottom:0;min-height:2.7rem;padding:.4rem 1rem .4rem .8rem}
+body .ctabs button:hover,body .vbtabs button:hover{background:var(--btn-h);color:var(--ink)}
+body .ctabs button[aria-current="true"],body .vbtabs button[aria-current="true"],body .ctabs button[aria-current="true"]:hover,body .vbtabs button[aria-current="true"]:hover{background:var(--surface);color:var(--ink);border:1px solid var(--btn-b);border-bottom:0;margin-bottom:-1px;padding-bottom:calc(.4rem + 1px)}
+body .ctabs button .cn,body .vbtabs button .cn{color:inherit}
+body .ctabs button[aria-current="true"] .cn,body .vbtabs button[aria-current="true"] .cn{color:var(--deep)}
 @media print{body{background:#fff!important;background-image:none!important}}
 @media (min-width:900px){html.desk .wrap,html.desk .top>div,html.desk body[data-mode="home"] .top>div,html.desk .home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
 </style>

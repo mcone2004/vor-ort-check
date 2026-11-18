@@ -68,11 +68,13 @@ function btn(a,label,o){
 function photoCount(){var n=0;for(var k in E.photos) n+=(E.photos[k]||[]).length;return n}
 function photoMB(){var b=0;for(var k in E.photos)(E.photos[k]||[]).forEach(function(p){b+=String(p.d||'').length*0.75});return b/1048576}
 function dropPhotos(key){if(E.photos[key]){if(window.FOTO) E.photos[key].forEach(function(p){FOTO.del(p.d)});delete E.photos[key]}}
+function photoName(){var kn=document.getElementById('kd_name');return ((kn&&kn.value.trim())||'Foto')+' Erfassung'}
+function photoList(){var l=[];for(var k in E.photos)(E.photos[k]||[]).forEach(function(p){l.push({d:p.d,c:''})});return l}
 function photoNum(key){return (E.photos[key]||[]).length}
 function photoBox(key,label){
   var arr=E.photos[key]||[];
   return '<div class="erf-ph"><div class="erf-phl">'+esc(label)+'</div><div class="erf-phg">'+arr.map(function(p,i){
-    return '<figure><button type="button" class="erf-pht" data-a="ph-open" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto '+(i+1)+' öffnen"><img src="'+p.d+'" alt="'+esc(label)+' '+(i+1)+'"></button><button type="button" class="ghost" data-a="ph-del" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto '+(i+1)+' löschen">Löschen</button></figure>';
+    return '<figure><button type="button" class="erf-pht" data-a="ph-open" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto '+(i+1)+' öffnen"><img src="'+p.d+'" alt="'+esc(label)+' '+(i+1)+'"></button><button type="button" class="ghost" data-a="ph-save" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto '+(i+1)+' in Galerie sichern" title="Original in der Galerie sichern">Sichern</button><button type="button" class="ghost" data-a="ph-del" data-x="'+esc(key)+'" data-y="'+i+'" aria-label="Foto '+(i+1)+' löschen">Löschen</button></figure>';
   }).join('')+'</div><label class="erf-btn ghost">Foto hinzufügen<input type="file" accept="image/*" data-ph="'+esc(key)+'" hidden></label></div>';
 }
 function shrink(file){
@@ -505,6 +507,7 @@ function updateBadges(){
     q.className='erf-num'+(st?' '+st:'');
   });
   var t=root.querySelector('#erf-count');if(t) t.textContent=(M.length?('Fehlt noch: '+M.length):'Alle Pflichtangaben vorhanden')+' · Fotos '+photoCount()+' von '+PH_MAX+' ('+f2(photoMB())+' MB)';
+  var pa2=root.querySelector('#erf-phall');if(pa2) pa2.hidden=!photoCount();
 }
 var touchT=null;
 function touch(){
@@ -1242,7 +1245,8 @@ function actions(a,t){
     case 'surf-sel':selSurf=(selSurf===x)?null:x;render();return;
     case 'surf-del':{if(!window.confirm('Fläche löschen?')) return;dropPhotos('s:'+x);E.surf=E.surf.filter(function(s3){return s3.id!==x});selSurf=null;touch();render();return}
     case 'surf-sugg':{var s4=findSurf(x);if(!s4) return;var av=C.suggestArea(E,s4.art,s4.neig);if(av>0){s4.a=String(Math.round(av*100)/100).replace('.',',');touch();render()}return}
-    case 'ph-open':{var pa=E.photos[x]||[];if(window.FOTO&&pa[+y]){var kn=document.getElementById('kd_name');FOTO.open(pa.map(function(p){return {d:p.d,c:''}}),+y,((kn&&kn.value.trim())||'Foto')+' Erfassung')}return}
+    case 'ph-open':{var pa=E.photos[x]||[];if(window.FOTO&&pa[+y]){var kn=document.getElementById('kd_name');FOTO.open(pa.map(function(p){return {d:p.d,c:''}}),+y,photoName())}return}
+    case 'ph-save':{if(!window.FOTO||!(E.photos[x]||[])[+y]) return;var gi=0,found=0;for(var pk in E.photos){if(pk===x){found=gi+(+y);break}gi+=(E.photos[pk]||[]).length}FOTO.save(photoList(),found,photoName());return}
     case 'ph-del':{var arr=E.photos[x];if(!arr||!arr[+y]) return;if(!window.confirm('Foto wirklich löschen?')) return;var gone=arr.splice(+y,1)[0];if(gone&&window.FOTO) FOTO.del(gone.d);if(!arr.length) delete E.photos[x];touch();render();return}
     case 'jump':{locate(y);go(x,true);if(y) setTimeout(function(){scrollToId('erf-w-'+y);scrollToId('erf-k-'+y)},40);return}
     case 'sheet-print':window.print();return;
@@ -1351,10 +1355,11 @@ function build(){
   if(root) return;
   var st=document.createElement('style');st.id='erf-style';st.textContent=CSS;document.head.appendChild(st);
   root=document.createElement('div');root.id='erf-root';root.hidden=true;root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','Gebäudeerfassung Bedarfsausweis');
-  root.innerHTML='<div class="erf-top"><div class="erf-t">Gebäudeerfassung Bedarfsausweis<small id="erf-kd"></small><small id="erf-count"></small></div><button type="button" id="erf-close">Schließen</button></div><nav class="erf-nav" id="erf-nav" aria-label="Schritte"></nav><main class="erf-main" id="erf-main"></main>';
+  root.innerHTML='<div class="erf-top"><div class="erf-t">Gebäudeerfassung Bedarfsausweis<small id="erf-kd"></small><small id="erf-count"></small></div><button type="button" id="erf-phall" hidden title="Alle Fotos der Erfassung im Original sichern">Alle Fotos in Galerie sichern</button><button type="button" id="erf-close">Schließen</button></div><nav class="erf-nav" id="erf-nav" aria-label="Schritte"></nav><main class="erf-main" id="erf-main"></main>';
   document.body.appendChild(root);
   main=root.querySelector('#erf-main');nav=root.querySelector('#erf-nav');
   root.querySelector('#erf-close').addEventListener('click',close);
+  root.querySelector('#erf-phall').addEventListener('click',function(){var l=photoList();if(l.length&&window.FOTO) FOTO.saveAll(l,photoName(),this)});
   document.addEventListener('keydown',function(e){if(isOpen&&e.key==='Escape') close()});
   bind();
 }

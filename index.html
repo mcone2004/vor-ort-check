@@ -1391,12 +1391,11 @@ body[data-mode="kunden"] .kg-ft .kg-add:hover{background:var(--btn-h)}
       <span class="pad-g"><button type="button" class="pad-b" id="pad_undo">Rückgängig</button>
       <button type="button" class="pad-b" id="pad_clear">Alles löschen</button></span>
       <span class="pad-g"><button type="button" class="pad-b" id="pad_lo" aria-label="Feld niedriger">Höhe −</button>
-      <button type="button" class="pad-b" id="pad_hi" aria-label="Feld höher">Höhe +</button>
-      <button type="button" class="pad-b" id="pad_po" aria-pressed="false" title="Nur der Stift zeichnet, Finger und Handballen werden ignoriert">Nur Stift</button></span>
+      <button type="button" class="pad-b" id="pad_hi" aria-label="Feld höher">Höhe +</button></span>
     </div>
-    <div class="pad-wrap" id="padwrap"><canvas id="padc" aria-label="Notizfeld, mit Stift oder Finger beschreibbar"></canvas></div>
+    <div class="pad-wrap" id="padwrap"><canvas id="padc" aria-label="Notizfeld, nur mit dem Stift beschreibbar"></canvas></div>
     <div class="pad-grip" id="padgrip" role="separator" aria-label="Höhe des Notizfelds ziehen">Höhe ziehen</div>
-    <span class="hint" id="padhint">Mit dem Stift oder Finger schreiben und zeichnen. „Nur Stift“ ignoriert Finger und Handballen (schaltet sich beim ersten Stiftstrich selbst ein). Auf dem Feld scrollt der Finger nicht, zum Scrollen neben das Feld greifen. Die Notiz wird mit dem Kunden gespeichert.</span>
+    <span class="hint" id="padhint">Nur mit dem Stift schreiben und zeichnen. Finger und Handballen werden ignoriert, am PC zeichnet die Maus. Auf dem Feld scrollt der Finger nicht, zum Scrollen neben das Feld greifen. Die Notiz wird mit dem Kunden gespeichert.</span>
     <input type="hidden" id="notiz" value="">
     </section>
   </div>
@@ -3883,14 +3882,12 @@ function padInit(){
     $('pad_pen').setAttribute('aria-pressed',PAD.tool==='pen'?'true':'false');$('pad_er').setAttribute('aria-pressed',PAD.tool==='er'?'true':'false');
     pressed('#padbox .col',function(b){return +b.getAttribute('data-c')===PAD.col});
     pressed('#padbox [data-w]',function(b){return +b.getAttribute('data-w')===PAD.w});
-    $('pad_po').setAttribute('aria-pressed',PAD.po?'true':'false');
     c.style.cursor=PAD.tool==='er'?'cell':'crosshair';
   }
   $('pad_pen').addEventListener('click',function(){PAD.tool='pen';tools()});
   $('pad_er').addEventListener('click',function(){PAD.tool='er';tools()});
   [].forEach.call(document.querySelectorAll('#padbox .col'),function(b){b.addEventListener('click',function(){PAD.col=+b.getAttribute('data-c');PAD.tool='pen';tools()})});
   [].forEach.call(document.querySelectorAll('#padbox [data-w]'),function(b){b.addEventListener('click',function(){PAD.w=+b.getAttribute('data-w');PAD.tool='pen';tools()})});
-  $('pad_po').addEventListener('click',function(){PAD.po=!PAD.po;PAD.poUser=true;tools()});
   $('pad_undo').addEventListener('click',function(){if(PAD.s.length){PAD.s.pop();padDraw();padSave()}});
   var ct=null;
   $('pad_clear').addEventListener('click',function(){
@@ -3908,11 +3905,7 @@ function padInit(){
   function gend(){if(gs){gs=null;padSave()}}
   gr.addEventListener('pointerup',gend);gr.addEventListener('pointercancel',gend);
   // Zeichnen
-  function accept(ev){
-    if(ev.pointerType==='pen'&&!PAD.po&&!PAD.poUser){PAD.po=true;tools()} // erster Stiftstrich: Handballen ab jetzt ignorieren
-    if(PAD.po&&ev.pointerType!=='pen'&&ev.pointerType!=='mouse') return false;
-    return true;
-  }
+  function accept(ev){return ev.pointerType==='pen'||ev.pointerType==='mouse'} // Finger und Handballen (touch) zeichnen nie
   c.addEventListener('pointerdown',function(ev){
     if(ev.button>0&&ev.pointerType==='mouse') return;
     if(!accept(ev)) return;
@@ -6327,7 +6320,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-11-18 07:10',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-11-18 07:30',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

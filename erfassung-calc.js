@@ -46,6 +46,10 @@ var MATS=[
   {id:'pb40',n:'Porenbeton, Rohdichte 400',l:0.12,g:'Mauerwerk'},
   {id:'pb50',n:'Porenbeton, Rohdichte 500',l:0.16,g:'Mauerwerk'},
   {id:'lb',n:'Bims, Leichtbeton (Richtwert)',l:0.35,g:'Mauerwerk'},
+  {id:'klinker',n:'Klinker, Verblendmauerwerk (Rohdichte 2000)',l:0.96,g:'Mauerwerk'},
+  {id:'betonhb',n:'Betonmauerwerk, Hohlblockstein Normalbeton (Richtwert)',l:1.10,g:'Mauerwerk'},
+  {id:'ksh',n:'Kalksandstein-Lochstein, Hohlblock (Richtwert)',l:0.70,g:'Mauerwerk'},
+  {id:'dz',n:'Wärmedämmziegel, gefüllt oder ungefüllt (Richtwert)',l:0.12,g:'Mauerwerk'},
   {id:'nstein',n:'Bruchstein, Naturstein (dicht)',l:2.30,g:'Mauerwerk'},
   {id:'lehm',n:'Lehm (Gefach, Richtwert)',l:0.80,g:'Mauerwerk'},
   {id:'beton',n:'Beton',l:2.10,g:'Beton'},
@@ -62,6 +66,8 @@ var MATS=[
   {id:'pur',n:'PUR/PIR WLG 025',l:0.025,g:'Dämmstoff'},
   {id:'hwl',n:'Holzwolle-Leichtbauplatte',l:0.09,g:'Dämmstoff'},
   {id:'cs',n:'Calciumsilikat',l:0.06,g:'Dämmstoff'},
+  {id:'xps035',n:'XPS WLG 035 (Sockel, Perimeter)',l:0.035,g:'Dämmstoff'},
+  {id:'einblas',n:'Einblasdämmung, Kerndämmung (Granulat, Flocken)',l:0.05,g:'Dämmstoff'},
   {id:'estrich',n:'Zementestrich',l:1.40,g:'Boden, Dach'},
   {id:'fliese',n:'Fliesen, Keramik',l:1.30,g:'Boden, Dach'},
   {id:'parkett',n:'Holzdielen, Parkett',l:0.13,g:'Boden, Dach'},
@@ -171,15 +177,60 @@ function paCalc(k){
   out.ok=true;
   return out;
 }
+/* ---------- Pauschalwerte transparenter Bauteile im Ausgangszustand ----------
+   Quelle: Bekanntmachung vom 08.10.2020 (BAnz AT 04.12.2020 B1), Tabelle 3, Uw in W/(m²K). Spalten siehe PW_KL. null = keine Angabe.
+   Maßgeblich ist das Baujahr des Fensters, im Zweifel das des Gebäudes. Die Tabelle enthält keine g-Werte, g bleibt Handeingabe.
+   Türen: Tabelle 2, ein Wert je Material ohne Altersunterteilung. */
+var PW_KL=[{b:1978,n:'bis 1978'},{b:1983,n:'1979 bis 1983'},{b:1994,n:'1984 bis 1994'},{b:2001,n:'1995 bis 2001'},{b:9999,n:'ab 2002'}];
+var PW=[
+  {id:'holz1',n:'Holzfenster, einfach verglast',v:[5.0,null,null,null,null]},
+  {id:'holz2',n:'Holzfenster, Zweischeibenverglasung (Isolier-, Kasten- oder Verbundfenster)',v:[2.7,2.7,2.7,1.6,1.5]},
+  {id:'kst2',n:'Kunststofffenster, Isolierverglasung',v:[3.0,3.0,3.0,1.9,1.5]},
+  {id:'alu2',n:'Aluminium- oder Stahlfenster, Isolierverglasung',v:[4.3,4.3,3.2,1.9,1.5]}
+];
+var PW_TUER={metall:{n:'Tür im Wesentlichen aus Metall',u:4.0},holz:{n:'Tür aus Holz, Holzwerkstoff oder Kunststoff',u:2.9}};
+function pwKlasse(by){by=+by;if(!(by>0)) return -1;for(var i=0;i<PW_KL.length;i++) if(by<=PW_KL[i].b) return i;return PW_KL.length-1}
+/* Zeile der Tabelle 3 aus den Angaben zu Verglasung und Rahmen, sonst null */
+function pwRow(k){
+  var v=String(k.verg||''),r=String(k.rahmen||'');
+  var einfach=v==='Einfachverglasung',zwei=(v==='2-fach Isolierglas'||v==='Kasten- oder Verbundfenster'||v==='2-fach Wärmeschutzglas');
+  if(r==='Holz') return einfach?'holz1':(zwei?'holz2':null);
+  if(r==='Kunststoff') return zwei?'kst2':null;
+  if(r==='Aluminium ohne thermische Trennung'||r==='Aluminium mit thermischer Trennung'||r==='Stahl') return zwei?'alu2':null;
+  return null;
+}
+function pwCalc(k,gebBj){
+  var out={ok:false,u:null,tuer:false,why:''};
+  if(k.kind==='tuer'){
+    var t=PW_TUER[k.tmat];
+    if(!t){out.why='Material der Tür wählen (Metall oder Holz, Holzwerkstoff, Kunststoff).';return out}
+    out.ok=true;out.u=t.u;out.tuer=true;out.row=t;return out;
+  }
+  var id=pwRow(k);
+  if(!id){out.why=(has(k.verg)&&has(k.rahmen))?'Diese Kombination aus Verglasung und Rahmen steht nicht in Tabelle 3 (dort nur Holz einfach, Zweischeiben-Verglasung in Holz, Kunststoff, Aluminium oder Stahl). Wert aus Datenblatt eintragen oder die Quelle ändern.':'Verglasung und Rahmen wählen.';return out}
+  var by=year(k.bj)||year(gebBj);
+  if(!(by>0)){out.why='Einbaujahr des Fensters eintragen (ersatzweise Baujahr des Gebäudes).';return out}
+  var row=null;PW.forEach(function(r){if(r.id===id) row=r});
+  var ci=pwKlasse(by),u=row.v[ci];
+  out.row=row;out.ci=ci;out.by=by;
+  if(u==null){out.why='Die Tabelle enthält für "'+row.n+'" in der Baualtersklasse '+PW_KL[ci].n+' keinen Wert. Wert aus Datenblatt eintragen oder die Quelle ändern.';return out}
+  out.ok=true;out.u=u;return out;
+}
 /* U-Wert eines Katalogeintrags: aus Aufbau, sonst Pauschalwert nach Baualter oder eingetragener Wert (Plan, Schätzung) */
+var gebBjCur='';
+function setGebBj(v){gebBjCur=v}
 function uOf(k){
   if(!k) return {u:null,ok:false,src:'',calc:null};
-  if(k.kind==='fenster'||k.kind==='tuer'){var u=N(k.u);return {u:u>0?u:null,ok:u>0,src:k.src||'',calc:null}}
+  if(k.kind==='fenster'||k.kind==='tuer'){
+    if(k.src==='pausch'){var pw=pwCalc(k,gebBjCur);return {u:pw.ok?pw.u:null,ok:pw.ok,src:'pausch',calc:null,pw:pw}}
+    var u=N(k.u);return {u:u>0?u:null,ok:u>0,src:k.src||'',calc:null};
+  }
   if((k.src||'calc')==='calc'){var c=calcU(k);return {u:c.ok?c.u:null,ok:c.ok,src:'calc',calc:c}}
   if(k.src==='pausch'&&k.pa){var pa=paCalc(k);if(pa) return {u:pa.ok?pa.u:null,ok:pa.ok,src:'pausch',calc:null,pa:pa}}
   var v=N(k.u);return {u:v>0?v:null,ok:v>0,src:k.src,calc:null};
 }
 var SRC={calc:'aus Schichtaufbau berechnet',plan:'aus Plan oder Nachweis',pausch:'Pauschalwert (amtliche Tabelle)',schaetz:'geschätzt'};
+/* Bauteile, deren U-Wert ein Pauschalwert ist, beim Auswerten mit dem Gebäudebaujahr rechnen (Ersatz, wenn das Fenster kein eigenes Einbaujahr hat) */
 
 /* ---------- Vorlagen für typische Bestandsaufbauten (innen nach außen, vor Ort prüfen) ---------- */
 function L(m,d,extra){var x=mat(m),o={id:uid(),m:m,d:String(d).replace('.',','),l:x&&x.l?String(x.l).replace('.',','):''};if(extra) for(var k in extra) o[k]=extra[k];return o}
@@ -286,7 +337,7 @@ function newErf(){
   return {v:1,
     g:{typ:'',bj:'',antrag:'',we:'1',vg:'',keller:'',dachform:'',dg:'',anbau:'',bem:'',h0:'90',denk:'nein',wf:''},
     unterl:{},
-    kat:[],gesch:[],surf:[],anl:{},photos:{},abs:{maengel:'',empf:'',offen:''}
+    kat:[],gesch:[],surf:[],anl:{},photos:{},pads:{},abs:{maengel:'',empf:'',offen:''}
   };
 }
 function normalize(e){
@@ -644,6 +695,7 @@ function warnings(e){
     var k=findKat(e,id);if(!k) return;
     var u=uOf(k);if(!u.ok) return;
     if(k.src==='schaetz') w('bt',(k.name||'Bauteil')+': U-Wert nur geschätzt, vor der Abgabe belegen',k.id);
+    if(k.src==='pausch') w('bt',(k.name||'Bauteil')+': Pauschalwert der Bekanntmachung. Ist der Aufbau oder das Datenblatt bekannt, damit ersetzen. Bleibt es beim Pauschalwert, im Energieberater ebenso als Pauschalwert eintragen.',k.id);
     if(by>0&&by<1978&&k.src==='calc'){
       if(k.kind==='wand'&&u.u<0.40) w('bt',(k.name||'Wand')+': U '+f2(u.u)+' bei Baujahr '+by+'. Nachträgliche Dämmung belegt?',k.id);
       if((k.kind==='dach'||k.kind==='decke_o')&&u.u<0.30) w('bt',(k.name||'Dach')+': U '+f2(u.u)+' bei Baujahr '+by+'. Nachträgliche Dämmung belegt?',k.id);
@@ -669,10 +721,28 @@ function warnings(e){
   return W;
 }
 function openCount(e){return missing(e).length}
+/* Gemessene Flächen für den Vor-Ort-Check: Außenwand ohne Fenster (nur gegen Außenluft), Fenster ohne Türen, Dach bzw. oberste Decke netto, Bodenplatte bzw. Kellerdecke */
+function checkWerte(e){
+  var aw=0,af=0,ad=0,ak=0;
+  (e.gesch||[]).forEach(function(fl){
+    if(fl.heated==='nein') return;
+    (fl.walls||[]).forEach(function(w){
+      if(w.type!=='aussen') return;
+      var g=wallGeom(fl,w,e);aw+=g.net;
+      (w.ow||[]).forEach(function(o){if(o.kind!=='tuer') af+=oArea(o)});
+    });
+  });
+  (e.surf||[]).forEach(function(s){
+    var a=has(s.a)?N(s.a):0,ow=0;(s.ow||[]).forEach(function(o){if(o.kind!=='tuer') ow+=oArea(o)});
+    if(s.art==='dach_s'||s.art==='dach_f'||s.art==='decke_o'){ad+=Math.max(0,a-ow);af+=ow}
+    else if(s.art==='boden'||s.art==='decke_u') ak+=a;
+  });
+  return {aw:aw,af:af,ad:ad,ak:ak,wf:has((e.g||{}).wf)?N(e.g.wf):0};
+}
 
 var api={ausweisart:ausweisart,sanHuelle:sanHuelle,newSan:newSan,SAN_BT:SAN_BT,SAN_STD:SAN_STD,SAN_GES:SAN_GES,SAN_HUELLE:SAN_HUELLE,SAN_BELEG:SAN_BELEG,SHAPES:SHAPES,shapeWalls:shapeWalls,shapePoints:shapePoints,polyWalls:polyWalls,N:N,has:has,uid:uid,f1:f1,f2:f2,f3:f3,KINDS:KINDS,MATS:MATS,mat:mat,calcU:calcU,uOf:uOf,SRC:SRC,PA:PA,PA_KL:PA_KL,paKlasse:paKlasse,paRows:paRows,paCalc:paCalc,PRESETS:PRESETS,ANL:ANL,UNTERL:UNTERL,SURF:SURF,WTYPE:WTYPE,DIR8:DIR8,STEPS:STEPS,
   newErf:newErf,normalize:normalize,newFloor:newFloor,newWall:newWall,newOpening:newOpening,newSurface:newSurface,newKat:newKat,findKat:findKat,
   trace:trace,wallBearing:wallBearing,sector:sector,dirName:dirName,closeFix:closeFix,oArea:oArea,wallGeom:wallGeom,summary:summary,suggestArea:suggestArea,
-  missing:missing,warnings:warnings,openCount:openCount,bauantragVor1977:bauantragVor1977,year:year};
+  missing:missing,warnings:warnings,openCount:openCount,checkWerte:checkWerte,setGebBj:setGebBj,PW:PW,PW_KL:PW_KL,PW_TUER:PW_TUER,pwCalc:pwCalc,pwRow:pwRow,bauantragVor1977:bauantragVor1977,year:year};
 if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.ERFCALC=api;
 })(typeof window!=='undefined'?window:this);

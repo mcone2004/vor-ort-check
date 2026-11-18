@@ -1161,6 +1161,7 @@ body[data-mode="kunden"] .kg-ft .kg-add:hover{background:var(--btn-h)}
     <figure class="schnitt" aria-label="Gebäudeschnitt"><svg id="schnitt" viewBox="0 0 320 200" role="img" aria-label="Schematischer Gebäudeschnitt, eingefärbt nach Dämmzustand"></svg>
     <figcaption><strong>Gebäudeschnitt</strong><ul id="schnitt_leg" class="sn-leg"></ul><span class="hint">Die Farben zeigen den Dämmzustand: rot Original, orange nachgedämmt oder älter, grün aktueller Stand. Der Schnitt ist schematisch.</span></figcaption></figure>
     <span class="hint" id="bjtyp"></span>
+    <div class="row" id="erfw_row" hidden><button type="button" id="erfw_btn" class="ghost">Flächen aus der Gebäudeerfassung übernehmen</button><span class="hint" id="erfw_msg" role="status"></span></div>
     <div class="hcols">
     <section class="bt bt-wand"><h3 class="bt-h"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M9 5v4.7M15 9.7v4.6M9 14.3V19"/></svg>Außenwand</h3>
     <label for="wmix" id="wmixl" hidden>Ist der Wandaufbau in allen Geschossen gleich?<select id="wmix"><option value="ja" selected>Ja, alle Geschosse gleich gebaut und gedämmt</option><option value="nein">Nein, Obergeschoss(e) anders gebaut oder gedämmt</option></select></label>
@@ -4532,7 +4533,20 @@ function initKunden(backendP){
   }
   // Gebäudeerfassung (Bedarfsausweis): Daten hängen als Feld erf am Kunden
   function erfGet(){return window.ERF?ERF.getData():null}
-  function erfInfo(){var el=$('kd_erfs');if(!el||!window.ERF) return;var n=ERF.openCount();el.textContent=(n==null)?'':(n>0?'Gebäudeerfassung: '+n+' Angaben fehlen noch.':'Gebäudeerfassung: alle Pflichtangaben vorhanden.')}
+  // Gemessene Flächen aus der Gebäudeerfassung in die Felder der Gebäudehülle übernehmen (nur auf Knopfdruck, Überschreiben mit Rückfrage)
+  function erfWerteUpd(){var r=$('erfw_row');if(!r) return;var w=window.ERF?ERF.checkWerte():null;r.hidden=!(w&&(w.aw>0||w.af>0||w.ad>0||w.ak>0))}
+  function erfWerteTake(){
+    var w=ERF.checkWerte(),msgEl=$('erfw_msg'),fm=function(x){return String(Math.round(x*10)/10).replace('.',',')};
+    var map=[['aw','Außenwand',w.aw],['af','Fenster',w.af],['ad','Dach',w.ad],['ak','Boden/Kellerdecke',w.ak]].filter(function(m){return m[2]>0});
+    if(!map.length){msgEl.textContent='In der Gebäudeerfassung sind noch keine Flächen erfasst.';return}
+    var over=map.filter(function(m){var e=$(m[0]);return e&&e.value.trim()!==''&&e.value.trim()!==fm(m[2])});
+    if(over.length&&!window.confirm('Schon eingetragene Werte überschreiben ('+over.map(function(m){return m[1]}).join(', ')+')?')) return;
+    map.forEach(function(m){var e=$(m[0]);if(!e) return;e.value=fm(m[2]);e.dispatchEvent(new Event('input',{bubbles:true}))});
+    var wf=$('wf'),wfT='';
+    if(wf&&w.wf>0&&wf.value.trim()===''){wf.value=fm(w.wf);wf.dispatchEvent(new Event('input',{bubbles:true}));wfT=', Wohnfläche'}
+    msgEl.textContent='Übernommen: '+map.map(function(m){return m[1]+' '+fm(m[2])+' m²'}).join(', ')+wfT+'. Fenster ohne Türen, Dach und Boden netto.';
+  }
+  function erfInfo(){erfWerteUpd();var el=$('kd_erfs');if(!el||!window.ERF) return;var n=ERF.openCount();el.textContent=(n==null)?'':(n>0?'Gebäudeerfassung: '+n+' Angaben fehlen noch.':'Gebäudeerfassung: alle Pflichtangaben vorhanden.')}
   function erfSet(d){if(!window.ERF) return;if(d) ERF.setData(d);else ERF.reset();erfInfo()}
   function fields(){
     var out=[],els=document.querySelectorAll('form input,form select,form textarea[id^="mfh_"],form textarea[id^="vb"]');
@@ -5387,6 +5401,7 @@ function initKunden(backendP){
       ERF.init({onChange:function(){onEdit({target:{id:'erf'}})},onClose:function(){erfInfo();if(document.body.getAttribute('data-mode')==='erfassung') setMode('home')},kunden:KDAPI});
       var openErf=function(step){ERF.open($('kd_name').value.trim()||$('kd_adr').value.trim(),step)};
       $('kd_erf').addEventListener('click',function(){openErf()});
+      $('erfw_btn').addEventListener('click',erfWerteTake);
       erfLauncher=function(st){openErf(st||'kunde')};
       if(document.body.getAttribute('data-mode')==='erfassung') erfLauncher();
     }else{$('kd_erf').hidden=true}
@@ -6312,7 +6327,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-11-18 06:25',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-11-18 07:10',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

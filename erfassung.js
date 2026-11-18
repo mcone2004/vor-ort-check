@@ -297,6 +297,12 @@ function outU(id){
 function outUDetail(id){
   var k=C.findKat(E,id);if(!k) return '';
   var u=C.uOf(k);
+  if(u.pw){
+    var w=u.pw;
+    if(!w.ok) return '<span class="erf-bad">'+esc(w.why)+'</span>';
+    if(w.tuer) return 'Tabelle 2, '+esc(w.row.n)+'<br><span class="erf-u">UD = '+f2(w.u)+' W/(m²K), Pauschalwert</span>';
+    return 'Tabelle 3, '+esc(w.row.n)+', Baualtersklasse '+esc(C.PW_KL[w.ci].n)+' (Baujahr '+w.by+')<br><span class="erf-u">Uw = '+f2(w.u)+' W/(m²K), Pauschalwert</span><br>Die Tabelle enthält keinen g-Wert, den trägst du selbst ein.';
+  }
   if(u.pa){
     var a=u.pa;
     if(!a.ok) return '<span class="erf-bad">'+esc(a.why)+'</span>';
@@ -502,7 +508,7 @@ function updateBadges(){
 }
 var touchT=null;
 function touch(){
-  pdfBlob=null;onChange();
+  C.setGebBj(E.g.bj);pdfBlob=null;onChange();
   updateOuts();
 }
 
@@ -640,9 +646,18 @@ function katCard(k){
     h+='<div class="erf-wb"><div class="erf-g">'+F(p+'name','Bezeichnung',{text:1,ph:win?'z. B. Kunststoff 2-fach WSV, 2004':'z. B. Außenwand Vollziegel 36,5 cm'})+
       S(p+'src','Quelle des U-Werts',win?[{v:'plan',t:'Datenblatt, Plan oder Nachweis'},{v:'pausch',t:'Pauschalwert (amtliche Tabelle)'},{v:'schaetz',t:'geschätzt'}]:[{v:'calc',t:'aus Schichtaufbau berechnet'},{v:'plan',t:'Plan oder Nachweis (U-Wert bekannt)'},{v:'pausch',t:'Pauschalwert (amtliche Tabelle)'},{v:'schaetz',t:'geschätzt'}],{noblank:1,r:1})+'</div>';
     if(win){
-      h+='<div class="erf-g">'+S(p+'verg','Verglasung',['Einfachverglasung','Kasten- oder Verbundfenster','2-fach Isolierglas','2-fach Wärmeschutzglas','3-fach Wärmeschutzglas','Sonstiges'])+
-        S(p+'rahmen','Rahmen',['Holz','Kunststoff','Aluminium ohne thermische Trennung','Aluminium mit thermischer Trennung','Holz-Aluminium','Stahl'])+
-        F(p+'u',k.kind==='tuer'?'UD in W/(m²K)':'Uw in W/(m²K)')+(k.kind==='tuer'?'':F(p+'g','g-Wert (Gesamtenergiedurchlassgrad)',{ph:'z. B. 0,60'})+F(p+'fr','Rahmenanteil in %',{ph:'z. B. 30'}))+F(p+'bj','Einbaujahr')+'</div>';
+      var pw=(k.src==='pausch');
+      if(k.kind==='tuer'&&pw){
+        h+='<div class="erf-g">'+S(p+'tmat','Material der Tür',[{v:'metall',t:'im Wesentlichen aus Metall'},{v:'holz',t:'Holz, Holzwerkstoff oder Kunststoff'}],{r:1,blank:'Material wählen'})+'</div>';
+      }else{
+        h+='<div class="erf-g">'+S(p+'verg','Verglasung',['Einfachverglasung','Kasten- oder Verbundfenster','2-fach Isolierglas','2-fach Wärmeschutzglas','3-fach Wärmeschutzglas','Sonstiges'],{r:pw?1:0})+
+          S(p+'rahmen','Rahmen',['Holz','Kunststoff','Aluminium ohne thermische Trennung','Aluminium mit thermischer Trennung','Holz-Aluminium','Stahl'],{r:pw?1:0})+
+          (pw?'':F(p+'u',k.kind==='tuer'?'UD in W/(m²K)':'Uw in W/(m²K)'))+(k.kind==='tuer'?'':F(p+'g','g-Wert',{ph:'z. B. 0,60'})+F(p+'fr','Rahmenanteil in %',{ph:'z. B. 30'}))+F(p+'bj','Einbaujahr',{ph:(pw&&has(E.g.bj))?String(E.g.bj):''})+'</div>';
+      }
+      if(pw){
+        h+='<div data-out="ud:'+k.id+'">'+outUDetail(k.id)+'</div>';
+        h+='<div class="erf-note">Pauschalwert nach Baujahr, also eine Schätzung und kein Nachweis. Liegt ein Datenblatt oder ein Nachweis vor, die Quelle auf „Datenblatt, Plan oder Nachweis“ stellen. Quelle: Bekanntmachung vom 08.10.2020 (BAnz AT 04.12.2020 B1), '+(k.kind==='tuer'?'Tabelle 2':'Tabelle 3')+'.</div>';
+      }
     }else if((k.src||'calc')==='calc'){
       h+='<div class="erf-hint">Schichten von innen nach außen. Die λ-Werte sind Richtwerte, Datenblatt und Norm gehen vor und jede Zeile ist änderbar.</div>';
       h+=(k.layers||[]).map(function(l,j){return layerRow(k,l,j)}).join('');
@@ -845,6 +860,9 @@ function sheetHTML(){
   h+='</section>';
   var a=E.abs;
   h+='<section><h4>7. Mängel, Empfehlungen, offene Punkte</h4>'+kv([['Mängel',a.maengel],['Sanierungsmöglichkeiten',a.empf],['Offene Punkte',a.offen]])+photosHTML('abs')+'</section>';
+  var padH='';
+  PADSTEPS.forEach(function(k){var u=padPng(k);if(u){var sn=C.STEPS.filter(function(x){return x.k===k})[0];padH+='<div style="margin:.4rem 0"><b>'+esc(sn?sn.n:k)+'</b><br><img src="'+u+'" alt="Handschriftliche Notiz" style="max-width:100%;border:1px solid #C1C1C1"></div>'}});
+  if(padH) h+='<section><h4>8. Handschriftliche Notizen</h4>'+padH+'</section>';
   var M=C.missing(E);
   if(M.length) h+='<section><h4>Noch fehlende Angaben</h4><div>'+M.map(function(m){return '• '+esc(m.t)}).join('<br>')+'</div></section>';
   return h+'</div>';
@@ -923,6 +941,150 @@ function viewBlatt(){
 }
 
 var MISSSTEPS=['stamm','geo','bt','fl','anl'];
+/* ---------- Notizfeld für Stifteingabe (je Schritt ein Feld, Striche in Feldbreite 1000 gespeichert) ---------- */
+var PADSTEPS=['stamm','geo','bt','fl','anl','abs'];
+var PAD_COL=['#23282B','#1F5FA8','#B03A2E'],PAD_W=[2.2,3.6,6.5],PAD_MIN=150,PAD_MAX=2000,PAD_H0=300;
+var padSt={tool:'pen',col:0,w:1,po:false,poUser:false,cur:null,clr:null};
+function padGet(key){var d=E.pads&&E.pads[key];return (d&&d.s instanceof Array)?d:{h:PAD_H0,s:[]}}
+function padPut(key,d){
+  if(!E.pads) E.pads={};
+  if(!d.s.length&&d.h===PAD_H0) delete E.pads[key];else E.pads[key]={h:d.h,s:d.s};
+  touch();
+}
+function padCount(){var n=0;for(var k in (E.pads||{})) if((E.pads[k].s||[]).length) n++;return n}
+function padBox(key){
+  var d=padGet(key);
+  var tb='<div class="pad-tb erf-padtb" data-padtb="'+key+'">'+
+    '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-pen" data-x="'+key+'">Stift</button><button type="button" class="pad-b" data-a="pad-er" data-x="'+key+'">Radierer</button></span>'+
+    '<span class="pad-g"><button type="button" class="pad-b col" data-a="pad-col" data-x="'+key+'" data-y="0" style="--c:'+PAD_COL[0]+'" aria-label="schwarz"><i></i></button><button type="button" class="pad-b col" data-a="pad-col" data-x="'+key+'" data-y="1" style="--c:'+PAD_COL[1]+'" aria-label="blau"><i></i></button><button type="button" class="pad-b col" data-a="pad-col" data-x="'+key+'" data-y="2" style="--c:'+PAD_COL[2]+'" aria-label="rot"><i></i></button></span>'+
+    '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-w" data-x="'+key+'" data-y="0">dünn</button><button type="button" class="pad-b" data-a="pad-w" data-x="'+key+'" data-y="1">mittel</button><button type="button" class="pad-b" data-a="pad-w" data-x="'+key+'" data-y="2">dick</button></span>'+
+    '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-undo" data-x="'+key+'">Rückgängig</button><button type="button" class="pad-b" data-a="pad-clear" data-x="'+key+'" data-padclr="'+key+'">Alles löschen</button></span>'+
+    '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-lo" data-x="'+key+'" aria-label="Feld niedriger">Höhe −</button><button type="button" class="pad-b" data-a="pad-hi" data-x="'+key+'" aria-label="Feld höher">Höhe +</button><button type="button" class="pad-b" data-a="pad-po" data-x="'+key+'" title="Nur der Stift zeichnet, Finger und Handballen werden ignoriert">Nur Stift</button></span></div>';
+  return sec('Notizen und Skizzen, Handschrift',tb+'<div class="pad-wrap"><canvas class="erf-padc" data-pad="'+key+'" aria-label="Notizfeld, mit Stift oder Finger beschreibbar"></canvas></div><div class="pad-grip" data-padgrip="'+key+'" role="separator" aria-label="Höhe des Notizfelds ziehen">Höhe ziehen</div>'+
+    '<div class="erf-hint">Mit dem Stift oder Finger schreiben und zeichnen. „Nur Stift“ ignoriert Finger und Handballen (schaltet sich beim ersten Stiftstrich selbst ein). Auf dem Feld scrollt der Finger nicht, zum Scrollen neben das Feld greifen. Die Notiz wird mit dem Kunden gespeichert und steht im Datenblatt.</div>','erf-pad');
+}
+function padCanvas(key){return main?main.querySelector('canvas[data-pad="'+key+'"]'):null}
+function padK(c){return c&&c.clientWidth>0?c.clientWidth/1000:0}
+function padLayout(c,d){
+  var k=padK(c);if(!k) return false;
+  var r=window.devicePixelRatio||1,w=Math.round(c.clientWidth*r),h=Math.round(d.h*k*r);
+  c.style.height=(d.h*k)+'px';
+  if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+  return true;
+}
+function padStroke(g,st,k){
+  var p=st[2],n=p.length/2;if(n<1) return;
+  g.strokeStyle=PAD_COL[st[0]]||PAD_COL[0];g.fillStyle=g.strokeStyle;g.lineWidth=st[1]*k;g.lineCap='round';g.lineJoin='round';
+  if(n===1){g.beginPath();g.arc(p[0]*k,p[1]*k,st[1]*k/2,0,6.2832);g.fill();return}
+  g.beginPath();g.moveTo(p[0]*k,p[1]*k);
+  for(var i=1;i<n-1;i++){var mx=(p[2*i]+p[2*i+2])/2,my=(p[2*i+1]+p[2*i+3])/2;g.quadraticCurveTo(p[2*i]*k,p[2*i+1]*k,mx*k,my*k)}
+  g.lineTo(p[2*n-2]*k,p[2*n-1]*k);g.stroke();
+}
+function padDraw(key){
+  var c=padCanvas(key);if(!c) return;var d=padGet(key);if(!padLayout(c,d)) return;
+  var g=c.getContext('2d'),k=padK(c)*(window.devicePixelRatio||1);
+  g.clearRect(0,0,c.width,c.height);
+  d.s.forEach(function(st){padStroke(g,st,k)});
+}
+/* Notiz als PNG für das Datenblatt (weißer Grund, Feldbreite 1000 Pixel) */
+function padPng(key){
+  var d=padGet(key);if(!d.s.length) return '';
+  var c=document.createElement('canvas');c.width=1000;c.height=d.h;
+  var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
+  d.s.forEach(function(st){padStroke(g,st,1)});
+  try{return c.toDataURL('image/png')}catch(e){return ''}
+}
+function padErase(d,pt){
+  var r=14,n=d.s.length;
+  function dist2(x,y,ax,ay,bx,by){var vx=bx-ax,vy=by-ay,l=vx*vx+vy*vy,t=l>0?Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/l)):0,dx=ax+t*vx-x,dy=ay+t*vy-y;return dx*dx+dy*dy}
+  d.s=d.s.filter(function(st){var p=st[2];if(p.length<4) return dist2(pt[0],pt[1],p[0],p[1],p[0],p[1])>=r*r;for(var i=0;i<p.length-2;i+=2){if(dist2(pt[0],pt[1],p[i],p[i+1],p[i+2],p[i+3])<r*r) return false}return true});
+  return d.s.length!==n;
+}
+function padTools(){
+  if(!main) return;
+  [].forEach.call(main.querySelectorAll('.erf-padtb [data-a]'),function(b){
+    var a=b.getAttribute('data-a'),on=null,y=+b.getAttribute('data-y');
+    if(a==='pad-pen') on=padSt.tool==='pen';else if(a==='pad-er') on=padSt.tool==='er';
+    else if(a==='pad-col') on=(y===padSt.col);else if(a==='pad-w') on=(y===padSt.w);else if(a==='pad-po') on=padSt.po;
+    if(on!==null) b.setAttribute('aria-pressed',on?'true':'false');
+  });
+  [].forEach.call(main.querySelectorAll('canvas.erf-padc'),function(c){c.style.cursor=padSt.tool==='er'?'cell':'crosshair'});
+}
+function padAction(a,key,y){
+  var d=padGet(key);
+  switch(a){
+    case 'pad-pen':padSt.tool='pen';break;
+    case 'pad-er':padSt.tool='er';break;
+    case 'pad-col':padSt.col=+y;padSt.tool='pen';break;
+    case 'pad-w':padSt.w=+y;padSt.tool='pen';break;
+    case 'pad-po':padSt.po=!padSt.po;padSt.poUser=true;break;
+    case 'pad-undo':if(d.s.length){d.s.pop();padPut(key,d);padDraw(key)}break;
+    case 'pad-clear':{
+      var b=main.querySelector('[data-padclr="'+key+'"]');if(!d.s.length||!b) break;
+      if(padSt.clr){clearTimeout(padSt.clr);padSt.clr=null;d.s=[];padPut(key,d);padDraw(key);b.textContent='Alles löschen';break}
+      b.textContent='Wirklich löschen?';padSt.clr=setTimeout(function(){padSt.clr=null;b.textContent='Alles löschen'},3000);break;
+    }
+    case 'pad-lo':d.h=Math.max(PAD_MIN,d.h-100);padPut(key,d);padDraw(key);break;
+    case 'pad-hi':d.h=Math.min(PAD_MAX,d.h+100);padPut(key,d);padDraw(key);break;
+  }
+  padTools();
+}
+function padInit(){
+  if(!main) return;
+  padTools();
+  [].forEach.call(main.querySelectorAll('canvas.erf-padc'),function(c){
+    var key=c.getAttribute('data-pad');
+    function pt(ev){var r=c.getBoundingClientRect(),k=padK(c);return [Math.round((ev.clientX-r.left)/k*10)/10,Math.round((ev.clientY-r.top)/k*10)/10]}
+    function accept(ev){
+      if(ev.pointerType==='pen'&&!padSt.po&&!padSt.poUser){padSt.po=true;padTools()}
+      if(padSt.po&&ev.pointerType!=='pen'&&ev.pointerType!=='mouse') return false;
+      return true;
+    }
+    var cur=null,d=null;
+    c.addEventListener('pointerdown',function(ev){
+      if(ev.button>0&&ev.pointerType==='mouse') return;
+      if(!accept(ev)) return;
+      ev.preventDefault();try{c.setPointerCapture(ev.pointerId)}catch(x){}
+      d=padGet(key);
+      var er=(padSt.tool==='er')||(ev.pointerType==='pen'&&(ev.buttons&32)),p0=pt(ev);
+      cur={id:ev.pointerId,er:er,chg:false};
+      if(er){cur.chg=padErase(d,p0);if(cur.chg) {E.pads[key]=d;padDraw(key)}}
+      else{cur.st=[padSt.col,PAD_W[padSt.w],[p0[0],p0[1]]];d.s.push(cur.st);E.pads=E.pads||{};E.pads[key]=d;padDraw(key)}
+    });
+    c.addEventListener('pointermove',function(ev){
+      if(!cur||cur.id!==ev.pointerId) return;
+      ev.preventDefault();
+      var evs=(ev.getCoalescedEvents&&ev.getCoalescedEvents())||[];if(!evs.length) evs=[ev];
+      var g=c.getContext('2d'),k=padK(c)*(window.devicePixelRatio||1);
+      evs.forEach(function(e){
+        var q=pt(e);
+        if(cur.er){if(padErase(d,q)){cur.chg=true;E.pads[key]=d;padDraw(key)}return}
+        var p=cur.st[2],lx=p[p.length-2],ly=p[p.length-1];
+        if(Math.abs(q[0]-lx)+Math.abs(q[1]-ly)<0.8) return;
+        g.strokeStyle=PAD_COL[cur.st[0]];g.lineWidth=cur.st[1]*k;g.lineCap='round';g.beginPath();g.moveTo(lx*k,ly*k);g.lineTo(q[0]*k,q[1]*k);g.stroke();
+        p.push(q[0],q[1]);
+      });
+    });
+    function up(ev){
+      if(!cur||cur.id!==ev.pointerId) return;
+      var u=cur;cur=null;
+      if(!u.er){padDraw(key);padPut(key,d)}else if(u.chg){padPut(key,d)}
+    }
+    c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+    c.addEventListener('contextmenu',function(ev){ev.preventDefault()});
+    var gr=main.querySelector('[data-padgrip="'+key+'"]'),gs=null;
+    if(gr){
+      gr.addEventListener('pointerdown',function(ev){gs={y:ev.clientY,h:padGet(key).h};try{gr.setPointerCapture(ev.pointerId)}catch(x){}ev.preventDefault()});
+      gr.addEventListener('pointermove',function(ev){if(!gs) return;var k=padK(c);if(!k) return;var dd=padGet(key);dd.h=Math.max(PAD_MIN,Math.min(PAD_MAX,Math.round(gs.h+(ev.clientY-gs.y)/k)));if(!E.pads) E.pads={};E.pads[key]=dd;padDraw(key)});
+      var gend=function(){if(gs){gs=null;padPut(key,padGet(key))}};
+      gr.addEventListener('pointerup',gend);gr.addEventListener('pointercancel',gend);
+    }
+    padDraw(key);
+    if(!padK(c)) setTimeout(function(){padDraw(key)},60);
+  });
+}
+window.addEventListener('resize',function(){if(isOpen&&main) [].forEach.call(main.querySelectorAll('canvas.erf-padc'),function(c){padDraw(c.getAttribute('data-pad'))})});
+
 function missBox(){
   var M=C.missing(E).filter(function(m){return m.step===step});
   if(!M.length) return '<span class="erf-okt">✓ In diesem Bereich ist alles Wichtige eingetragen.</span>';
@@ -946,6 +1108,7 @@ function applyMiss(){
 }
 function render(){
   if(!main) return;
+  C.setGebBj(E.g.bj);
   var st=main.scrollTop;
   var h;
   switch(step){
@@ -960,9 +1123,10 @@ function render(){
     default:h='';
   }
   if(MISSSTEPS.indexOf(step)>=0) h='<div class="erf-missbox" data-out="missbox"></div>'+h;
+  if(PADSTEPS.indexOf(step)>=0) h+=padBox(step);
   main.innerHTML='<div class="erf-in">'+h+'</div>';
   main.scrollTop=st;
-  drawNav();updateOuts();
+  drawNav();updateOuts();padInit();
 }
 function drawNav(){
   nav.innerHTML=C.STEPS.map(function(s,i){return '<button type="button" data-a="step" data-x="'+s.k+'" aria-current="'+(s.k===step)+'"><span class="erf-num" data-num="'+s.k+'">'+(i+1)+'</span>'+esc(s.n)+((s.k==='blatt'||s.k==='abs'||s.k==='kunde')?'':'<span class="erf-bd" data-bd="'+s.k+'"></span>')+'</button>'}).join('');
@@ -987,6 +1151,7 @@ function actions(a,t){
   var fl,r,o;
   switch(a){
     case 'step':go(x);return;
+    case 'pad-pen':case 'pad-er':case 'pad-col':case 'pad-w':case 'pad-po':case 'pad-undo':case 'pad-clear':case 'pad-lo':case 'pad-hi':padAction(a,x,y);return;
     case 'floor-sel':curFloor=x;selWall=null;render();return;
     case 'floor-add':{
       var p=FLOOR_PRESETS[x]||{n:'Geschoss',art:'voll',heated:true,h:'2,50'};
@@ -1213,16 +1378,18 @@ function hasData(){
   for(var u in E.unterl) if(E.unterl[u]==='1') return true;
   if(photoCount()) return true;
   for(var a in E.abs) if(has(E.abs[a])) return true;
+  if(padCount()) return true;
   return false;
 }
 window.ERF={
   init:function(o){o=o||{};onChange=o.onChange||function(){};onClose=o.onClose||function(){};KD=o.kunden||null},
   open:open,close:close,
   getData:function(noPhotos){if(!hasData()) return null;var c=clone(E);if(noPhotos) c.photos={};return c},
-  setData:function(d){E=C.normalize(d?clone(d):C.newErf());curFloor=null;selWall=null;selKat=null;selSurf=null;if(E.gesch.length) curFloor=E.gesch[0].id;if(isOpen) render()},
+  setData:function(d){E=C.normalize(d?clone(d):C.newErf());C.setGebBj(E.g.bj);curFloor=null;selWall=null;selKat=null;selSurf=null;if(E.gesch.length) curFloor=E.gesch[0].id;if(isOpen) render()},
   pdf:function(){return sheetPdfBlob()},
   reset:function(){E=C.newErf();curFloor=null;selWall=null;selKat=null;selSurf=null;step='kunde';if(isOpen) render()},
-  openCount:function(){return hasData()?C.missing(E).length:null},
+  openCount:function(){C.setGebBj(E.g.bj);return hasData()?C.missing(E).length:null},
+  checkWerte:function(){return C.checkWerte(E)},
   hasData:hasData,
   isOpen:function(){return isOpen}
 };

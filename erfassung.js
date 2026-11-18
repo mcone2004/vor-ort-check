@@ -945,10 +945,10 @@ var MISSSTEPS=['stamm','geo','bt','fl','anl'];
 var PADSTEPS=['stamm','geo','bt','fl','anl','abs'];
 var PAD_COL=['#23282B','#1F5FA8','#B03A2E'],PAD_W=[2.2,3.6,6.5],PAD_MIN=150,PAD_MAX=2000,PAD_H0=300;
 var padSt={tool:'pen',col:0,w:1,cur:null,clr:null};
-function padGet(key){var d=E.pads&&E.pads[key];return (d&&d.s instanceof Array)?d:{h:PAD_H0,s:[]}}
+function padGet(key){var d=E.pads&&E.pads[key];return (d&&d.s instanceof Array)?d:{h:PAD_H0,s:[],lk:0}}
 function padPut(key,d){
   if(!E.pads) E.pads={};
-  if(!d.s.length&&d.h===PAD_H0) delete E.pads[key];else E.pads[key]={h:d.h,s:d.s};
+  if(!d.s.length&&d.h===PAD_H0&&!d.lk) delete E.pads[key];else E.pads[key]={h:d.h,s:d.s,lk:d.lk?1:0};
   touch();
 }
 function padCount(){var n=0;for(var k in (E.pads||{})) if((E.pads[k].s||[]).length) n++;return n}
@@ -958,6 +958,7 @@ function padBox(key){
     '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-pen" data-x="'+key+'">Stift</button><button type="button" class="pad-b" data-a="pad-er" data-x="'+key+'">Radierer</button></span>'+
     '<span class="pad-g"><button type="button" class="pad-b col" data-a="pad-col" data-x="'+key+'" data-y="0" style="--c:'+PAD_COL[0]+'" aria-label="schwarz"><i></i></button><button type="button" class="pad-b col" data-a="pad-col" data-x="'+key+'" data-y="1" style="--c:'+PAD_COL[1]+'" aria-label="blau"><i></i></button><button type="button" class="pad-b col" data-a="pad-col" data-x="'+key+'" data-y="2" style="--c:'+PAD_COL[2]+'" aria-label="rot"><i></i></button></span>'+
     '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-w" data-x="'+key+'" data-y="0">dünn</button><button type="button" class="pad-b" data-a="pad-w" data-x="'+key+'" data-y="1">mittel</button><button type="button" class="pad-b" data-a="pad-w" data-x="'+key+'" data-y="2">dick</button></span>'+
+    '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-lock" data-x="'+key+'" title="Gesperrt kann nichts mehr gezeichnet, radiert oder gelöscht werden">Sperren</button></span>'+
     '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-undo" data-x="'+key+'">Rückgängig</button><button type="button" class="pad-b" data-a="pad-clear" data-x="'+key+'" data-padclr="'+key+'">Alles löschen</button></span>'+
     '<span class="pad-g"><button type="button" class="pad-b" data-a="pad-lo" data-x="'+key+'" aria-label="Feld niedriger">Höhe −</button><button type="button" class="pad-b" data-a="pad-hi" data-x="'+key+'" aria-label="Feld höher">Höhe +</button></span></div>';
   return sec('Notizen und Skizzen, Handschrift',tb+'<div class="pad-wrap"><canvas class="erf-padc" data-pad="'+key+'" aria-label="Notizfeld, nur mit dem Stift beschreibbar"></canvas></div><div class="pad-grip" data-padgrip="'+key+'" role="separator" aria-label="Höhe des Notizfelds ziehen">Höhe ziehen</div>'+
@@ -1003,7 +1004,9 @@ function padErase(d,pt){
 function padTools(){
   if(!main) return;
   [].forEach.call(main.querySelectorAll('.erf-padtb [data-a]'),function(b){
-    var a=b.getAttribute('data-a'),on=null,y=+b.getAttribute('data-y');
+    var a=b.getAttribute('data-a'),on=null,y=+b.getAttribute('data-y'),lk=!!padGet(b.getAttribute('data-x')).lk;
+    if(a==='pad-lock'){b.setAttribute('aria-pressed',lk?'true':'false');b.textContent=lk?'Gesperrt':'Sperren';return}
+    b.disabled=lk;
     if(a==='pad-pen') on=padSt.tool==='pen';else if(a==='pad-er') on=padSt.tool==='er';
     else if(a==='pad-col') on=(y===padSt.col);else if(a==='pad-w') on=(y===padSt.w);
     if(on!==null) b.setAttribute('aria-pressed',on?'true':'false');
@@ -1012,6 +1015,8 @@ function padTools(){
 }
 function padAction(a,key,y){
   var d=padGet(key);
+  if(a==='pad-lock'){d.lk=d.lk?0:1;padPut(key,d);padTools();return}
+  if(d.lk) return;
   switch(a){
     case 'pad-pen':padSt.tool='pen';break;
     case 'pad-er':padSt.tool='er';break;
@@ -1039,6 +1044,7 @@ function padInit(){
     c.addEventListener('pointerdown',function(ev){
       if(ev.button>0&&ev.pointerType==='mouse') return;
       if(!accept(ev)) return;
+      if(padGet(key).lk) return;
       ev.preventDefault();try{c.setPointerCapture(ev.pointerId)}catch(x){}
       d=padGet(key);
       var er=(padSt.tool==='er')||(ev.pointerType==='pen'&&(ev.buttons&32)),p0=pt(ev);
@@ -1069,7 +1075,7 @@ function padInit(){
     c.addEventListener('contextmenu',function(ev){ev.preventDefault()});
     var gr=main.querySelector('[data-padgrip="'+key+'"]'),gs=null;
     if(gr){
-      gr.addEventListener('pointerdown',function(ev){gs={y:ev.clientY,h:padGet(key).h};try{gr.setPointerCapture(ev.pointerId)}catch(x){}ev.preventDefault()});
+      gr.addEventListener('pointerdown',function(ev){if(padGet(key).lk) return;gs={y:ev.clientY,h:padGet(key).h};try{gr.setPointerCapture(ev.pointerId)}catch(x){}ev.preventDefault()});
       gr.addEventListener('pointermove',function(ev){if(!gs) return;var k=padK(c);if(!k) return;var dd=padGet(key);dd.h=Math.max(PAD_MIN,Math.min(PAD_MAX,Math.round(gs.h+(ev.clientY-gs.y)/k)));if(!E.pads) E.pads={};E.pads[key]=dd;padDraw(key)});
       var gend=function(){if(gs){gs=null;padPut(key,padGet(key))}};
       gr.addEventListener('pointerup',gend);gr.addEventListener('pointercancel',gend);
@@ -1146,7 +1152,7 @@ function actions(a,t){
   var fl,r,o;
   switch(a){
     case 'step':go(x);return;
-    case 'pad-pen':case 'pad-er':case 'pad-col':case 'pad-w':case 'pad-undo':case 'pad-clear':case 'pad-lo':case 'pad-hi':padAction(a,x,y);return;
+    case 'pad-pen':case 'pad-er':case 'pad-col':case 'pad-lock':case 'pad-w':case 'pad-undo':case 'pad-clear':case 'pad-lo':case 'pad-hi':padAction(a,x,y);return;
     case 'floor-sel':curFloor=x;selWall=null;render();return;
     case 'floor-add':{
       var p=FLOOR_PRESETS[x]||{n:'Geschoss',art:'voll',heated:true,h:'2,50'};

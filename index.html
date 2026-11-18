@@ -902,10 +902,16 @@ body[data-mode="kunden"] .kg .kc-ic.kc-del:hover{color:#B3261E}
 body[data-mode="kunden"] .kg-ft{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:auto}
 body[data-mode="kunden"] .kg-ft .kg-add{min-height:2.75rem;padding:.3rem .9rem;font-size:.88rem;font-weight:600;border-radius:10px;background:transparent;border:1px solid var(--fb)}
 body[data-mode="kunden"] .kg-ft .kg-add:hover{background:var(--btn-h)}
+.hdr-act .hdr-last{background:none;border:0;padding:.1rem .2rem;min-height:32px;font-family:var(--f-data);font-size:.8rem;font-weight:600;color:#C9CED3;text-align:right;border-radius:6px;cursor:pointer}
+.hdr-act .hdr-last:hover{background:rgba(255,255,255,.12)}
+.hdr-act .hdr-last[hidden]{display:none}
+.hdr-act .hdr-last{order:9;flex:0 0 100%;min-height:28px}
+@media (max-width:900px){.hdr-act .hdr-last{text-align:left;padding-left:.1rem}}
+.hdr-act .hdr-last[data-kind="err"],.hdr-act .hdr-last[data-kind="offline"]{color:#fff;text-decoration:underline;text-underline-offset:3px}
 </style>
 </head><body>
 <header class="top"><div>
-  <div class="hdr-act" id="hdract" hidden><span id="hdrkd" class="hdr-kd"></span><button type="button" id="hdr_sync" class="hdr-sync" hidden>Abgleichen</button><button type="button" id="hdr_home">Start</button><button type="button" id="kd_new">Neuer Kunde</button></div>
+  <div class="hdr-act" id="hdract" hidden><span id="hdrkd" class="hdr-kd"></span><button type="button" id="hdr_last" class="hdr-last" hidden></button><button type="button" id="hdr_sync" class="hdr-sync" hidden>Abgleichen</button><button type="button" id="hdr_home">Start</button><button type="button" id="kd_new">Neuer Kunde</button></div>
   <h1 id="hdr_t">Vor-Ort-Check Sanierung</h1>
   <p id="hdr_p">Wärmepumpe direkt oder erst die Hülle? Grobe Einschätzung beim Erstgespräch aus Baujahr, Bauteilen, Heizung und Verbrauch. Das Ergebnis ändert sich beim Tippen.</p>
   <p class="offstate" id="netstate" data-kind="off">Offline</p>
@@ -4245,7 +4251,7 @@ function localBackend(){
     save:function(id,data){var rec=Object.assign({},data,{id:id,deleted:false});return put(rec).then(function(){emit();api.changed()})},
     remove:function(id){var rec={id:id,deleted:true,updated:new Date().toISOString()};return put(rec).then(function(){emit();api.changed()})},
     all:function(){return all},
-    putRemote:function(rec){rec._s=rec.updated;return put(rec).then(emit)},
+    putRemote:function(rec){rec._s=rec.updated;return put(rec).then(emit).then(function(){if(api.remote) api.remote(rec.id)})},
     markSynced:function(id,updated){var r=all[id];if(r&&r.updated===updated){r._s=updated;return put(r)}return Promise.resolve()},
     pending:function(){return Object.keys(all).filter(function(k){return all[k]._s!==all[k].updated}).length},
     changed:function(){},
@@ -4257,7 +4263,7 @@ function localBackend(){
 // Abgleich mit WordPress über die REST-Schnittstelle. Jeder Kunde ist ein Eintrag im Inhaltstyp ocheck (früher: privater Beitrag), Slug ocheck-<id>, Inhalt als Base64-JSON,
 // damit der WordPress-HTML-Filter nichts verändert. Anmeldung mit Anwendungspasswort, Konfiguration nur auf diesem Gerät.
 function makeSync(be,setState){
-  var KEY='ocheck.sync',LKEY='ocheck.sync.legacy',busy=false,timer=null,lastOk=null,authBlocked=false;
+  var KEY='ocheck.sync',LKEY='ocheck.sync.legacy',LAST='ocheck.sync.last',busy=false,timer=null,lastOk=null,authBlocked=false;
   function cfg(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}}
   function legacyDone(){try{return localStorage.getItem(LKEY)==='1'}catch(e){return false}}
   function saveCfg(c){authBlocked=false;try{localStorage.setItem(KEY,JSON.stringify(c))}catch(e){}}
@@ -4425,7 +4431,7 @@ function makeSync(be,setState){
     }).then(function(){
       // Umzug abgeschlossen: alte Beiträge werden nicht mehr gelesen. Die alten Beiträge selbst löschst du in WordPress von Hand.
       if(cpt&&legacyListed){try{localStorage.setItem(LKEY,'1')}catch(e){}}
-      busy=false;lastOk=new Date();
+      busy=false;lastOk=new Date();try{localStorage.setItem(LAST,lastOk.toISOString())}catch(e){}
       setState({kind:'ok',text:'Abgleich '+lastOk.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+(pulled||done?' ('+(pulled?pulled+' geladen':'')+(pulled&&done?', ':'')+(done?done+' gesendet':'')+')':'')+(moved?', '+moved+' in den neuen Speicher übernommen':'')+(fresh?', '+fresh+' neu aus dem Cockpit':'')+(cpt?'':', Plugin fehlt: alter Speicher')+(stat?', '+stat+' Objekt(e) laut Cockpit '+(statWant?'archiviert':'wieder aktiv'):'')+inboxNote});
     },function(e){
       busy=false;if(e.code==='auth') authBlocked=true;
@@ -4485,7 +4491,8 @@ function makeSync(be,setState){
       return ok.reduce(function(pr,x){return pr.then(function(){return req(c,OLD+'/'+x.wp,{method:'DELETE'}).then(function(){done++})})},Promise.resolve()).then(function(){return {ok:done,keep:keep,total:old.length}});
     });
   }
-  return {cleanup:cleanup,cfg:cfg,saveCfg:saveCfg,diag:diag,run:run,soon:soon,test:test,pendingText:function(){var n=be.pending();return n?n+' Änderung(en) noch nicht abgeglichen':''}};
+  function lastAt(){var v=null;try{v=localStorage.getItem(LAST)}catch(e){}var d=v?new Date(v):null;return d&&!isNaN(d)?d:null}
+  return {lastAt:lastAt,cleanup:cleanup,cfg:cfg,saveCfg:saveCfg,diag:diag,run:run,soon:soon,test:test,pendingText:function(){var n=be.pending();return n?n+' Änderung(en) noch nicht abgeglichen':''}};
 }
 
 function exportFile(be){
@@ -5319,11 +5326,30 @@ function initKunden(backendP){
     $('kd_ovpw').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();go()}});
     $('kd_ovno').addEventListener('click',function(){ovDel=null;$('kd_ovpw').value='';$('kd_ovbox').hidden=true;ovSay('');renderOv()});
   }
+  // Header: wann zuletzt erfolgreich abgeglichen wurde (steht auch nach Neustart der App da). Antippen gleicht sofort ab.
+  var lastSt={kind:'off',text:''};
+  function hdrLast(st){
+    if(st) lastSt=st;
+    var b=$('hdr_last');if(!b||!sync) return;
+    var cf=sync.cfg();
+    if(!(cf&&cf.user&&cf.pw)){b.hidden=true;return}
+    var d=sync.lastAt(),now=new Date(),t='';
+    if(d){
+      var hm=d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+      t=(d.toDateString()===now.toDateString())?'heute '+hm:d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+' '+hm;
+    }
+    var k=lastSt.kind;
+    b.hidden=false;b.dataset.kind=k;
+    b.textContent=(k==='busy')?'Gleiche ab …':(k==='err'||k==='offline'?'Abgleich fehlgeschlagen. Zuletzt ':'Letzter Abgleich ')+(k==='busy'?'':(d?t:'noch nie'));
+    b.title=(lastSt.text?lastSt.text+'. ':'')+'Antippen gleicht jetzt ab.';
+  }
+  setInterval(function(){hdrLast()},30000);
   function setState(st){
     var el=$('kd_state');if(!el) return;
     el.textContent=st.text;el.dataset.kind=st.kind;
     var p=sync&&sync.pendingText();$('kd_pend').textContent=(p&&st.kind!=='busy')?p:'';
     // Knopf oben: nur sichtbar, wenn etwas abzugleichen ist (offene Änderungen) oder der letzte Abgleich scheiterte
+    hdrLast(st);
     var hb=$('hdr_sync');
     if(hb&&sync){
       var cf=sync.cfg(),n=be?be.pending():0,on=!!(cf&&cf.user&&cf.pw)&&(n>0||st.kind==='err'||st.kind==='busy');
@@ -5344,6 +5370,7 @@ function initKunden(backendP){
       smsg('Prüfe …');sync.test(c2).then(smsg,function(e){smsg(e.message)});
     });
     $('hdr_sync').addEventListener('click',function(){sync.run(true).catch(function(){})});
+    $('hdr_last').addEventListener('click',function(){sync.run(true).catch(function(){})});
     $('kd_sy_run').addEventListener('click',function(){sync.saveCfg(read());smsg('');sync.run(true).then(function(){smsg('Abgleich abgeschlossen.')},function(e){if(e&&e.code==='cors'){smsg(e.message+' Prüfe …');sync.diag(read()).then(function(d){smsg(e.message+' Diagnose: '+d)},function(){smsg(e.message)})}else smsg(e.message)})});
     $('kd_sy_clean').addEventListener('click',function(){
       sync.saveCfg(read());smsg('Prüfe …');
@@ -5442,6 +5469,12 @@ function initKunden(backendP){
     document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden') flush()});
     window.addEventListener('pagehide',flush);
     window.addEventListener('beforeunload',function(e){if(dirty&&!canAuto()){writeDraft();e.preventDefault();e.returnValue=''}else if(dirty){flush()}});
+    // Der Abgleich hat einen neueren Stand des gerade geöffneten Objekts geholt: anzeigen, sonst überschreibt das nächste Speichern ihn mit dem alten Formular.
+    be.remote=function(id){
+      if(!id||id!==curId||!docs[id]) return;
+      if(dirty){setAuto('warn','Auf einem anderen Gerät wurde neuer gespeichert. Speichern hier überschreibt das.');return}
+      load(id);msg('Neuerer Stand von einem anderen Gerät geladen: '+(docs[id].name||'Ohne Name')+', gespeichert am '+fmtDate(docs[id].updated)+'.');
+    };
     function onDocs(m){
       cfgRec=m[CFG]||null;docs={};allDocs={};Object.keys(m).forEach(function(k){if(k.indexOf('_cfg')!==0){allDocs[k]=m[k];if(!stOf(m[k])) docs[k]=m[k]}});
       Object.keys(docs).forEach(function(k){var d=docs[k];if(!d.kid&&d.copyOf&&docs[d.copyOf]){var m=/^(.*) – (Alternative \d+.*)$/.exec(d.name||'');if(m){d.name=m[1];d.olabel=d.olabel||m[2]}d.kid=kidOf(d.copyOf)}});
@@ -6327,7 +6360,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   })();
 
   (function(){
-    var BUILD='2026-11-18 08:10',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
+    var BUILD='2026-11-18 08:40',o=document.getElementById('offstate');window.__BUILD=BUILD;if(!o) return;
     var el=document.createElement('p');el.className='offstate';el.id='verstate';o.parentNode.insertBefore(el,o.nextSibling);
     var st='ok',txt='',busy=false;
     function fmt(b){var m=/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)$/.exec(b);if(!m) return b;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5]));

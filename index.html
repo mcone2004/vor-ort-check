@@ -887,6 +887,21 @@ body .ctabs button .cn,body .vbtabs button .cn{color:inherit}
 body .ctabs button[aria-current="true"] .cn,body .vbtabs button[aria-current="true"] .cn{color:var(--deep)}
 @media print{body{background:#fff!important;background-image:none!important}}
 @media (min-width:900px){html.desk .wrap,html.desk .top>div,html.desk body[data-mode="home"] .top>div,html.desk .home{max-width:75vw!important;margin-left:auto!important;margin-right:auto!important}}
+/* Kundenliste: Adresse in voller Breite, Icons als ruhige Leiste, Karten gleich hoch, Spaltenzahl nach Platz */
+body[data-mode="kunden"] .ov-list{grid-template-columns:repeat(auto-fill,minmax(min(100%,21rem),1fr));align-items:stretch;gap:1rem}
+body[data-mode="kunden"] .kg{display:flex;flex-direction:column;gap:.7rem;background:var(--inset);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem}
+body[data-mode="kunden"] .kg .kg-h{padding:0}
+body[data-mode="kunden"] .kg .ov-row.kc{display:grid;grid-template-columns:minmax(0,1fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+body[data-mode="kunden"] .kg .kc-main{min-height:0;padding:.8rem .95rem .6rem}
+body[data-mode="kunden"] .kg .kc-main strong{overflow-wrap:break-word;word-break:normal;hyphens:manual}
+body[data-mode="kunden"] .kg .kc-act{border-left:0;border-top:1px solid var(--line);justify-content:flex-end}
+body[data-mode="kunden"] .kg .kc-ic{min-width:3rem;min-height:2.6rem}
+body[data-mode="kunden"] .kg .kc-ic+.kc-ic{border-left:0}
+body[data-mode="kunden"] .kg .kc-ic.kc-del{color:var(--ink)}
+body[data-mode="kunden"] .kg .kc-ic.kc-del:hover{color:#B3261E}
+body[data-mode="kunden"] .kg-ft{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:auto}
+body[data-mode="kunden"] .kg-ft .kg-add{min-height:2.75rem;padding:.3rem .9rem;font-size:.88rem;font-weight:600;border-radius:10px;background:transparent;border:1px solid var(--fb)}
+body[data-mode="kunden"] .kg-ft .kg-add:hover{background:var(--btn-h)}
 </style>
 </head><body>
 <header class="top"><div>
@@ -5142,10 +5157,12 @@ function initKunden(backendP){
         r.appendChild(m);r.appendChild(b);gd.appendChild(r);
         if(id===ovDel){gd.appendChild(box);box.hidden=false;box.querySelector('#kd_ovname').textContent='Löschen: '+nm+', '+ad+(d.olabel?' ('+d.olabel+')':'')}
       });
-      if(g.all.length>=2){var cm=document.createElement('button');cm.type='button';cm.className='ghost kg-add kg-cmp';cm.setAttribute('data-act','cmp');cm.setAttribute('data-kid',g.k);cm.textContent='Objekte vergleichen';gd.appendChild(cm)}
-      var ab=document.createElement('button');ab.type='button';ab.className='ghost kg-add kg-arch';ab.setAttribute('data-act','archive');ab.setAttribute('data-kid',g.k);ab.textContent='Kunde archivieren';gd.appendChild(ab);
+      var ft=document.createElement('div');ft.className='kg-ft';
       var add=document.createElement('button');add.type='button';add.className='ghost kg-add';add.setAttribute('data-act','addobj');add.setAttribute('data-id',g.all[0]);add.setAttribute('data-kid',g.k);add.textContent='Objekt hinzufügen';
-      gd.appendChild(add);
+      ft.appendChild(add);
+      if(g.all.length>=2){var cm=document.createElement('button');cm.type='button';cm.className='ghost kg-add kg-cmp';cm.setAttribute('data-act','cmp');cm.setAttribute('data-kid',g.k);cm.textContent='Objekte vergleichen';ft.appendChild(cm)}
+      var ab=document.createElement('button');ab.type='button';ab.className='ghost kg-add kg-arch';ab.setAttribute('data-act','archive');ab.setAttribute('data-kid',g.k);ab.textContent='Kunde archivieren';ft.appendChild(ab);
+      gd.appendChild(ft);
       list.appendChild(gd);
     });
     if(ovDel&&!docs[ovDel]){ovDel=null;box.hidden=true;$('kd_ovpw').value=''}
